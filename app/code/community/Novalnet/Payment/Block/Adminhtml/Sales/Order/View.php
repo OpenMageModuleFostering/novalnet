@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_Block_Sales_Order_View
@@ -44,8 +44,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
 
             $this->_updateButton('order_invoice', 'label', Mage::helper('novalnet_payment')->__('Capture'));
 
-            if (in_array($paymentMethod, array(Novalnet_Payment_Model_Config::NN_PAYPAL,
-                        Novalnet_Payment_Model_Config::NN_TELEPHONE))) {
+            if ($paymentMethod == Novalnet_Payment_Model_Config::NN_PAYPAL) {
                 $this->_removeButton('order_invoice');
             }
 
@@ -77,6 +76,15 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
                     'onclick' => "confirmSetLocation('{$message}', '{$this->getVoidPaymentUrl()}')",
                 ));
             }
+			
+			if ($this->_isAllowedAction('ship') && $order->canShip()
+				&& !$order->getForcedDoShipmentWithInvoice()) {
+				$this->_addButton('order_ship', array(
+					'label'     => Mage::helper('sales')->__('Ship'),
+					'onclick'   => 'setLocation(\'' . $this->getShipUrl() . '\')',
+					'class'     => 'go'
+				));
+			}
         }
     }
 

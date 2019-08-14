@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus extends Mage_Adminhtml_Block_Widget_Grid
@@ -38,32 +38,59 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         $this->setSkipGenerateContent(true);
     }
 
+    /**
+     * Return Tab label
+     *
+     * @return string
+     */
     public function getTabLabel()
     {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Overview');
     }
 
+    /**
+     * Return Tab title
+     *
+     * @return string
+     */
     public function getTabTitle()
     {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Overview');
     }
 
+    /**
+     * Can show tab in tabs
+     *
+     * @return boolean
+     */
     public function canShowTab()
     {
         return true;
     }
 
+    /**
+     * Tab is hidden
+     *
+     * @return boolean
+     */
     public function isHidden()
     {
         return false;
     }
 
+    /**
+     * Return Tab class
+     *
+     * @return string
+     */
     public function getTabClass()
     {
         return 'ajax novalnet-widget-tab';
     }
 
     /**
+     * get current order
+     *
      * @return Mage_Sales_Model_Order
      */
     public function getOrder()
@@ -72,8 +99,9 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
     }
 
     /**
-     * @return Novalnet_Payment_Tab
-     * Order left column Tab
+     * Return tab url
+     *
+     * @return string
      */
     public function getTabUrl()
     {
@@ -83,6 +111,11 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         );
     }
 
+    /**
+     * Return grid url
+     *
+     * @return string
+     */
     public function getGridUrl()
     {
         return $this->getUrl('novalnet_payment/adminhtml_sales_order/transactionStatusGrid', array(
@@ -91,6 +124,11 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         );
     }
 
+    /**
+     * Return row url
+     *
+     * @return string
+     */
     public function getRowUrl($row)
     {
         return $this->getUrl('novalnet_payment/adminhtml_transaction/view', array(
@@ -99,6 +137,11 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         );
     }
 
+    /**
+     * Prepare order Collection for transaction status
+     *
+     * @return Novalnet_Payment_Model_TransactionStatus
+     */
     protected function _prepareCollection()
     {
         $collection = $this->getTransactionStatusCollection();
@@ -107,7 +150,9 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
     }
 
     /**
-     * @return Novalnet_Payment_Model_TransactionStatus
+     * Prepare order Collection for transaction status
+     *
+     * @return mixed
      */
     public function getTransactionStatusCollection()
     {
@@ -119,6 +164,11 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         return $transStatCollection;
     }
 
+    /**
+     * Define transaction status grid
+     *
+     * @return Novalnet_Payment_Model_TransactionStatus
+     */
     protected function _prepareColumns()
     {
         $helperNnPayment = $this->helperNovalnetPayment();
@@ -168,12 +218,18 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         return parent::_prepareColumns();
     }
 
+    /**
+     * Add coumn
+     *
+     * @return
+     */
     private function setColumn($field, $fieldColumnMap)
     {
         $this->addColumn($field, $fieldColumnMap);
     }
 
     /**
+     * Get Novalnet payment helper
      *
      * @return Novalnet_Payment_Helper_Data
      */

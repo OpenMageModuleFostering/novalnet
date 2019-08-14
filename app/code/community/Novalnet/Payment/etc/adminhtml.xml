@@ -1,4 +1,30 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment modulee of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
 <config>
     <menu>
         <novalnet translate="title" module="novalnet_payment">
@@ -32,12 +58,12 @@
                     <children>
                         <general module="novalnet_payment">
                             <title>General</title>
-                            <sort_order>10</sort_order>                            
+                            <sort_order>10</sort_order>
                             <action>adminhtml/system_config/edit/section/novalnet_global/</action>
                         </general>
                         <payment module="novalnet_payment">
                             <title>Payment Methods</title>
-                            <sort_order>20</sort_order>                            
+                            <sort_order>20</sort_order>
                             <action>adminhtml/system_config/edit/section/novalnet_paymethods/</action>
                         </payment>
                     </children>

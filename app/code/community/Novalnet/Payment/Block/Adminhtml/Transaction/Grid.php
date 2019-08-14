@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_Block_Widget_Grid
@@ -42,7 +42,9 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
     }
 
     /**
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * Prepare order Collection for novalnet transaction status
+     *
+     * @return Novalnet_Payment_Block_Adminhtml_Transaction_Grid
      */
     protected function _prepareCollection()
     {
@@ -52,7 +54,9 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
     }
 
     /**
-     * @return
+     * prepare column for massaction order grid
+     *
+     * @return Novalnet_Payment_Block_Adminhtml_Transaction_Grid
      */
     public function _prepareColumns()
     {
@@ -91,8 +95,9 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
     }
 
     /**
-     * @param $row
-     * @return bool|string
+     * Return row url
+     *
+     * @return string
      */
     public function getRowUrl($row)
     {
@@ -102,6 +107,11 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
         );
     }
 
+    /**
+     * Return grid url
+     *
+     * @return string
+     */
     public function getGridUrl()
     {
         return $this->getUrl('*/*/grid', array('_current' => true));

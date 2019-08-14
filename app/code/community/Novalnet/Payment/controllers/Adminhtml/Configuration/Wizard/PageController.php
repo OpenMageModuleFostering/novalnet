@@ -12,20 +12,25 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mage_Adminhtml_Controller_Action
 {
 
+    /**
+     * Init layout, menu and breadcrumb
+     *
+     * @return Mage_Adminhtml_Controller_Action
+     */
     protected function _initAction()
     {
         $this->loadLayout();
@@ -38,6 +43,10 @@ class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mag
         return $this;
     }
 
+    /**
+     * Configuration wizard
+     *
+     */
     public function indexAction()
     {
         $this->initConfig('index');
@@ -46,21 +55,40 @@ class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mag
         $this->renderLayout();
     }
 
+    /**
+     * Get config action
+     *
+     * @param string $actionName
+     * @return string
+     */
     protected function initConfig($actionName)
     {
         return $this->helperWizard()->initConfig($actionName, $this->getRequest());
     }
 
+    /**
+     * Get Novalnet Helper
+     *
+     * @return Novalnet_Payment_Helper_Data
+     */
     public function helperWizard()
     {
         return Mage::helper('novalnet_payment');
     }
 
+    /**
+     * Configuration global action
+     *
+     */
     public function generalGlobalAction()
     {
         $this->_editAction('generalGlobal');
     }
 
+    /**
+     * Configuration wizard edit action
+     *
+     */
     protected function _editAction($actionName)
     {
         $this->initConfig($actionName);
@@ -76,12 +104,20 @@ class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mag
         $this->renderLayout();
     }
 
+    /**
+     * page redirect
+     *
+     */
     public function _redirectByPageConfig()
     {
         $url = $this->helperWizard()->getNextPageUrlAsString();
         $this->_redirect($url, array('_current' => true));
     }
 
+    /**
+     * Save global configuration values
+     *
+     */
     public function saveAction()
     {
         $pageCode = $this->getRequest()->getParam('page_code');

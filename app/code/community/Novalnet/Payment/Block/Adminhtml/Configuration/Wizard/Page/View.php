@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Mage_Adminhtml_Block_Widget_View_Container
@@ -42,6 +42,11 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Ma
         ));
     }
 
+    /**
+     * Get configuration wizard page view
+     *
+     * @return mixed
+     */
     public function getViewHtml()
     {
         $html = '';
@@ -54,12 +59,22 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Ma
         return $html;
     }
 
+    /**
+     * Get configuration wizard next page url
+     *
+     * @return string
+     */
     protected function getNextUrl()
     {
         $url = $this->helperWizard()->getNextPageUrlAsString();
         return $this->getUrl($url, array('_current' => true));
     }
 
+    /**
+     * Get header text of configuration wizard page
+     *
+     * @return string
+     */
     public function getHeaderText()
     {
         $headerText = $this->getConfigPage('header_text');
@@ -67,17 +82,33 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Ma
         return $text;
     }
 
+    /**
+     * Get configuration page path
+     *
+     * @param string $path
+     * @return mixed
+     */
     public function getConfigPage($path)
     {
         $config = $this->helperWizard()->getConfigPage();
         return $config->getData($path);
     }
 
+    /**
+     * Get Novalnet payment helper
+     *
+     * @return Novalnet_Payment_Helper_Data
+     */
     public function helperWizard()
     {
         return Mage::helper('novalnet_payment');
     }
 
+    /**
+     * prepare layout
+     *
+     * @return
+     */
     protected function _prepareLayout()
     {
         $this->unsetChild('', '');

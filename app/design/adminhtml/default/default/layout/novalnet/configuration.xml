@@ -85,7 +85,6 @@
                    name="novalnet.config.wizard.page.switcher"
                    before="-"
                    template="novalnet/payment/configuration/store_switcher.phtml" />
-
         </reference>
     </novalnet_payment_adminhtml_configuration_wizard_page_index>
 

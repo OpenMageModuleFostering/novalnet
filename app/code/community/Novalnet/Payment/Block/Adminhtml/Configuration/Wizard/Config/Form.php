@@ -12,25 +12,28 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends Mage_Adminhtml_Block_System_Config_Form
 {
-
     /**
      * @var string
      */
     protected $_groupName = '';
 
+    /**
+     * prepare configuration wizard form layout
+     *
+     */
     protected function _prepareLayout()
     {
         $return = parent::_prepareLayout();
@@ -39,6 +42,7 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Initialize configuration wizard form
      *
      * @return Mage_Adminhtml_Block_System_Config_Form
      */
@@ -89,7 +93,9 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
         return $this;
     }
 
-    /**
+   /**
+     * Initialize configuration wizard form
+     *
      * @return Varien_Data_Form
      */
     protected function _initForm()
@@ -105,12 +111,19 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
         return $form;
     }
 
+    /**
+     * Get save url
+     *
+     * @return string
+     */
     protected function getSaveUrl()
     {
         return $this->getUrl('*/*/save', array('_current' => true));
     }
 
     /**
+     * Get group name
+     *
      * @return string
      */
     public function getGroupName()
@@ -119,6 +132,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Get page code
+     *
      * @return string
      */
     public function getPageCode()
@@ -127,6 +142,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Get section code
+     *
      * @return string
      */
     public function getSectionCode()
@@ -135,6 +152,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Get store
+     *
      * @return string
      */
     public function getStoreCode()
@@ -143,6 +162,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Get website
+     *
      * @return string
      */
     public function getWebsiteCode()
@@ -151,6 +172,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
+     * Get configuration page path
+     *
      * @param string $path
      * @return mixed
      */
@@ -161,7 +184,9 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     }
 
     /**
-     * @return Novalnet_Payment_Helper_Wizard
+     * Get Novalnet payment helper
+     *
+     * @return Novalnet_Payment_Helper_Data
      */
     public function helperWizard()
     {

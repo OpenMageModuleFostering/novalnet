@@ -12,27 +12,23 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->getLang() ?>" lang="<?php echo $this->getLang() ?>">
-    <head>
-        <?php echo $this->getChildHtml('head') ?>
-        <style>
-            body {background-color:transparent; background-image:none; text-align:left}
-        </style>
-    </head>
-    <body>
-        <?php echo $this->getChildHtml('content') ?>
-    </body>
-</html>
+class Novalnet_Payment_Model_Novalnet_Source_Cctypes extends Mage_Payment_Model_Source_Cctype
+{
+
+    public function getAllowedTypes()
+    {
+        return array('VI', 'MC', 'AE');
+    }
+
+}

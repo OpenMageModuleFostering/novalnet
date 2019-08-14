@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Adminhtml_TransactionoverviewController extends Mage_Adminhtml_Controller_Action
@@ -28,6 +28,7 @@ class Novalnet_Payment_Adminhtml_TransactionoverviewController extends Mage_Admi
 
     /**
      * @return Novalnet_NovalnetIdeal_Adminhtml_TransactionController
+     *
      */
     protected function _initAction()
     {
@@ -43,6 +44,7 @@ class Novalnet_Payment_Adminhtml_TransactionoverviewController extends Mage_Admi
     }
 
     /**
+     * Render layout
      *
      */
     public function indexAction()
@@ -52,6 +54,7 @@ class Novalnet_Payment_Adminhtml_TransactionoverviewController extends Mage_Admi
     }
 
     /**
+     * Create transaction overview block
      *
      */
     public function gridAction()
@@ -61,13 +64,16 @@ class Novalnet_Payment_Adminhtml_TransactionoverviewController extends Mage_Admi
         );
     }
 
+    /**
+     * View the transaction overview information
+     *
+     */
     public function viewAction()
     {
         $id = $this->getRequest()->getParam('nnlog_id');
         $modelTransOverview = Mage::helper('novalnet_payment')->getModelTransactionOverview()->load($id);
 
         if (empty($id) || !$modelTransOverview->getNnLogId()) {
-            //$this->_redirect('*/*/');
             $this->_forward('noRoute');
         }
 

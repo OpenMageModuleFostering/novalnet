@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_Block_Widget_Grid
@@ -45,7 +45,6 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
         if (!$this->novalnetPayments) {
             foreach ($payments as $paymentCode => $paymentModel) {
                 $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title');
-                //$this->novalnetPayments[$paymentCode] = $paymentTitle;
                 if (preg_match('/novalnet/i', $paymentCode)) {
                     $this->novalnetPayments[$paymentCode] = $paymentTitle;
                 }
@@ -65,6 +64,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     }
 
     /**
+     * Prepare order Collection for novalnet payments
+     *
      * @return Mage_Adminhtml_Block_Widget_Grid
      */
     protected function _prepareCollection()
@@ -78,12 +79,13 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
             $collection->getSelect()->join(array('payment' => $flatOrderPayment), 'main_table.entity_id = payment.parent_id', 'method')
                     ->where("`payment`.`method` like '%novalnet%'");
         }
-        //$collection->load(true); //debugging
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
 
     /**
+     * prepare column for order grid
+     *
      * @return Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid
      */
     public function _prepareColumns()
@@ -182,6 +184,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     }
 
     /**
+     * prepare column for massaction order grid
+     *
      * @return Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid
      */
     protected function _prepareMassaction()
@@ -240,7 +244,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     }
 
     /**
-     * @param $row
+     * Return row url
+     *
      * @return string
      */
     public function getRowUrl($row)
@@ -249,6 +254,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     }
 
     /**
+     * Return grid url
+     *
      * @return string
      */
     public function getGridUrl()

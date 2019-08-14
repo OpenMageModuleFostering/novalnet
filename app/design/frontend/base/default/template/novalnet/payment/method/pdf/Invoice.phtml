@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 $_info = $this->getInfo();
@@ -42,25 +42,50 @@ $currentUrl = Mage::helper('core/url')->getCurrentUrl();
             endforeach;
           endif;
 ?>{{pdf_row_separator}}
-<?php if (!preg_match("/creditmemo|shipment|callback_novalnet2magento/i", $currentUrl)) { ?>
+<?php if (!preg_match("/creditmemo|callback_novalnet2magento/i", $currentUrl)): ?>
 <?php
-if (strlen($this->getAdditionalData('NnNote'))) {
-    echo $this->getAdditionalData('NnNote');
-}
+if (strlen($this->getAdditionalData('NnNote'))):
+    if (strstr($this->getAdditionalData('NnNote'), 'br')):
+        echo nl2br($this->getAdditionalData('NnNote'));
+    else:
+        $note = explode('|',$this->getAdditionalData('NnNote'));
+        echo '<br><b>' . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG') . '</b></br>';
+        foreach($note as $noteValue):
+            list($text, $value) = explode(':', $noteValue);
+            echo $this->__($text) . ' : '. $value ?> {{pdf_row_separator}} <?php
+        endforeach;
+    endif;
+endif;
 ?>{{pdf_row_separator}}
 <?php
-if (strlen($this->getAdditionalData('NnNoteAmount'))) {
-    echo $this->getAdditionalData('NnNoteAmount');
-}
+if (strlen($this->getAdditionalData('NnNoteAmount'))):
+    list ($text, $value) = explode(':',$this->getAdditionalData('NnNoteAmount'));
+    echo $this->__($text) . ' : '. $value;
+endif;
 ?>{{pdf_row_separator}}
 <?php
-if (strlen($this->getAdditionalData('NnNoteTID'))) {
-    echo $this->getAdditionalData('NnNoteTID');
-}
+if (strlen($this->getAdditionalData('NnNoteTID'))):
+    if (strstr($this->getAdditionalData('NnNoteTID'), 'br')):
+        echo nl2br($this->getAdditionalData('NnNoteTID'));
+    else:
+        $note = explode('|',$this->getAdditionalData('NnNoteTID'));
+        echo "<br />";
+        foreach($note as $noteValue):
+            list($text, $value) = explode(':', $noteValue);
+            if ($text == 'NN_Reference3'):
+                list($referenceTxt, $value) = explode('&', $value);
+                str_replace('&', '', $referenceTxt);
+                echo $this->__($text) . ' : '. '<b>'.$this->__($referenceTxt) . ' '. $value . '</b></br>';
+            else:
+                echo $this->__($text) . ' : '. $value ?> {{pdf_row_separator}} <?php
+            endif;
+        endforeach;
+    endif;
+endif;
 ?>{{pdf_row_separator}}
 <?php
-if (strlen($this->getAdditionalData('NnComments'))) {
-    echo $this->getAdditionalData('NnComments');
-}
+if (strlen($this->getAdditionalData('NnComments'))):
+    echo nl2br($this->getAdditionalData('NnComments')) . '<br>';
+endif;
 ?>{{pdf_row_separator}}
-<?php } ?>
+<?php endif; ?>

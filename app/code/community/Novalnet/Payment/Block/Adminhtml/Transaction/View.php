@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_Block_Widget_Form_Container
@@ -52,17 +52,32 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_B
         return Mage::registry('current_order');
     }
 
+    /**
+     * get Novalnet transaction status
+     *
+     * @return string
+     */
     public function getNovalnetTransactionStatus()
     {
         return Mage::registry('novalnet_payment_transactionstatus');
     }
 
+    /**
+     * Get order currency code
+     *
+     * @return string
+     */
     public function getCurrencyCode()
     {
         $order = Mage::getModel("sales/order")->loadByIncrementId(trim($this->getNovalnetTransactionStatus()->getOrderId()));
         return $order->getOrderCurrencyCode();
     }
 
+    /**
+     * get payment method title
+     *
+     * @return string
+     */
     public function getPaymentTitle()
     {
         $transactionStatus = $this->getNovalnetTransactionStatus();
@@ -71,6 +86,8 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_B
     }
 
     /**
+     * Get header text of transaction status
+     *
      * @return string
      */
     public function getHeaderText()

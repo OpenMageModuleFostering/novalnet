@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
@@ -37,6 +37,7 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
      * @var array
      */
     protected $_files = array(
+        'jquery-1.10.2.min.js',
         'novalnetcc.js',
         'novalnetsepa.js',
     );
@@ -45,7 +46,6 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
      * Return path file.
      *
      * @param $file
-     *
      * @return string
      */
     public function getJQueryPath($file)
@@ -66,6 +66,9 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * Assign Form Data in quote instance based on payment method
      *
+     * $param string $paymentCode
+     * $param varien_object $data
+     * $param instance $infoInstance
      * @return Mage_Payment_Model_Abstract Object
      */
     public function assignNovalnetData($paymentCode, $data, $infoInstance)
@@ -78,14 +81,11 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
 
             switch ($paymentCode) {
                 case Novalnet_Payment_Model_Config::NN_CC:
-                    $methodSession->setCcFieldValidator($this->novalnetCardDetails('novalnet_cc_field_validator'))
-                            ->setCcPanHash($this->novalnetCardDetails('novalnet_cc_pan_hash'))
+
+                    $paymentInfo = $this->novalnetCardDetails('payment');
+                    $methodSession->setCcPanHash($this->novalnetCardDetails('novalnet_cc_hash'))
                             ->setCcUniqueId($this->novalnetCardDetails('novalnet_cc_unique_id'))
-                            ->setNnCcType($this->novalnetCardDetails('novalnet_cc_type'))
-                            ->setNnCcExpMonth($this->novalnetCardDetails('novalnet_cc_exp_month'))
-                            ->setNnCcExpYear($this->novalnetCardDetails('novalnet_cc_exp_year'))
-                            ->setNnCcCvc($this->novalnetCardDetails('novalnet_cc_cid'))
-                            ->setNnCcOwner($this->novalnetCardDetails('novalnet_cc_owner'))
+                            ->setNnCcCvc($paymentInfo['nn_cc_cid'])
                             ->setNnCallbackTelNovalnetCc($data->getCallbackTel())
                             ->setNnCallbackEmailNovalnetCc($data->getCallbackEmail());
                     $this->_getCheckout()->setNnPaymentCode($paymentCode);
@@ -100,12 +100,12 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                     break;
                 case Novalnet_Payment_Model_Config::NN_SEPA:
 
-                    $methodSession->setSepaHash($this->novalnetCardDetails('novalnet_sepa_pan_hash'))
-                            ->setSepaUniqueId($this->novalnetCardDetails('novalnet_sepa_unique_id'))
-                            ->setSepaHolder($this->novalnetCardDetails('novalnet_sepa_owner'))
-                            ->setIbanConfirmed($this->novalnetCardDetails('novalnet_sepa_iban_confirmed'))
+                    $paymentInfo = $this->novalnetCardDetails('payment');
+                    $methodSession->setSepaHash($this->novalnetCardDetails('result_sepa_hash'))
+                            ->setSepaUniqueId($this->novalnetCardDetails('result_mandate_unique'))
+                            ->setSepaHolder($paymentInfo['account_holder'])
+                            ->setIbanConfirmed($this->novalnetCardDetails('nnsepa_iban_confirmed'))
                             ->setSepaDuedate($this->getModel($paymentCode)->_getConfigData('sepa_due_date'))
-                            ->setSepaFieldValidator($this->novalnetCardDetails('novalnet_sepa_field_validator'))
                             ->setNnCallbackTelNovalnetSepa($data->getCallbackTel())
                             ->setNnCallbackEmailNovalnetSepa($data->getCallbackEmail());
                     $this->_getCheckout()->setNnPaymentCode($paymentCode);
@@ -135,6 +135,8 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * validate novalnet form data
      *
+     * $param string $paymentCode
+     * $param instance $infoInstance
      * throw Mage Exception
      */
     public function validateNovalnetData($paymentCode, $infoInstance)
@@ -148,16 +150,15 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                     Mage::throwException($this->__('Basic parameter not valid') . '!');
                 } elseif (!$getCardValues->getCcPanHash() || !$getCardValues->getCcUniqueId()) {
                     Mage::throwException($this->__('Please enter valid credit card details') . '!');
-                } elseif (!$this->checkIsValid($getCardValues->getNnCcOwner()) || !$this->_validateExpDate($getCardValues->getNnCcExpYear(), $getCardValues->getNnCcExpMonth())
-                        || !$this->checkIsNumeric($getCardValues->getNnCcCvc())) {
+                } elseif (!$this->checkIsNumeric($getCardValues->getNnCcCvc())) {
                     Mage::throwException($this->__('Please enter valid credit card details') . '!');
                 } elseif (!$creditCardSecure && $this->checkCallbackAmount($paymentCode)
-                        && $this->getModel($paymentCode)->_getConfigData('callback')
-                        == '1' && !$infoInstance->getNnCallbackTelNovalnetCc() && !$this->checkIsAdmin()) {
+                        && $this->getModel($paymentCode)->_getConfigData('callback') == '1'
+                        && !$infoInstance->getNnCallbackTelNovalnetCc() && !$this->checkIsAdmin()) {
                     Mage::throwException($this->__('Please enter the Telephone / Mobilenumber') . '!');
                 } elseif (!$creditCardSecure && $this->checkCallbackAmount($paymentCode)
-                        && $this->getModel($paymentCode)->_getConfigData('callback')
-                        == '3' && !$this->validateEmail($infoInstance->getNnCallbackEmailNovalnetCc())
+                        && $this->getModel($paymentCode)->_getConfigData('callback') == '3'
+                        && !$this->validateEmail($infoInstance->getNnCallbackEmailNovalnetCc())
                         && !$this->checkIsAdmin()) {
                     Mage::throwException($this->__('Please enter the E-Mail Address') . '!');
                 }
@@ -177,12 +178,12 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                 } elseif (!$sepaHolder || preg_match('/[#%\^<>@$=*!]/', $sepaHolder)) {
                     Mage::throwException($this->__('Please enter valid account details') . '!');
                 } elseif ($this->checkCallbackAmount($paymentCode)
-                        && $this->getModel($paymentCode)->_getConfigData('callback')
-                        == '1' && !$infoInstance->getNnCallbackTelNovalnetSepa() && !$this->checkIsAdmin()) {
+                        && $this->getModel($paymentCode)->_getConfigData('callback') == '1'
+                        && !$infoInstance->getNnCallbackTelNovalnetSepa() && !$this->checkIsAdmin()) {
                     Mage::throwException($this->__('Please enter the Telephone / Mobilenumber') . '!');
                 } elseif ($this->checkCallbackAmount($paymentCode)
-                        && $this->getModel($paymentCode)->_getConfigData('callback')
-                        == '3' && !$this->validateEmail($infoInstance->getNnCallbackEmailNovalnetSepa())
+                        && $this->getModel($paymentCode)->_getConfigData('callback') == '3'
+                        && !$this->validateEmail($infoInstance->getNnCallbackEmailNovalnetSepa())
                         && !$this->checkIsAdmin()) {
                     Mage::throwException($this->__('Please enter the E-Mail Address') . '!');
                 }
@@ -208,6 +209,8 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * Assign novalnet return params for redirect payments
      *
+     * $param varien_object $request
+     * $param string $paymentCode
      * @return Mage_Payment_Model_Abstract Object
      */
     public function assignNovalnetReturnData(Varien_Object $request, $paymentCode)
@@ -225,15 +228,15 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * To get encode data
      *
-     * @param Varien_Object $dataObj
-     * @param String $key
-     * @return String
+     * @param varien_object $dataObj
+     * @param string $key
+     * @return mixed
      */
     public function importNovalnetEncodeData(Varien_Object $dataObj, $key)
     {
         $encoding = $this->getPciEncodedParam($dataObj, $key);
         if ($encoding != true) {
-            Mage::getSingleton('core/session')->addError('Die Methoden f&uuml;r die Verarbeitung von Zeichens&auml;tzen sind nicht verf&uuml;gbar!');
+            Mage::getSingleton('core/session')->addError($this->__('The methods for the handling of character sets are not available!'));
             $url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
             Mage::app()->getResponse()->setRedirect($url);
             Mage::app()->getResponse()->sendResponse();
@@ -246,15 +249,15 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * To get Hash data
      *
-     * @param Varien_Object $dataObj
-     * @param String $key
-     * @return String
+     * @param varien_object $dataObj
+     * @param string $key
+     * @return mixed
      */
     public function importNovalnetHashData(Varien_Object $dataObj, $key)
     {
         $hash = $this->generateHash($dataObj, $key);
         if ($hash == false) {
-            Mage::getSingleton('core/session')->addError('Die Hashfunktionen sind nicht verf&uuml;gbar!');
+            Mage::getSingleton('core/session')->addError($this->__('The hash functions are not available!'));
             $url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
             Mage::app()->getResponse()->setRedirect($url);
             Mage::app()->getResponse()->sendResponse();
@@ -278,25 +281,26 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     /**
      * remove sensitive data form novalnet log
      *
-     * @param Varien_Object $request
-     * @param integer $paymentCode
-     * @return Mage_Payment_Model_Abstract Object
+     * @param varien_object $request
+     * @param string $paymentCode
+     * @return mixed
      */
-    public function doRemoveSensitiveData($request, $paymentCode)
+    public function doRemoveSensitiveData($request = NULL, $paymentCode)
     {
         if ($paymentCode) {
             switch ($paymentCode) {
                 case Novalnet_Payment_Model_Config::NN_CC:
                     if ($this->getModel($paymentCode)->_getConfigData('active_cc3d')
                             == 1) {
-                        unset($request['cc_holder'], $request['cc_exp_month'], $request['cc_exp_year'], $request['cc_cvc2'], $request['cc_type'], $request['cc_no']);
+                        unset($request['cc_holder'], $request['cc_exp_month'], $request['cc_exp_year'], $request['cc_cvc2'], $request['cc_type'], $request['cc_no'], $request['pan_hash']);
                     } else {
                         $request->unsCcHolder()
                                 ->unsCcNo()
                                 ->unsCcExpMonth()
                                 ->unsCcExpYear()
                                 ->unsCcCvc2()
-                                ->unsCcType();
+                                ->unsCcType()
+                                ->unsPanHash();
                     }
                     break;
                 case Novalnet_Payment_Model_Config::NN_SEPA:
@@ -304,29 +308,12 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                             ->unsBankAccount()
                             ->unsBankCode()
                             ->unsBic()
-                            ->unsIban();
+                            ->unsIban()
+                            ->unsSepaHash();
                     break;
             }
         }
         return $request;
-    }
-
-    /**
-     * validate credit card expiry date and month
-     *
-     * @param integer $expYear
-     * @param integer $expMonth
-     * @return bool
-     */
-    protected function _validateExpDate($expYear, $expMonth)
-    {
-        $date = Mage::app()->getLocale()->date();
-        if (!$expYear || !$expMonth || ($date->compareYear($expYear) == 1) || ($date->compareYear($expYear)
-                == 0 && ($date->compareMonth($expMonth) == 1))
-        ) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -339,13 +326,14 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
     {
         $dueDate = $result->getDueDate();
         $note = NULL;
-        $note .= "<br /><b>" . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG') . "</b><br />";
-        $note .= ($dueDate) ? ($this->__('Due Date') . ' : <b>' . Mage::helper('core')->formatDate($dueDate) . "</b><br />")
-                    : NULL;
-        $note .= $this->__('NN Account Holder') . " : <b>NOVALNET AG</b><br />";
-        $note .= "IBAN : <b> " . $result->getInvoiceIban() . " </b><br />";
-        $note .= "BIC : <b>" . $result->getInvoiceBic() . " </b><br />";
-        $note .= $this->__('NN_Bank') . " : <b>" . $result->getInvoiceBankname() . "  " . trim($result->getInvoiceBankplace()) . "</b><br />";
+        if ($dueDate) {
+            $note .= 'Due Date: <b>' . Mage::helper('core')->formatDate($dueDate) . '</b>|NN Account Holder: <b>NOVALNET AG</b>';
+        } else {
+            $note .= 'NN Account Holder: <b>NOVALNET AG</b>';
+        }
+        $note .= '|IBAN: <b> ' . $result->getInvoiceIban() . '</b>';
+        $note .= '|BIC: <b>' . $result->getInvoiceBic() . '</b>';
+        $note .= '|NN_Bank: <b>' . $result->getInvoiceBankname() . ' ' . trim($result->getInvoiceBankplace()) . '</b>';
         return $note;
     }
 
@@ -357,23 +345,34 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
      */
     public function getBankDetailsAmount($amount)
     {
-        return $this->__('NN_Amount') . " : <b>" . Mage::helper('core')->currency($amount, true, false) . "</b><br />";
+        return 'NN_Amount: <b>' . Mage::helper('core')->currency($amount, true, false) . '</b>';
     }
 
     /**
      * Return bank details transaction id
      *
-     * @param integer $tid
+     * @param int $tid
+     * @param array $data
      * @return string
      */
-    public function getBankDetailsTID($tid)
+    public function getBankDetailsTID($tid, $data)
     {
-        return $this->__('NN_Reference') . " : <b>TID " . $tid . "</b><br />";
+        $productId = $data['product'] ? $data['product'] : '';
+        $orderNo = $data['orderNo'] ? $data['orderNo'] : '';
+
+        $note = NULL;
+        $note .= "NN_Reference1:<b>BNR-$productId-$orderNo</b>";
+        $note .= "|NN_Reference2:<b>TID $tid</b>";
+        $note .= "|NN_Reference3:Order No&$orderNo";
+
+        return $note;
     }
 
     /**
      * Check whether callback option is enabled
      *
+     * @param string $paymentCode
+     * @return boolean
      */
     public function checkCallbackAmount($paymentCode)
     {

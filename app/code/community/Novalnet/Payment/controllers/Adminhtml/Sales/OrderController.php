@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 require_once 'Mage' . DS . 'Adminhtml' . DS . 'controllers' . DS . 'Sales' . DS . 'OrderController.php';
@@ -31,6 +31,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     var $moduleName = 'novalnet_payment';
 
     /**
+     * Init layout, menu and breadcrumb
+     *
      * @return Mage_Adminhtml_Sales_OrderController
      */
     protected function _initAction()
@@ -44,6 +46,7 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     }
 
     /**
+     * Orders grid
      *
      */
     public function indexAction()
@@ -55,6 +58,7 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     }
 
     /**
+     * Set transactionstatus grid in sales order
      *
      */
     public function transactionStatusGridAction()
@@ -66,6 +70,7 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     }
 
     /**
+     * Set transactionoverview grid in sales order
      *
      */
     public function transactionOverviewGridAction()
@@ -77,6 +82,7 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     }
 
     /**
+     * Create sales order block for Novalnet payments
      *
      */
     public function gridAction()
@@ -88,6 +94,7 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
 
     /**
      * Invoice update order
+     *
      */
     public function invoiceupdateAction()
     {
@@ -104,26 +111,10 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
         $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
     }
 
-    public function holdAction()
-    {
-        $order = $this->_initOrder();
-        if ($order) {
-            try {
-                Mage::helper('novalnet_payment/AssignData')->setNovalnetTidOnHold($order);
-                $order->hold()
-                        ->save();
-                $this->_getSession()->addSuccess(
-                        $this->__('The order has been put on hold.')
-                );
-            } catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            } catch (Exception $e) {
-                $this->_getSession()->addError($this->__('The order was not put on hold.'));
-            }
-            $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
-        }
-    }
-
+    /**
+     * Order confirmation process for Novalnet payments (Prepayment & Invoice)
+     *
+     */
     public function novalnetconfirmAction()
     {
         $order = $this->_initOrder();
@@ -187,6 +178,12 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
         }
     }
 
+    /**
+     * Save order invoice
+     *
+     * @param varien_object $order
+     * @param int $txnId
+     */
     protected function saveInvoice($order, $txnId)
     {
         $invoice = $order->prepareInvoice();
@@ -204,7 +201,9 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      * Set the Order basic params
      *
-     * @param string $payment
+     * @param varien_object $request
+     * @param varien_object $payment
+     * @return mixed
      */
     private function _getVendorParams($request, $payment = NULL)
     {

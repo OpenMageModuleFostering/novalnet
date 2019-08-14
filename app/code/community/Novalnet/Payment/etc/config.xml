@@ -1,9 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment modulee of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
 <config>
     <modules>
         <Novalnet_Payment>
             <!-- declare module's version information for database updates -->
-            <version>5.0.3</version>
+            <version>5.0.4</version>
         </Novalnet_Payment>
     </modules>
 
@@ -47,6 +73,14 @@
                     </novalnet_payment_order_observer_creditmemo_send_email>
                 </observers>
             </sales_order_creditmemo_refund>
+            <core_block_abstract_prepare_layout_before>
+                <observers>
+                    <novalnet_payment_prepare_layout_before>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>prepareLayoutBefore</method>
+                    </novalnet_payment_prepare_layout_before>
+                </observers>
+            </core_block_abstract_prepare_layout_before>
         </events>
 
         <!-- declare model group for new module -->
@@ -76,6 +110,12 @@
                     <callback>
                         <table>novalnet_payment_callback</table>
                     </callback>
+                    <aff_account_detail>
+                        <table>novalnet_payment_aff_account_detail</table>
+                    </aff_account_detail>
+                    <aff_user_detail>
+                        <table>novalnet_payment_aff_user_detail</table>
+                    </aff_user_detail>
                 </entities>
             </novalnet_resource>
         </models>
@@ -154,11 +194,11 @@
         </layout>
         <translate>
             <modules>
-                <novalnet_Payment>
+                <Novalnet_Payment>
                     <files>
                         <default>Novalnet_Payment.csv</default>
                     </files>
-                </novalnet_Payment>
+                </Novalnet_Payment>
             </modules>
         </translate>
     </adminhtml>
@@ -175,11 +215,11 @@
         </routers>
         <translate>
             <modules>
-                <novalnet_Payment>
+                <Novalnet_Payment>
                     <files>
                         <default>Novalnet_Payment.csv</default>
                     </files>
-                </novalnet_Payment>
+                </Novalnet_Payment>
             </modules>
         </translate>
         <layout>
@@ -190,14 +230,6 @@
             </updates>
         </layout>
         <events>
-            <core_block_abstract_prepare_layout_before>
-                <observers>
-                    <novalnet_payment_prepare_layout_before>
-                        <class>Novalnet_Payment_Model_Observer</class>
-                        <method>prepareLayoutBefore</method>
-                    </novalnet_payment_prepare_layout_before>
-                </observers>
-            </core_block_abstract_prepare_layout_before>
             <customer_logout>
                 <observers>
                     <novalnet>
@@ -278,6 +310,7 @@
             </novalnetIdeal>
             <novalnetCc translate="title" module="novalnet_payment">
                 <active>0</active>
+                <cctypes>VI,MC</cctypes>
                 <model>novalnet_payment/payment_method_novalnetCc</model>
                 <allowspecific>0</allowspecific>
                 <title>Novalnet Kreditkarte</title>
@@ -292,15 +325,6 @@
                 <gateway_timeout>240</gateway_timeout>
                 <group>novalnet</group>
             </novalnetSepa>
-            <novalnetPhonepayment translate="title" module="novalnet_payment">
-                <active>0</active>
-                <Phonepaymentcountries>DE,AT</Phonepaymentcountries>
-                <model>novalnet_payment/payment_method_novalnetPhonepayment</model>
-                <allowspecific>0</allowspecific>
-                <title>Novalnet Telefonpayment</title>
-                <gateway_timeout>240</gateway_timeout>
-                <group>novalnet</group>
-            </novalnetPhonepayment>
         </payment>
     </default>
 </config>

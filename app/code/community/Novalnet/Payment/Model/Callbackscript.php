@@ -33,7 +33,7 @@ class Novalnet_Payment_Model_Callbackscript
     var $useZendEmail = true; //false|true; adapt for your need
     var $addSubsequentTidToDb = true; //whether to add the new tid to db; adapt if necessary
     //Security Setting; only this IP is allowed for call back script
-    var $ipAllowed = '195.143.189.210'; //Novalnet IP, is a fixed value, DO NOT CHANGE!!!!!
+    var $ipAllowed = array('195.143.189.210', '195.143.189.214'); //Novalnet IP, is a fixed value, DO NOT CHANGE!!!!!
 
     public function Callback()
     {
@@ -47,22 +47,19 @@ class Novalnet_Payment_Model_Callbackscript
             'novalneteps' => array('EPS'),
             'novalnetsofortueberweisung' => array('ONLINE_TRANSFER', 'REFUND_BY_BANK_TRANSFER_EU'),
             'novalnetsepa' => array('DIRECT_DEBIT_SEPA', 'RETURN_DEBIT_SEPA', 'SUBSCRIPTION_STOP',
-                'DEBT_COLLECTION_SEPA', 'CREDIT_ENTRY_SEPA'),
-            'novalnetphonepayment' => array('NOVALTEL_DE', 'NOVALTEL_DE_CHARGEBACK',
-                'NOVALTEL_DE_CB_REVERSAL', 'NOVALTEL_DE_COLLECTION', ''));
+                'DEBT_COLLECTION_SEPA', 'CREDIT_ENTRY_SEPA'));
         $this->invoiceAllowed = array('INVOICE_CREDIT', 'INVOICE_START');
 
         /** @Array Type of payment available - Level : 0 */
         $this->paymentTypes = array('INVOICE_START', 'PAYPAL', 'ONLINE_TRANSFER',
-            'CREDITCARD', 'IDEAL', 'DIRECT_DEBIT_SEPA', 'PAYSAFECARD', 'EPS', 'GUARANTEED_INVOICE_START',
-            'NOVALTEL_DE');
-        /** @Array Type of Chargebacks available - Level : 1 */
+            'CREDITCARD', 'IDEAL', 'DIRECT_DEBIT_SEPA', 'PAYSAFECARD', 'EPS', 'GUARANTEED_INVOICE_START');
+        /** @Array Type of Charge backs available - Level : 1 */
         $this->chargeBackPayments = array('CREDITCARD_CHARGEBACK', 'RETURN_DEBIT_SEPA',
-            'CREDITCARD_BOOKBACK', 'REFUND_BY_BANK_TRANSFER_EU', 'NOVALTEL_DE_CHARGEBACK');
+            'CREDITCARD_BOOKBACK', 'REFUND_BY_BANK_TRANSFER_EU');
         /** @Array Type of CreditEntry payment and Collections available - Level : 2 */
         $this->aryCollection = array('INVOICE_CREDIT', 'GUARANTEED_INVOICE_CREDIT',
             'CREDIT_ENTRY_CREDITCARD', 'CREDIT_ENTRY_SEPA', 'DEBT_COLLECTION_SEPA',
-            'DEBT_COLLECTION_CREDITCARD', 'NOVALTEL_DE_COLLECTION', 'NOVALTEL_DE_CB_REVERSAL');
+            'DEBT_COLLECTION_CREDITCARD');
         $this->arySubscription = array('SUBSCRIPTION_STOP');
 
         $this->request = $this->getParams();
@@ -87,8 +84,14 @@ class Novalnet_Payment_Model_Callbackscript
             $this->test = true;
             $this->emailFromAddr = 'testadmin@novalnet.de';
             $this->emailFromName = 'Novalnet';
-            $this->emailToAddr = 'sathishk_v@novalnetsolutions.com';
+            $this->emailToAddr = 'test@novalnet.de';
             $this->emailToName = 'Novalnet';
+        }
+
+
+        if (isset($this->request['vendor_activation']) && $this->request['vendor_activation'] == 1) {
+            $this->doNovalnetAffAccInfoLog();
+            return false;
         }
         //Parameters Settings
         $this->hParamsRequired = array(
@@ -98,7 +101,8 @@ class Novalnet_Payment_Model_Callbackscript
             'status' => '',
             'amount' => '',
             'tid_payment' => '',
-            'tid' => '');
+            'tid' => ''
+        );
 
         if (!in_array($this->request['payment_type'], array_merge($this->invoiceAllowed, $this->chargeBackPayments))) {
             unset($this->hParamsRequired['tid_payment']);
@@ -156,14 +160,12 @@ class Novalnet_Payment_Model_Callbackscript
                                                 ? 1 : 0 );
                             $data = array('NnTestOrder' => $this->testMode);
                             $additionalData = unserialize($payment->getAdditionalData());
-
                             $data = $additionalData ? array_merge($additionalData, $data)
                                         : $data;
                             $payment->setStatus(Novalnet_Payment_Model_Payment_Method_Abstract::STATUS_SUCCESS)
                                     ->setStatusDescription($this->helper->__('Payment was successful.'))
                                     ->setAdditionalData(serialize($data))
                                     ->save();
-
                             // save the order transaction information
                             $dataObj = new Varien_Object($request);
                             if (in_array($paymentObj->getCode(), $this->redirectPayment)) {
@@ -174,7 +176,6 @@ class Novalnet_Payment_Model_Callbackscript
                             } else {
                                 $amount = $this->helper->getFormatedAmount($request['amount'], 'RAW');
                             }
-
                             $this->helper->doTransactionStatusSave($dataObj, $this->getAdminTransaction, $payment, $amount);
 
                             // Payment process based on response status
@@ -252,7 +253,18 @@ class Novalnet_Payment_Model_Callbackscript
         } catch (Exception $e) {
             $this->emailBody .= "Exception catched: $this->lineBreak\$e:" . $e->getMessage() . $this->lineBreak;
         }
+        // Callback E-mail Notification
+        $this->callbackMail();
+    }
 
+    // ############## Sub Routines #####################
+
+    /**
+     * Callback E-mail Notification
+     *
+     */
+    private function callbackMail()
+    {
         if ($this->emailBody && $this->emailFromAddr && ($this->emailToAddr && $this->validateEmail())) {
             if (!$this->sendMail()) {
                 if ($this->debug) {
@@ -267,7 +279,6 @@ class Novalnet_Payment_Model_Callbackscript
         }
     }
 
-    // ############## Sub Routines #####################
     /**
      * Send callback notification E-mail
      *
@@ -550,14 +561,14 @@ class Novalnet_Payment_Model_Callbackscript
                             $transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
                             $transaction->setParentTxnId(null)
                                     ->save();
-                            $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount . $currency . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
+                            $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount ." ". $currency . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
                         } else {
                             if ($request['payment_type'] == 'PAYPAL') {
                                 $loadTransaction = $this->helper->loadTransactionStatus(trim($request['tid']));
                                 $loadTransaction->setTransactionStatus($this->getAdminTransaction->getStatus())
                                                 ->save();
                             }
-                            $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid'] . " with amount " . $amount . $currency . " on " . date('d-m-Y H:i:s');
+                            $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid'] . " with amount " . $amount ." ". $currency . " on " . date('d-m-Y H:i:s');
                         }
 
                         $data['NnComments'] = empty($data['NnComments']) ? '<br>' . $script
@@ -598,7 +609,7 @@ class Novalnet_Payment_Model_Callbackscript
 
                 $this->doNovalnetCallbackLog($modNovalCallback, $sum);
 
-                $this->emailBody = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount . $this->getAdminTransaction->getCurrency() . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . "$this->lineBreak$this->lineBreak";
+                $this->emailBody = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount ." ". $this->getAdminTransaction->getCurrency() . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . "$this->lineBreak$this->lineBreak";
 
                 $callbackComments = "Novalnet Callback Script executed successfully. Payment for order id :" . $this->orderNo . '. New TID: ' . $request['tid'] . ' on ' . date('Y-m-d H:i:s') . ' for the amount : ' . $amount . ' ' . $this->getAdminTransaction->getCurrency() . $this->lineBreak;
                 $data['NnComments'] = empty($data['NnComments']) ? '<br>' . $callbackComments
@@ -623,20 +634,24 @@ class Novalnet_Payment_Model_Callbackscript
                             ->save();
 
                     if (in_array($request['payment_type'], $this->invoiceAllowed)) {
-                        $emailText = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount . $this->getAdminTransaction->getCurrency() . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
+                        $emailText = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount ." ".$this->getAdminTransaction->getCurrency() . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
                         $this->emailBody = ($sum > $grandTotal) ? $emailText . "Customer paid amount is greater than the order total amount. $this->lineBreak$this->lineBreak"
                                     : $emailText . "$this->lineBreak$this->lineBreak";
                     } else {
-                        $this->emailBody = "Novalnet Callback Script executed successfully for the TID: " . $request['tid'] . " with amount " . $amount . $this->getAdminTransaction->getCurrency() . " on " . date('d-m-Y H:i:s') . ". $this->lineBreak$this->lineBreak";
+                        $this->emailBody = "Novalnet Callback Script executed successfully for the TID: " . $request['tid'] . " with amount " . $amount ." ". $this->getAdminTransaction->getCurrency() . " on " . date('d-m-Y H:i:s') . ". $this->lineBreak$this->lineBreak";
                     }
                 } else {
-                    if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_INVOICE) {
+                    if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_INVOICE &&
+                        $payment->getAdditionalInformation($paymentObj->getCode() . '_callbackSuccess') != 1) {
                         $currency = $this->getAdminTransaction->getCurrency();
-                        $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount . $currency . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
+                        $script = "Novalnet Callback Script executed successfully for the TID: " . $request['tid_payment'] . " with amount " . $amount ." ". $currency . " on " . date('Y-m-d H:i:s') . ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $request['tid'] . ". ";
                         $data['NnComments'] = empty($data['NnComments']) ? '<br>' . $script
                                     : $data['NnComments'] . '<br>' . $script;
+                        $payment->setAdditionalInformation($paymentObj->getCode() . '_callbackSuccess', 1);
                         $this->saveAdditionalInfo($payment, $data);
                         $this->saveOrderStatus($order);
+                        $this->emailBody = $script;
+                        $this->callbackMail();
                     }
 
                     $invoicePayments = array(Novalnet_Payment_Model_Config::NN_PREPAYMENT, Novalnet_Payment_Model_Config::NN_INVOICE);
@@ -747,6 +762,28 @@ class Novalnet_Payment_Model_Callbackscript
     }
 
     /**
+     * Log Affiliate account details
+     *
+     */
+    private function doNovalnetAffAccInfoLog()
+    {
+        $request = $this->request;
+        $affiliateAccInfo = $this->helper->getModelAffiliate();
+        $affiliateAccInfo->setVendorId($request['vendor_id'])
+                ->setVendorAuthcode($request['vendor_authcode'])
+                ->setProductId($request['product_id'])
+                ->setProductUrl($request['product_url'])
+                ->setActivationDate($request['activation_date'])
+                ->setAffId($request['aff_id'])
+                ->setAffAuthcode($request['aff_authcode'])
+                ->setAffAccesskey($request['aff_accesskey'])
+                ->save();
+        //Send notification mail to Merchant
+        $this->emailBody = 'Novalnet callback script executed successfully with Novalnet account activation information.';
+        $this->callbackMail();
+    }
+
+    /**
      * Get order object for specific order id
      *
      * @return payment object
@@ -789,14 +826,7 @@ class Novalnet_Payment_Model_Callbackscript
     {
         $callerIp = $this->helper->getRealIpAddr();
 
-        if ($this->test) {
-            $this->ipAllowed = '127.0.0.1';
-            if ($callerIp == '::1') {//IPv6 Issue
-                $callerIp = '127.0.0.1';
-            }
-        }
-
-        if ($this->ipAllowed != $callerIp && !$this->test) {
+        if (!in_array($callerIp, $this->ipAllowed) && !$this->test) {
             echo 'Unauthorised access from the IP [' . $callerIp . ']' . $this->lineBreak . $this->lineBreak;
             exit;
         }
@@ -847,6 +877,10 @@ class Novalnet_Payment_Model_Callbackscript
             $orgTid = $request['tid'];
         }
 
+        if ($orgTid == '') {
+            return false;
+        }
+
         $tablePrefix = Mage::getConfig()->getTablePrefix();
         if (in_array($request['payment_type'], $this->chargeBackPayments)) {
             $orderPayment = $tablePrefix.'sales_payment_transaction';
@@ -861,16 +895,16 @@ class Novalnet_Payment_Model_Callbackscript
                                                              ->addFieldToFilter('last_trans_id', array('like' => "%$orgTid%"))
                                                              ->addFieldToSelect('increment_id');
         }
-        
+
         $orderCollection->getSelect()->join($orderPayment,$onCondition);
-        $count = $orderCollection->count();        
+        $count = $orderCollection->count();
         if ($count > 0) {
             foreach ($orderCollection as $order) {
                 $orderid = $order->getIncrementId();
             }
         }
         $orderId = (isset($orderid) && $orderid != NULL) ? $orderid : '';
-        
+
         return $orderId;
     }
 

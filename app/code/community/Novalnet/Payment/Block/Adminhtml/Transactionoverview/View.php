@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adminhtml_Block_Widget_Form_Container
@@ -28,9 +28,6 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adm
 
     var $novalnetPayments = array();
 
-    /**
-     *
-     */
     public function __construct()
     {
         $this->_objectId = 'nnlog_id';
@@ -50,12 +47,22 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adm
         $this->_removeButton('save');
     }
 
+    /**
+     * get Novalnet transaction overview
+     *
+     * @return string
+     */
     public function getNovalnetTransactionOverview()
     {
         return Mage::registry('novalnet_payment_transactionoverview');
         ;
     }
 
+    /**
+     * get payment method title
+     *
+     * @return string
+     */
     public function getPaymentTitle()
     {
         $order = Mage::getModel("sales/order")->loadByIncrementId(trim($this->getNovalnetTransactionOverview()->getOrderId()));
@@ -68,6 +75,11 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adm
         return $title;
     }
 
+    /**
+     * Get header text of transaction overview
+     *
+     * @return string
+     */
     public function getHeaderText()
     {
         $transStatus = $this->getNovalnetTransactionOverview();

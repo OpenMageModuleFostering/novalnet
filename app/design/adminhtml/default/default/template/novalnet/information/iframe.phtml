@@ -12,22 +12,19 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/**
- * @var $this Novalnet_NovalnetIdeal_Block_Adminhtml_Information_Abstract
- */
-$url = $this->getNovalnetUrl();
 ?>
+<?php $url = $this->getNovalnetUrl(); ?>
 <div style="width:100%;">
     <iframe src="<?php echo $url ?>" width="100%" frameborder="0" border="0"
             style="min-height:1300px; height: 100%; overflow: hidden;">

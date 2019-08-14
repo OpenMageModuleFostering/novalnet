@@ -12,21 +12,25 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Model_Observer
 {
-    /* @var Magento_Sales_Model_Order_Invoice */
-
+    /**
+     * Send order invoice mail
+     *
+     * @param varien_object $observer
+     * @return Novalnet_Payment_Model_Observer
+     */
     public function sendInvoiceEmail($observer)
     {
         try {
@@ -51,6 +55,12 @@ class Novalnet_Payment_Model_Observer
         return $this;
     }
 
+    /**
+     * Send order creditmemo mail
+     *
+     * @param varien_object $observer
+     * @return Novalnet_Payment_Model_Observer
+     */
     public function sendCreditmemoEmail($observer)
     {
         try {
@@ -65,6 +75,12 @@ class Novalnet_Payment_Model_Observer
         return $this;
     }
 
+    /**
+     * Load novalnet script files while prpareing layout
+     *
+     * @param varien_object $observer
+     * @return Novalnet_Payment_Model_Observer
+     */
     public function prepareLayoutBefore(Varien_Event_Observer $observer)
     {
         /* @var $block Mage_Page_Block_Html_Head */
@@ -84,6 +100,12 @@ class Novalnet_Payment_Model_Observer
         return $this;
     }
 
+    /**
+     * Set customer login session
+     *
+     * @param varien_object $observer
+     * @return Novalnet_Payment_Model_Observer
+     */
     public function customerLogin()
     {
         Mage::getSingleton('core/session')->setGuestloginvalue('');

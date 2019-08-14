@@ -12,34 +12,33 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
 
-    /**
-     *
-     */
     public function __construct()
     {
         parent::__construct();
-        $this->setId('novlanet_transactionoverview_grid');
+        $this->setId('novalnet_transactionoverview_grid');
         $this->setUseAjax(true);
         $this->setDefaultSort('order_id');
         $this->setDefaultDir('DESC');
     }
 
     /**
-     * @return Mage_Adminhtml_Block_Widget_Grid
+     * Prepare order Collection for novalnet transaction overview
+     *
+     * @return Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid
      */
     protected function _prepareCollection()
     {
@@ -49,7 +48,9 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
     }
 
     /**
-     * @return
+     * prepare column for transaction overview grid
+     *
+     * @return Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid
      */
     protected function _prepareColumns()
     {
@@ -78,6 +79,7 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
     }
 
     /**
+     * Get Novalnet payment helper
      *
      * @return Novalnet_Payment_Helper_Data
      */
@@ -87,7 +89,8 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
     }
 
     /**
-     * @param $row
+     * Return row url
+     *
      * @return string
      */
     public function getRowUrl($row)
@@ -98,6 +101,11 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
         );
     }
 
+    /**
+     * Return grid url
+     *
+     * @return string
+     */
     public function getGridUrl()
     {
         return $this->getUrl('*/*/grid', array('_current' => true));

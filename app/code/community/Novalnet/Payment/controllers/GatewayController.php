@@ -12,15 +12,15 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
  * @category   Novalnet
  * @package    Novalnet_Payment
- * @copyright  Novalnet AG
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Action
@@ -67,6 +67,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
 
     /**
      * When Novalnet returns after successful payment
+     *
      * The order information at this point is in POST
      */
     public function returnAction()
@@ -91,6 +92,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     /**
      * When Customer cancelled/error in the payment
      *
+     * Redirects to failure page.
      */
     public function errorAction()
     {
@@ -141,34 +143,13 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             $paymentCode = $paymentObj->getCode();
             $helper = $this->_getNovalnetHelper();
             $methodSession = $this->_getCheckout()->getData($paymentCode);
-            if ($paymentCode == Novalnet_Payment_Model_Config::NN_TELEPHONE) {
-                $requestData = new Varien_Object();
-                $txnId = $methodSession->getNnPhoneTid();
-                $option = '<lang>' . strtoupper($helper->getDefaultLanguage()) . '</lang>';
-                $result = $paymentObj->doNovalnetStatusCall($txnId, NULL, Novalnet_Payment_Model_Config::NOVALTEL_STATUS, $option, $requestData);
 
-                if ($result) {
-                    $result->setTid($txnId);
-                    $result->setStatus($result->getNovaltelStatus());
-                    $result->setStatusDesc($result->getNovaltelStatusMessage());
-
-                    //For Manual Testing
-                    //$result->setStatus(100);
-
-                    /** @@ Update the transaction status and transaction overview * */
-                    $paymentObj->logNovalnetTransactionData($requestData, $result, $txnId);
-                }
-
-                $error = $paymentObj->validateSecondCallResponse($result, $payment, $paymentCode);
+            if (!$paymentObj->isCallbackTypeCall()) {
+                $request = $methodSession->getPaymentReqData();
+                $response = $paymentObj->postRequest($request);
+                $error = $paymentObj->validateNovalnetResponse($payment, $response);
             } else {
-
-                if (!$paymentObj->isCallbackTypeCall()) {
-                    $request = $methodSession->getPaymentReqData();
-                    $response = $paymentObj->postRequest($request);
-                    $error = $paymentObj->validateNovalnetResponse($payment, $response);
-                } else {
-                    $error = $paymentObj->validateNovalnetResponse($payment, $methodSession->getPaymentResData());
-                }
+                $error = $paymentObj->validateNovalnetResponse($payment, $methodSession->getPaymentResData());
             }
 
             if ($error !== false) {
@@ -196,6 +177,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     /**
      * Checking Post variables.
      *
+     * @return boolean
      */
     protected function _checkReturnedData()
     {
@@ -221,7 +203,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             if ($order->canUnhold()) {
                 $order->unhold()->save();
             }
-			
+
             $paymentObj->unsetMethodSession($paymentCode);
             $authorizeKey = $paymentObj->_getConfigData('password', true);
             if ($response['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
@@ -278,6 +260,9 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     /**
      * validate the response and save the order
      *
+     * @param varien_object $order
+     * @param array $response
+     * @param mixed $authorizeKey
      */
     private function _saveSuccessOrder($order, $response, $authorizeKey)
     {
@@ -288,7 +273,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $getAdminTransaction = $paymentObj->doNovalnetStatusCall($txnId, $payment);
         $magentoVersion = $helper->getMagentoVersion();
         $captureMode = (version_compare($magentoVersion, '1.6', '<')) ? false : true;
-		
+
         if ($order->canInvoice() && $getAdminTransaction->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
             $payment->setTransactionId($txnId) // Add capture text to make the new transaction
                     ->setParentTransactionId(null)
@@ -305,11 +290,11 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
 
         $setOrderAfterStatus = $paymentObj->_getConfigData('order_status_after_payment')
                     ? $paymentObj->_getConfigData('order_status_after_payment') : Mage_Sales_Model_Order::STATE_PROCESSING; // If after status is empty set default status
-		if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL && $response['status']
+        if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL && $response['status']
                     == Novalnet_Payment_Model_Config::PAYPAL_PENDING_CODE) {
-			$setOrderAfterStatus = $paymentObj->_getConfigData('order_status')
+            $setOrderAfterStatus = $paymentObj->_getConfigData('order_status')
                     ? $paymentObj->_getConfigData('order_status') : Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
-		}					
+        }
         $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $setOrderAfterStatus, $helper->__('Customer successfully returned from Novalnet'), true
         )->save();
 
@@ -332,6 +317,9 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $order->save();
 
         // Get Admin Transaction status via API
+        if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_CC) {
+            $dataObj->setAmount($helper->getFormatedAmount($response['amount'], 'RAW'));
+        }
         $amount = is_numeric($response['amount']) ? $response['amount'] : $helper->getDecodedParam($response['amount'], $authorizeKey);
         $helper->doTransactionStatusSave($dataObj, $getAdminTransaction, $payment, $helper->getFormatedAmount($amount, 'RAW')); // Save the Transaction status
     }
@@ -349,7 +337,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     /**
      * Get Novalnet Helper
      *
-     * @return Helper data
+     * @return Novalnet_Payment_Helper_Data
      */
     private function _getNovalnetHelper()
     {
