@@ -37,6 +37,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
 
             //$payment = $this->_getPayment();
             $paymentObj = $this->_getPaymentObject();
+	    $session->getQuote()->setIsActive(true)->save();
 
             if ($session->getLastRealOrderId() && $items) {
                 if ($order->getPayment()->getAdditionalInformation($paymentObj->getCode() . '_redirectAction') != 1) {
@@ -69,11 +70,10 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $session = $this->_getCheckout();
         $response = $this->getRequest()->getParams();
         $this->doTransactionOrderLog($response);
-        $response['orderId'] = $response['inputval1'];
         $status = $this->_checkReturnedData();
 
         //OnFailure
-        if (!$response['orderId'] || !$status) {
+        if (!$response['order_no'] || !$status) {
             $session->getQuote()->setIsActive(false)->save();
             Mage::getSingleton('core/session')->addError("Payment error");
             $this->_redirect('checkout/onepage/failure');
@@ -93,7 +93,8 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $session = $this->_getCheckout();
         $payment = $order->getPayment();
         $paymentObj = $payment->getMethodInstance();
-
+	
+	$order->getPayment()->getMethodInstance()->unsetFormMethodSession();		
         $session->getQuote()->setIsActive(false)->save();
         $response = $this->getRequest()->getParams();
         $this->doTransactionOrderLog($response);  // Save return error response
@@ -108,7 +109,8 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         if ($paymentObj->_getConfigData('save_cancelled_tid') == 1) {
             $payment->setLastTransId($response["tid"]);
         }
-        $data = array('NnComments' => $paystatus);
+        $data = unserialize($payment->getAdditionalData());
+        $data['NnComments'] = $paystatus;
         $payment->setAdditionalData(serialize($data));
 
         //Cancel the order:-
@@ -134,21 +136,21 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 return;
             }
 
-            //Get response
-            $response = $this->getRequest()->getParams();
-            $dataObj = new Varien_Object($response);
-            $response['orderId'] = $response['inputval1'];
             $order = $this->_getOrder();
+            $payment = $order->getPayment();
+            $paymentObj = $payment->getMethodInstance();
+            $this->_getCheckout()->getQuote()->setIsActive(true)->save();
+            //Get response
+            $response = Mage::helper('novalnet_payment/AssignData')->replaceParamsBasedOnPayment($this->getRequest()->getParams(), $paymentObj->getCode(), 'response');
+            $dataObj = new Varien_Object($response);
 
             //Unhold an order:-
             if ($order->canUnhold()) {
                 $order->unhold()->save();
             }
 
-            $payment = $order->getPayment();
-            $paymentObj = $payment->getMethodInstance();
-
             $this->unsetNovalnetSessionData($paymentObj->getCode());
+	    $order->getPayment()->getMethodInstance()->unsetFormMethodSession();
             $authorizeKey = $paymentObj->_getConfigData('password', true);
             if ($response['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED && $paymentObj->getCode() != Novalnet_Payment_Model_Config::NN_CC3D) {
                 $response['status'] = $this->_getNovalnetHelper()->checkParams($response, $authorizeKey);
@@ -160,9 +162,10 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 $serverResponse = ($paymentObj->getCode() != Novalnet_Payment_Model_Config::NN_CC3D) ? $this->_getNovalnetHelper()->getDecodedParam($response['test_mode'], $authorizeKey) : $response['test_mode'];
                 $shopMode = $paymentObj->_getConfigData('live_mode');
                 $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode) && $shopMode == 0)) ? 1 : 0 );
-                $data = array('NnTestOrder' => $testMode);
+                $data = unserialize($payment->getAdditionalData());
+                $data['NnTestOrder'] = $testMode;
                 $amount = is_numeric($response['amount']) ? $response['amount'] : $this->_getNovalnetHelper()->getDecodedParam($response['amount'], $authorizeKey);
-                $formatedAmount = $this->_getNovalnetHelper()->getFormatedAmount($amount);
+                $formatedAmount = $this->_getNovalnetHelper()->getFormatedAmount($amount, 'RAW');
                 $transMode = ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_CC3D) ? false : true;
 
                 $payment->setStatus(Novalnet_Payment_Model_Payment_Method_Abstract::STATUS_SUCCESS)
@@ -175,11 +178,13 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
 
                 $txnId = $response['tid'];
                 $getAdminTransaction = $this->_getPaymentObject()->doNovalnetStatusCall($response['tid']);
+                $magentoVersion = $this->_getNovalnetHelper()->getMagentoVersion();
+				$captureMode = (version_compare($magentoVersion, '1.6', '<')) ? false : true;
                 if ($getAdminTransaction->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
 
                     $payment->setTransactionId($txnId) // Add capture text to make the new transaction
                             ->setParentTransactionId(null)
-                            ->setIsTransactionClosed(true)
+                            ->setIsTransactionClosed($captureMode)
                             ->setLastTransId($txnId)
                             ->capture(null)
                             ->save();

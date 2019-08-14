@@ -3,12 +3,20 @@
     <modules>
         <Novalnet_Payment>
 <!-- declare module's version information for database updates -->
-            <version>5.0.0</version>
+            <version>5.0.2</version>
         </Novalnet_Payment>
     </modules>
 
     <global>
-<!-- IMPORTANT: if you use your own namespace (i.e. CompanyName) you also have to declare blocks group for new module. See topic: http://www.magentocommerce.com/boards/viewthread/22416/#t102732 -->
+		<template>
+            <email>
+                <novalnet_callback_email_template module="novalnet_payment">
+                    <label>Novalnet Callback Email</label>
+                    <file>novalnet/novalnet_callback_email.html</file>
+                    <type>html</type>
+                </novalnet_callback_email_template>
+            </email>
+        </template>
         <blocks>
             <novalnet_payment>
                 <class>Novalnet_Payment_Block</class>
@@ -16,13 +24,13 @@
             <adminhtml>
                 <rewrite>
                     <sales_order_view>Novalnet_Payment_Block_Adminhtml_Sales_Order_View</sales_order_view>
+					<sales_order_invoice_view>Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View</sales_order_invoice_view>
                 </rewrite>
             </adminhtml>
         </blocks>
 
 <!-- declare model group for new module -->
         <models>
-<!-- model group alias to be used in Mage::getModel('newmodule/...') -->
             <novalnet_payment>
 <!-- base class name for the model group -->
                 <class>Novalnet_Payment_Model</class>
@@ -40,6 +48,9 @@
                     <order_log>
                         <table>novalnet_payment_order_log</table>
                     </order_log>
+                    <callback>
+                        <table>novalnet_payment_callback</table>
+                    </callback>
                 </entities>
             </novalnet_resource>
         </models>
@@ -149,6 +160,11 @@
                 <class>Novalnet_Payment_Helper</class>
             </novalnet_payment>
         </helpers>
+        <payment>
+			<groups>
+				<novalnet>Novalnet</novalnet>
+			</groups>
+		</payment>
     </global>
 
     <adminhtml>
@@ -220,7 +236,7 @@
     <default>
 <!-- 'payment' configuration section (tab) -->
         <payment>
-<!-- 'newmodule' configuration group (fieldset) -->
+<!-- 'module' configuration group (fieldset) -->
             <novalnetElvgerman translate="title" module="novalnet_payment">
 <!-- by default this payment method is inactive -->
                 <active>0</active>
@@ -230,36 +246,33 @@
                 <title>Novalnet Lastschrift Deutschland</title>
                 <payment_action>authorize</payment_action>
                 <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+		<elvgerman_error>1</elvgerman_error>
             </novalnetElvgerman>
             <novalnetElvaustria translate="title" module="novalnet_payment">
-<!-- by default this payment method is inactive -->
                 <active>0</active>
-<!-- model to handle logic for this payment method -->
+		<elvastria_error>1</elvastria_error>
                 <model>novalnet_payment/payment_method_novalnetElvaustria</model>
-<!-- default title for payment checkout page and order view page -->
                 <title>Novalnet Lastschrift Österreich</title>
                 <payment_action>authorize</payment_action>
                 <allowspecific>0</allowspecific>
+                <group>novalnet</group>
             </novalnetElvaustria>
             <novalnetInvoice translate="title" module="novalnet_payment">
-<!-- by default this payment method is inactive -->
                 <active>0</active>
-<!-- model to handle logic for this payment method -->
                 <model>novalnet_payment/payment_method_novalnetInvoice</model>
-<!-- default title for payment checkout page and order view page -->
                 <title>Novalnet Kauf auf Rechnung</title>
                 <payment_action>authorize</payment_action>
                 <allowspecific>0</allowspecific>
+                <group>novalnet</group>
             </novalnetInvoice>
             <novalnetPrepayment translate="title" module="novalnet_payment">
-<!-- by default this payment method is inactive -->
                 <active>0</active>
-<!-- model to handle logic for this payment method -->
                 <model>novalnet_payment/payment_method_novalnetPrepayment</model>
-<!-- default title for payment checkout page and order view page -->
                 <title>Novalnet Vorauskasse</title>
                 <payment_action>authorize</payment_action>
                 <allowspecific>0</allowspecific>
+                <group>novalnet</group>
             </novalnetPrepayment>
             <novalnetSofortueberweisung translate="title" module="novalnet_payment">
                 <active>0</active>
@@ -268,6 +281,7 @@
                 <title>Novalnet Sofortueberweisung</title>
                 <allowspecific>0</allowspecific>
                 <createinvoice>0</createinvoice>
+                <group>novalnet</group>
             </novalnetSofortueberweisung>
             <novalnetPaypal translate="title" module="novalnet_payment">
                 <active>0</active>
@@ -276,6 +290,7 @@
                 <title>Novalnet PayPal</title>
                 <allowspecific>0</allowspecific>
                 <createinvoice>0</createinvoice>
+                <group>novalnet</group>
             </novalnetPaypal>
             <novalnetIdeal translate="title" module="novalnet_payment">
                 <active>0</active>
@@ -284,23 +299,38 @@
                 <title>Novalnet iDEAL</title>
                 <allowspecific>0</allowspecific>
                 <createinvoice>0</createinvoice>
+                <group>novalnet</group>
             </novalnetIdeal>
             <novalnetCc translate="title" module="novalnet_payment">
                 <active>0</active>
+		<cc_error>1</cc_error>
                 <model>novalnet_payment/payment_method_novalnetCc</model>
                 <payment_action>authorize</payment_action>
                 <allowspecific>0</allowspecific>
                 <title>Novalnet Kreditkarte</title>
                 <gateway_timeout>90</gateway_timeout>
+                <group>novalnet</group>
             </novalnetCc>
+            <novalnetSepa translate="title" module="novalnet_payment">
+                <active>0</active>
+		<sepa_error>1</sepa_error>
+                <model>novalnet_payment/payment_method_novalnetSepa</model>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+                <title>Novalnet Lastschrift SEPA</title>
+                <gateway_timeout>90</gateway_timeout>
+                <group>novalnet</group>
+            </novalnetSepa>
             <novalnetSecure translate="title" module="novalnet_payment">
                 <cctypes>VI,MC</cctypes>
                 <active>0</active>
+		<novalnetSecure_error>1</novalnetSecure_error>
                 <model>novalnet_payment/payment_method_novalnetSecure</model>
                 <order_status>0</order_status>
                 <url>https://payport.novalnet.de/global_pci_payport</url>
                 <allowspecific>0</allowspecific>
                 <title>Novalnet Kreditkarte 3D Secure</title>
+                <group>novalnet</group>
             </novalnetSecure>
             <novalnetPhonepayment translate="title" module="novalnet_payment">
                 <active>0</active>
@@ -310,8 +340,17 @@
                 <allowspecific>0</allowspecific>
                 <title>Novalnet Telefonpayment</title>
                 <gateway_timeout>90</gateway_timeout>
+                <group>novalnet</group>
             </novalnetPhonepayment>
-<!-- 'newmodule' configuration group (fieldset) -->
+            <novalnetSafetypay translate="title" module="novalnet_payment">
+                <active>0</active>
+                <url>https://payport.novalnet.de/safetypay</url>
+                <model>novalnet_payment/payment_method_novalnetSafetypay</model>
+                <title>Novalnet SafetyPay</title>
+                <allowspecific>0</allowspecific>
+                <createinvoice>0</createinvoice>
+                <group>novalnet</group>
+            </novalnetSafetypay>
         </payment>
     </default>
 </config>

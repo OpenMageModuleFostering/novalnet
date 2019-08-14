@@ -12,7 +12,7 @@
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
  * Part of the Paymentmodul of Novalnet AG
- * http://www.novalnet.de 
+ * https://www.novalnet.de 
  * If you have found this script usefull a small        
  * recommendation as well as a comment on merchant form 
  * would be greatly appreciated.
@@ -116,68 +116,4 @@ function novalnetbuildParams()
             return origMethod(origParams);
         }
     });
-}
-
-function novalnet_cc_iframe(iframe)
-{
-    document.getElementById('loading').style.display = 'none';
-    var frameObj =(iframe.contentWindow || iframe.contentDocument);
-    if (frameObj.document) frameObj=frameObj.document;
-    var card_type = frameObj.getElementById("novalnetCc_cc_type");
-    card_type.onchange = function ()
-    {
-        document.getElementById('novalnet_cc_type').value = card_type.value;
-        document.getElementById('novalnet_cc_type').disabled = false;
-        novalnet_cc_process(iframe);
-    }
-    var card_owner = frameObj.getElementById("novalnetCc_cc_owner");
-    card_owner.onkeyup = function ()
-    {
-        document.getElementById('novalnet_cc_owner').value = card_owner.value;
-        document.getElementById('novalnet_cc_owner').disabled = false;
-        novalnet_cc_process(iframe);
-    }
-    var card_exp_month = frameObj.getElementById("novalnetCc_expiration");
-    card_exp_month.onchange = function ()
-    {
-        document.getElementById('novalnet_cc_exp_month').value = card_exp_month.value;
-        document.getElementById('novalnet_cc_exp_month').disabled = false;
-        novalnet_cc_process(iframe);
-    }
-    var card_exp_year = frameObj.getElementById("novalnetCc_expiration_yr");
-    card_exp_year.onchange = function ()
-    {
-        document.getElementById('novalnet_cc_exp_year').value = card_exp_year.value;
-        document.getElementById('novalnet_cc_exp_year').disabled = false;
-        novalnet_cc_process(iframe);
-    }
-    var card_cid = frameObj.getElementById("novalnetCc_cc_cid");
-    card_cid.onkeyup = function ()
-    {
-        document.getElementById('novalnet_cc_cid').value = card_cid.value;
-        document.getElementById('novalnet_cc_cid').disabled = false;
-        novalnet_cc_process(iframe);
-    }	
-}
-
-function novalnet_cc_process(iframe)
-{
-    if(iframe) {
-        var frameObj =(iframe.contentWindow || iframe.contentDocument);
-        if (frameObj.document) frameObj=frameObj.document;
-	
-        var nncc_cardno_id = frameObj.getElementById("nncc_cardno_id");
-        var nncc_unique_id = frameObj.getElementById("nncc_unique_id");
-		
-        if(nncc_cardno_id)
-        {
-            document.getElementById('novalnet_cc_pan_hash').value = nncc_cardno_id.value;
-            document.getElementById('novalnet_cc_pan_hash').disabled = false;
-        }
-        if(nncc_unique_id)
-        {
-            document.getElementById('novalnet_cc_unique_id').value = nncc_unique_id.value;
-            document.getElementById('novalnet_cc_unique_id').disabled = false;
-        }
-    }
 }

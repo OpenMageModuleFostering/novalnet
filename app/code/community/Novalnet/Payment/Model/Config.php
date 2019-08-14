@@ -30,9 +30,7 @@ class Novalnet_Payment_Model_Config {
     /* 		NOVALNET GLOBAL PARAMS STARTS		  */
     /*     * ******************************************* */
 
-    const BANK_SORTCODE_LENGTH = 3;   //MIN Bank Sortcode
     const CALLBACK_PIN_LENGTH = 4;   //PIN Length
-    const ACCNO_MIN_LENGTH = 5;   //MIN Acc No
     const RESPONSE_CODE_APPROVED = 100; //On Payment Success
     const PAYMENT_VOID_STATUS = 103; //On Payment void
     const CVV_MIN_LENGTH = 3;   //MIN CVV No
@@ -46,6 +44,7 @@ class Novalnet_Payment_Model_Config {
     const PAYPORT_URL = 'https://payport.novalnet.de/paygate.jsp';
     const INFO_REQUEST_URL = 'https://payport.novalnet.de/nn_infoport.xml';
     const CC_URL = 'https://payport.novalnet.de/direct_form.jsp';
+    const SEPA_URL = 'https://payport.novalnet.de/direct_form_sepa.jsp';
     const INVOICE_PAYMENT_METHOD = 'Invoice';
     const PREPAYMENT_PAYMENT_METHOD = 'Prepayment';
     const TELEPHONE_PAYMENT_METHOD = 'Telephone';
@@ -53,6 +52,7 @@ class Novalnet_Payment_Model_Config {
     const TRANS_STATUS = 'TRANSACTION_STATUS';
     const TRANSMIT_PIN_AGAIN = 'TRANSMIT_PIN_AGAIN';
     const REPLY_EMAIL_STATUS = 'REPLY_EMAIL_STATUS';
+    const SEPA_MANDATE_CONFIRMATION = 'MANDATE_CONFIRMATION';
     const PIN_STATUS = 'PIN_STATUS';
     const METHOD_DISABLE_CODE = '0529006';
     const PAYPAL_PENDING_CODE = 90;
@@ -60,7 +60,7 @@ class Novalnet_Payment_Model_Config {
     const POST_CALLBACK = 'callback';
 
     static protected $instance;
-    protected $_novalnetPaymentKey = array('novalnetCc' => 6, 'novalnetSecure' => 6, 'novalnetElvgerman' => 2, 'novalnetElvaustria' => 8, 'novalnetInvoice' => 27, 'novalnetPrepayment' => 27, 'novalnetPhonepayment' => 18, 'novalnetPaypal' => 34, 'novalnetSofortueberweisung' => 33, 'novalnetIdeal' => 49);
+    protected $_novalnetPaymentKey = array('novalnetCc' => 6, 'novalnetSecure' => 6, 'novalnetElvgerman' => 2, 'novalnetElvaustria' => 8, 'novalnetInvoice' => 27, 'novalnetPrepayment' => 27, 'novalnetPhonepayment' => 18, 'novalnetPaypal' => 34, 'novalnetSofortueberweisung' => 33, 'novalnetIdeal' => 49, 'novalnetSafetypay' => 54 , 'novalnetSepa' => 37 ,'novalnetSepaSigned' => 55);
     protected $_callbackAllowedCountry = array('AT', 'DE', 'CH');
     protected $_novalnetEncodeParams = array('auth_code', 'product', 'tariff', 'test_mode', 'uniqid', 'amount');
     protected $_novalnetHashParams = array('auth_code', 'product', 'tariff', 'amount', 'test_mode', 'uniqid');
@@ -76,6 +76,17 @@ class Novalnet_Payment_Model_Config {
     const NN_CC_CAN_USE_MULTISHIPPING = false;
     const NN_CC_FORM_BLOCK = 'novalnet_payment/payment_method_form_Cc';
     const NN_CC_INFO_BLOCK = 'novalnet_payment/payment_method_info_Cc';
+
+    /*     * ******************************************* */
+    /* 			NOVALNET SEPA PARAMS 	         */
+    /*     * ******************************************* */
+
+    const NN_SEPA = 'novalnetSepa';
+    const NN_SEPA_CAN_CAPTURE = true;
+    const NN_SEPA_CAN_USE_INTERNAL = true;
+    const NN_SEPA_CAN_USE_MULTISHIPPING = false;
+    const NN_SEPA_FORM_BLOCK = 'novalnet_payment/payment_method_form_Sepa';
+    const NN_SEPA_INFO_BLOCK = 'novalnet_payment/payment_method_info_Sepa';
 
     /*     * ******************************************* */
     /* 			NOVALNET CC3D PARAMS 		 */
@@ -167,6 +178,17 @@ class Novalnet_Payment_Model_Config {
     const NN_TELEPHONE_CAN_USE_MULTISHIPPING = true;
     const NN_TELEPHONE_FORM_BLOCK = 'novalnet_payment/payment_method_form_Phonepayment';
     const NN_TELEPHONE_INFO_BLOCK = 'novalnet_payment/payment_method_info_Phonepayment';
+
+    /*     * ****************************************** */
+    /* 		NOVALNET SAFETYPAY PARAMS                  */
+    /*     * ****************************************** */
+    const NN_SAFETYPAY = 'novalnetSafetypay';
+    const NN_SAFETYPAY_CAN_CAPTURE = true;
+    const NN_SAFETYPAY_CAN_USE_INTERNAL = false;
+    const NN_SAFETYPAY_CAN_REFUND = false;
+    const NN_SAFETYPAY_CAN_USE_MULTISHIPPING = false;
+    const NN_SAFETYPAY_FORM_BLOCK = 'novalnet_payment/payment_method_form_Safetypay';
+    const NN_SAFETYPAY_INFO_BLOCK = 'novalnet_payment/payment_method_info_Safetypay';
 
     /*     * ****************************************** */
     /* 		NOVALNET ABSTARCT FUNCTIONS             */

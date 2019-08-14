@@ -31,10 +31,10 @@ class Novalnet_Payment_Model_System_Config_Activemethods {
         $activePayment = false;
         $inactivePayment = false;
  
-		if (strlen($code = Mage::getSingleton('adminhtml/config_data')->getStore()))  { // store level
+		if (strlen($code = Mage::app()->getRequest()->getParam('store'))) { // store level
 			$scopeId = Mage::getModel('core/store')->load($code)->getId();
 		}
-		elseif (strlen($code = Mage::getSingleton('adminhtml/config_data')->getWebsite())) { // website level
+		elseif (strlen($code = Mage::app()->getRequest()->getParam('website'))) { // website level
 			$website_id = Mage::getModel('core/website')->load($code)->getId();
 			$scopeId = Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
 		}
@@ -49,7 +49,7 @@ class Novalnet_Payment_Model_System_Config_Activemethods {
 
                 $paymentActive = Mage::getStoreConfig('payment/' . $paymentCode . '/active', $scopeId);
                 if ($paymentActive == true) {
-                    $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title');
+                    $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title', $scopeId);
                     $methods[$paymentCode] = array(
                         'label' => $paymentTitle,
                         'value' => $paymentCode,

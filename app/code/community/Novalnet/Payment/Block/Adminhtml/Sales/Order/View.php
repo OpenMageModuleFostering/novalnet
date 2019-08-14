@@ -35,17 +35,38 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
         $paymentMethod = $payment->getMethodInstance()->getCode();
         $helper = Mage::helper('novalnet_payment');
         $getTid = $helper->makeValidNumber($payment->getLastTransId());
-        if (preg_match("/novalnet/i", $paymentMethod))
+		$sepaType = $helper->getModel('novalnetSepa')->_getConfigData('sepatypes');
+        if (preg_match("/novalnet/i", $paymentMethod)) {
             $this->_removeButton('order_creditmemo');
-
+		
+		if ($paymentMethod == Novalnet_Payment_Model_Config::NN_SEPA) {
+			$this->_removeButton('Capture');
+		}
         $getTransactionStatus = $helper->loadTransactionStatus($getTid);
 
         $this->_updateButton('order_invoice', 'label', Mage::helper('novalnet_payment')->__('Capture'));
-        if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED)
+
+        if (in_array($paymentMethod, array(Novalnet_Payment_Model_Config::NN_PAYPAL, Novalnet_Payment_Model_Config::NN_SEPA, Novalnet_Payment_Model_Config::NN_TELEPHONE))) {
+			$this->_removeButton('order_invoice');
+		}
+
+        if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED || ($paymentMethod == Novalnet_Payment_Model_Config::NN_SEPA))
             $this->_removeButton('void_payment');
 
         if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS)
             $this->_removeButton('order_invoice');
+
+        if (in_array($paymentMethod, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
+			$this->_removeButton('order_invoice');
+			 if($getTransactionStatus->getTransactionStatus() == 91) {
+				$this->_addButton('novalnet_confirm', array(
+                'label'     => 'Novalnet Capture',
+                'onclick'   => 'setLocation(\'' . $this->getUrl('*/*/novalnetconfirm') . '\')',
+            ), 0);
+			}
+		}
+
+        }
     }
 
 }

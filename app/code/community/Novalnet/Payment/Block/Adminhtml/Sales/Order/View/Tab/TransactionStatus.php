@@ -28,7 +28,6 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
 
     public function __construct() {
         parent::__construct();
-        //$this->setTemplate('novalnet/sales/order/view/tab/transactionstatus.phtml');
         $this->setId('novalnet_payment_block_adminhtml_sales_order_view_tab_transactionstatus');
         $this->setDefaultSort('created_at');
         $this->setDefaultDir('DESC');

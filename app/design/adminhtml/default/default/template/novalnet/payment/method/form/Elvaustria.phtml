@@ -27,12 +27,14 @@
 <?php
 	$code    = $this->getMethodCode();
 	$helper  = Mage::helper('novalnet_payment');
+	$assignDatahelper = Mage::helper('novalnet_payment/AssignData');
+	$elvastriaError = $this->getMethod()->getConfigData('elvastria_error');
 ?>
 <fieldset class="form-list">
     <div>
     <!--{{{ Payment Logo -->
         <a href="<?php echo $helper->getNovalnetUrl();?>" target="_new" style="text-decoration:none;">
-            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."/img/ELV_Logo.png";  ?>
+            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."ELV_Logo.png";  ?>
             <img style="height:20px;" src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
         </a>
     <!--}}} Payment Logo -->
@@ -58,20 +60,20 @@
         <?php endif ?>
         <li>
             <div class="input-box">
-                <label style="float:none;" for="<?php echo $code ?>_account_holder"><?php echo $this->__('Account Holder') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $code ?>_account_holder" name="payment[account_holder_at]" title="<?php echo $this->__('Account Holder') ?>" class="required-entry input-text" autocomplete="off" />
+                <label style="float:none;" for="<?php echo $code ?>_account_holder"><?php echo $this->__('Account Holder') ?><span class="required">*</span></label><br/>
+                <input type="text" value="<?php echo $elvastriaError ? $assignDatahelper->_getCheckout()->getElvAtAccountHolder() : '';?>"id="<?php echo $code ?>_account_holder" name="payment[account_holder_at]" title="<?php echo $this->__('Account Holder') ?>" class="required-entry input-text" autocomplete="off" />
             </div>
         </li>
         <li>
             <div class="input-box">
-                <label style="float:none;" for="<?php echo $code ?>_account_number"><?php echo $this->__('Account Number') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $code ?>_account_number" name="payment[account_number_at]" title="<?php echo $this->__('Account Number') ?>" class="required-entry input-text" autocomplete="off" />
+                <label style="float:none;" for="<?php echo $code ?>_account_number"><?php echo $this->__('NnAccount number') ?><span class="required">*</span></label><br/>
+                <input type="text" value="<?php echo $elvastriaError ? $assignDatahelper->_getCheckout()->getElvAtAccountNumber() : '';?>"id="<?php echo $code ?>_account_number" name="payment[account_number_at]" title="<?php echo $this->__('NnAccount Number') ?>" class="required-entry input-text" autocomplete="off" />
             </div>
         </li>
         <li>
             <div class="input-box">
-                <label style="float:none;" for="<?php echo $code ?>_bank_sorting_code"><?php echo $this->__('Bank Code') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $code ?>_bank_sorting_code" name="payment[bank_sorting_code_at]" title="<?php echo $this->__('Bank Code') ?>" class="required-entry input-text" autocomplete="off" />
+                <label style="float:none;" for="<?php echo $code ?>_bank_sorting_code"><?php echo $this->__('Bank Code') ?><span class="required">*</span></label><br/>
+                <input type="text" value="<?php echo $elvastriaError ? $assignDatahelper->_getCheckout()->getElvAtBankSortingCode() : '';?>" id="<?php echo $code ?>_bank_sorting_code" name="payment[bank_sorting_code_at]" title="<?php echo $this->__('Bank Code') ?>" class="required-entry input-text" autocomplete="off" />
             </div>
         </li>
     </ul>

@@ -43,9 +43,11 @@ $storeId = Mage_Core_Model_App::ADMIN_STORE_ID;
 Mage::app()->setCurrentStore($storeId);
 Mage::app('admin');
 umask(0);
-date_default_timezone_set('Europe/Berlin');
 
- //Variable Settings
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+//Variable Settings
 $logFile        = 'novalnet_callback_script_'.date('Y-m-d').'.log';
 $log            = false;//false|true; adapt
 $debug          = false; //false|true; adapt: set to false for go-live
@@ -55,10 +57,10 @@ $useZendEmail   = true;//false|true; adapt for your need
 $lineBreak      = empty($_SERVER['HTTP_HOST'])? PHP_EOL: '<br />';
 $addSubsequentTidToDb = true;//whether to add the new tid to db; adapt if necessary
 
-$allowedPayment = array('novalnetcc'=>array('CREDITCARD', 'CREDITCARD_BOOKBACK'), 'novalnetsecure'=>array('CREDITCARD', 'CREDITCARD_BOOKBACK'), 'novalnetelvaustria'=>array('DIRECT_DEBIT_AT'), 'novalnetelvgerman'=>array('DIRECT_DEBIT_DE'), 'novalnetinvoice'=>array('INVOICE_CREDIT'), 'novalnetprepayment'=>array('INVOICE_CREDIT'), 'novalnetideal'=>array('IDEAL'), 'novalnetpaypal'=>array('PAYPAL'), 'novalnetsofortueberweisung'=>array('ONLINE_TRANSFER'));
-$invoiceAllowed = array('INVOICE_CREDIT');
+$allowedPayment = array('novalnetcc'=>array('CREDITCARD', 'CREDITCARD_BOOKBACK'), 'novalnetsecure'=>array('CREDITCARD', 'CREDITCARD_BOOKBACK'), 'novalnetelvaustria'=>array('DIRECT_DEBIT_AT'), 'novalnetelvgerman'=>array('DIRECT_DEBIT_DE'), 'novalnetinvoice'=>array('INVOICE_CREDIT', 'INVOICE_START'), 'novalnetprepayment'=>array('INVOICE_CREDIT', 'INVOICE_START'), 'novalnetideal'=>array('IDEAL'), 'novalnetpaypal'=>array('PAYPAL'), 'novalnetsofortueberweisung'=>array('ONLINE_TRANSFER'), 'novalnetsepa' => array('DIRECT_DEBIT_SEPA'), 'novalnetsafetypay'=>array('SAFETYPAY'));
+$invoiceAllowed = array('INVOICE_CREDIT', 'INVOICE_START');
 $paypalAllowed = array('PAYPAL');
-$aPaymentTypes = array('CREDITCARD', 'CREDITCARD_BOOKBACK', 'DIRECT_DEBIT_AT', 'DIRECT_DEBIT_DE', 'DIRECT_DEBIT_ES', 'DIRECT_DEBIT_SEPA', 'ONLINE_TRANSFER', 'INVOICE_CREDIT', 'PAYPAL', 'REFUND_BY_BANK_TRANSFER_EU', 'IDEAL');//adapt here if needed;
+$aPaymentTypes = array('CREDITCARD', 'CREDITCARD_BOOKBACK', 'DIRECT_DEBIT_AT', 'DIRECT_DEBIT_DE', 'DIRECT_DEBIT_SEPA','DIRECT_DEBIT_ES', 'DIRECT_DEBIT_SEPA', 'ONLINE_TRANSFER', 'INVOICE_CREDIT', 'INVOICE_START', 'PAYPAL', 'REFUND_BY_BANK_TRANSFER_EU', 'IDEAL', 'SAFETYPAY');//adapt here if needed;
 
 // Order State/Status Settings
           /*5. Standard Types of Status/States:
@@ -74,7 +76,6 @@ $orderComment = $lineBreak.date('d.m.Y H:i:s').': Novalnet callback script chang
 
 //Security Setting; only this IP is allowed for call back script
 $ipAllowed = '195.143.189.210'; //Novalnet IP, is a fixed value, DO NOT CHANGE!!!!!
-//$ipAllowed = '127.0.0.1';
 
 //Reporting Email Addresses Settings
 $shopInfo      = 'Magento '.$lineBreak; //manditory;adapt for your need
@@ -86,7 +87,7 @@ $emailSubject  = 'Novalnet Callback Script Access Report'; //adapt if necessary;
 $emailBody     = 'Novalnet Callback Script Access Report : '.$lineBreak;//Email text's 1. line, can be let blank, adapt for your need
 $emailFromName = ""; // Sender name, adapt
 $emailToName   = ""; // Recipient name, adapt
-$callBackExecuted = false;		
+$callBackExecuted = false;
 //Parameters Settings
 $hParamsRequired = array(
   'vendor_id'    => '',
@@ -109,7 +110,7 @@ try {
 
     //Check Params
     if (checkIP($_REQUEST)){
-	  
+
 		$response = $_REQUEST;
 	  	$orderNo  = $response['order_no'] ? $response['order_no'] : $response['order_id'];
 	    if(empty($response['payment_type'])) {
@@ -119,25 +120,28 @@ try {
 		} elseif(!empty($response['payment_type']) and in_array(strtoupper($response['payment_type']), $aPaymentTypes)) {
 			//Complete the order incase response failure from novalnet server
 			$order = getOrderByIncrementId($orderNo);
-			if($order->getIncrementId()) {
-				$payment = $order->getPayment();
-				$paymentObj = $payment->getMethodInstance();
-				$storeId = $order->getStoreId();
-				$paymentObj->_vendorId = $paymentObj->_getConfigData('merchant_id', true, $storeId);
-				$paymentObj->_authcode = $paymentObj->_getConfigData('auth_code', true, $storeId);			
-				// Get Admin Transaction status via API
-				$getAdminTransaction = $paymentObj->doNovalnetStatusCall($response['tid'], $storeId);
-				// if ($debug) {echo'Order Details:<pre>'; print_r($order);echo'</pre>';}
-				$helper = Mage::helper('novalnet_payment');
-				$checkTidExist = $payment->getLastTransId();
+
+			if ($order->getIncrementId()) {
+			   $payment = $order->getPayment();
+			   $paymentObj = $payment->getMethodInstance();
+			   $storeId = $order->getStoreId();
+			   $paymentObj->_vendorId = $paymentObj->_getConfigData('merchant_id', true, $storeId);
+			   $paymentObj->_authcode = $paymentObj->_getConfigData('auth_code', true, $storeId);
+			   // Get Admin Transaction status via API
+			   $payment_tid = (in_array($response['payment_type'], $invoiceAllowed)) ? $response['tid_payment'] : $response['tid'];
+			   $getAdminTransaction = $paymentObj->doNovalnetStatusCall($payment_tid, $storeId);
+			   // if ($debug) {echo'Order Details:<pre>'; print_r($order);echo'</pre>';}
+			   $helper = Mage::helper('novalnet_payment');
+			   $checkTidExist = $payment->getLastTransId();
+
 				if(!empty($orderNo) && $order->getIncrementId() == $orderNo && empty($checkTidExist)) {
-					
+
 					 //Unhold an order:-
 					if ($order->canUnhold()) {
 						$order->unhold()->save();
 					}
-					
-					$serverResponse = $response['test_mode'];   
+
+					$serverResponse = $response['test_mode'];
 					$shopMode = $paymentObj->_getConfigData('live_mode', '', $storeId);
 					$testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode) && $shopMode == 0)) ? 1 : 0 );
 					$data = array('NnTestOrder' => $testMode);
@@ -147,8 +151,8 @@ try {
 							->setStatusDescription(Mage::helper('novalnet_payment')->__('Payment was successful.'))
 							->setAdditionalData(serialize($data))
 							->setIsTransactionClosed($transMode)
-							->save();			
-					doTransactionStatusSave($response, $getAdminTransaction, $orderNo); // Save the Transaction status				
+							->save();
+					doTransactionStatusSave($response, $getAdminTransaction, $orderNo); // Save the Transaction status
 					if ($getAdminTransaction->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
 						$payment->setTransactionId($txnId) // Add capture text to make the new transaction
 								->setParentTransactionId(null)
@@ -163,33 +167,13 @@ try {
 								->authorize(true, Mage::helper('novalnet_payment')->getFormatedAmount($response['amount'], 'RAW'))
 								->save();
 					}
-					
+
 					$setOrderAfterStatus = $paymentObj->_getConfigData('order_status_after_payment') ? $paymentObj->_getConfigData('order_status_after_payment') : Mage_Sales_Model_Order::STATE_PROCESSING; // If after status is empty set default status
 										$order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $setOrderAfterStatus, $helper->__('Customer successfully returned from Novalnet'), true
 										)->save();
-				   $callBackExecuted = true;			
+				   $callBackExecuted = true;
 				   doTransactionOrderLog($response, $orderNo);
-		 
-					//Add subsequent TID to DB column last_trans_id
-				/*	if ($addSubsequentTidToDb){
-					$payment = $order->getPayment();
-					$data = unserialize($payment->getAdditionalData());
-					if(in_array($_REQUEST['payment_type'],$paypalAllowed)) {
-						$script = 'Novalnet Callback Script executed successfully on ' . date('Y-m-d H:i:s');
-					} else {
-						$script = 'Novalnet Callback Script executed successfully. The subsequent TID: (' . $_REQUEST['tid'] . ') on ' . date('Y-m-d H:i:s');
-					}
-					$arr = array('NnComments'=>$script);
-					$payment->setAdditionalData(serialize(array_merge($data,$arr)));
-					$order->setPayment($payment)
-						   ->save();
-					}
-					if(in_array($response['payment_type'],$paypalAllowed)) {
-						$emailBody .= "Novalnet Callback Script executed successfully. Payment for order id :" . $orderNo . ' on ' . date('Y-m-d H:i:s').$lineBreak;
-					} else {
-						$emailBody .= "Novalnet Callback Script executed successfully. Payment for order id :" . $orderNo . '. New TID: ('. $txnId . ') on ' . date('Y-m-d H:i:s').$lineBreak;
-					}	*/		
-					
+
 					//sendNewOrderEmail
 					if (!$order->getEmailSent() && $order->getId()) {
 						try {
@@ -201,14 +185,17 @@ try {
 						}
 					}
 					$order->save();
-				} 
-				//	if (!empty($response['payment_type']) and in_array(strtoupper($response['payment_type']),$aPaymentTypes)) {	  
+				}
+				//	if (!empty($response['payment_type']) and in_array(strtoupper($response['payment_type']),$aPaymentTypes)) {
 				if (checkParams($_REQUEST)){
 				  //Get Order ID and Set New Order Status
 				  if ($ordercheckstatus = BasicValidation($_REQUEST)){
-					$orderNo = $_REQUEST['order_no']? $_REQUEST['order_no']: $_REQUEST['order_id'];
-					if ($getAdminTransaction->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {	  
+				     	$orderNo = $_REQUEST['order_no']? $_REQUEST['order_no']: $_REQUEST['order_id'];
+					if ($getAdminTransaction->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
 						setOrderStatus($orderNo);//and send error mails if any
+					}else{						
+						echo isset($getAdminTransaction['transaction_status']['status_message']) ? ($getAdminTransaction['transaction_status']['status_message']) : 'Error in processing the transactions status';
+						exit;
 					}
 				  }
 				}
@@ -245,7 +232,8 @@ if ($emailBody){
 }
 
 // ############## Sub Routines #####################
-function sendMail($emailBody){
+function sendMail($emailBody)
+{
   global $lineBreak, $debug, $emailFromAddr, $emailToAddr, $emailFromName, $emailToName, $emailSubject, $storeId, $shopInfo, $useZendEmail;
   if ($useZendEmail){
     if (!sendEmailZend($emailBody)){
@@ -262,7 +250,9 @@ function sendMail($emailBody){
   }*/
   return true;
 }
-function sendEmailMagento($emailBody){
+
+function sendEmailMagento($emailBody)
+{
   global $lineBreak, $debug, $emailFromAddr, $emailToAddr, $emailFromName, $emailToName, $emailSubject, $storeId, $shopInfo, $mailHost, $mailPort;
   $emailBodyT = str_replace('<br />', PHP_EOL, $emailBody);
 
@@ -284,7 +274,6 @@ function sendEmailMagento($emailBody){
   $emailTemplateVariables['subject']   = $emailSubject;
   $emailTemplateVariables['body']      = $emailBodyT;
   $processedTemplate = $emailTemplate->getProcessedTemplate($emailTemplateVariables, true);
-  //echo 'hh: <pre>'; print_r($processedTemplate); echo '<hr />'; exit;
 
   //Send Email
   ini_set('SMTP', $mailHost);
@@ -307,16 +296,18 @@ function sendEmailMagento($emailBody){
   }
   return true;
 }
-function sendEmailZend($emailBody){
+
+function sendEmailZend($emailBody)
+{
   global $lineBreak, $debug, $emailFromAddr, $emailToAddr, $emailFromName, $emailToName, $emailSubject, $storeId, $shopInfo, $mailHost, $mailPort;
   $emailBodyT = str_replace('<br />', PHP_EOL, $emailBody);
   ini_set('SMTP', $mailHost);
   ini_set('smtp_port', $mailPort);
 
-  $mail = new Zend_Mail();
+  $mail = new Zend_Mail();  
   $mail->setBodyText($emailBodyT);//$mail->setBodyHTML($emailBodyT);
   $mail->setFrom($emailFromAddr, $emailFromName);
-  $mail->addTo($emailToAddr, $emailToName);
+  $mail->addTo($emailToAddr, $emailToName);  
   $mail->setSubject($emailSubject);
 
   try {
@@ -332,14 +323,17 @@ function sendEmailZend($emailBody){
   }
   return true;
 }
-function showDebug(){
+
+function showDebug()
+{
   global $debug, $emailBody;
   if($debug) {
     echo $emailBody;
   }
 }
-function checkParams($_request){
 
+function checkParams($_request)
+{
   global $lineBreak, $hParamsRequired, $emailBody, $aPaymentTypes, $paypalAllowed, $invoiceAllowed;
   $error = false;
  // $emailBody = '';
@@ -372,7 +366,7 @@ function checkParams($_request){
 	if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {
 	    $emailBody .= 'Novalnet callback received. New TID is not valid.' . "$lineBreak$lineBreak".$lineBreak;
 	} else {
-		$emailBody .= 'Novalnet callback received. Invalid TID ['.$_request['tid'].'] for Order:'.$_request['order_no'].' ' . "$lineBreak$lineBreak".$lineBreak;	    		
+		$emailBody .= 'Novalnet callback received. Invalid TID ['.$_request['tid'].'] for Order:'.$_request['order_no'].' ' . "$lineBreak$lineBreak".$lineBreak;
 	}
 	return false;
   }
@@ -383,12 +377,13 @@ function checkParams($_request){
 	}
   return true;
 }
-function BasicValidation($_request){
+
+function BasicValidation($_request)
+{
   global $lineBreak, $tableOrderPayment, $tableOrder, $emailBody, $debug, $allowedPayment, $invoiceAllowed, $paypalAllowed;;
   $orderDetails = array();
   $orderNo      = $_request['order_no']? $_request['order_no']: $_request['order_id'];
   $order = getOrderByIncrementId($orderNo);
-  // if ($debug) {echo'Order Details:<pre>'; print_r($order);echo'</pre>';}
   if($order->getIncrementId() == $orderNo && !empty($orderNo)) {
 	  //check amount
 	  $amount  = $_request['amount'];
@@ -400,23 +395,16 @@ function BasicValidation($_request){
 	  $OrderPaymentName = strtolower(getPaymentMethod($order));
 	  #modified
 	  if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {
-		$org_tid = $_request['tid_payment'];	
-	  } else {  
+		$org_tid = $_request['tid_payment'];
+	  } else {
 		$org_tid = $_request['tid'];
 	  }
 
 	  $paymentType = $allowedPayment[$OrderPaymentName];
-	  //  if($paymentType != $_request['payment_type']) {
 	  if(!in_array($_request['payment_type'], $paymentType)) {
 			$emailBody .= "Novalnet callback received. Payment type (".$_request['payment_type'].") is not matched with $OrderPaymentName!$lineBreak$lineBreak";
-			return false;	  
-	  }
-	  
-	/*  if(($paymentType == 'novalnetpaypal' && !in_array($_request['payment_type'], $paypalAllowed))
-			|| ( in_array($paymentType, array('novalnetinvoice', 'novalnetprepayment')) && !in_array($_request['payment_type'], $invoiceAllowed) ) ) {
-			$emailBody .= "Novalnet callback received. Payment type (".$_request['payment_type'].") is not matched with $paymentType!$lineBreak$lineBreak";
 			return false;
-	  } */
+	  }
 
 	  if(!preg_match('/^'.$org_tid.'/i',$order->getPayment()->getLastTransId())){
 		$emailBody .= 'Novalnet callback received. Order no is not valid' . "$lineBreak$lineBreak".$lineBreak;
@@ -429,14 +417,17 @@ function BasicValidation($_request){
 	return false;
   }
 }
-function setOrderStatus ($incrementId) {
-  global $lineBreak, $createInvoice, $emailBody, $orderStatus, $orderState, $tableOrderPayment, $addSubsequentTidToDb, $paypalAllowed, $invoiceAllowed;
+
+function setOrderStatus ($incrementId)
+{
+  global $lineBreak, $createInvoice, $emailBody, $orderStatus, $orderState, $tableOrderPayment, $addSubsequentTidToDb, $paypalAllowed, $invoiceAllowed, $getAdminTransaction;
   if ($order = getOrderByIncrementId($incrementId)) {
     $order->getPayment()->getMethodInstance()->setCanCapture(true);
 
     if ($createInvoice){
       $saveinvoice = saveInvoice($order);
     }
+	
     if ($invoice = $order->getInvoiceCollection()->getFirstItem()) {
 		if ($saveinvoice) {
 		  $order->setState($orderState, true, 'Novalnet callback set state '.$orderState.' for Order-ID = ' . $incrementId); //processing: ok; complete: not ok -> would cause the error msg: 'Der Bestellzustand "complete" darf nicht manuell gesetzt werden'
@@ -449,8 +440,14 @@ function setOrderStatus ($incrementId) {
 		  if ($addSubsequentTidToDb){
 			$payment = $order->getPayment();
 			$data = unserialize($payment->getAdditionalData());
-			if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {			    
-				$script = 'Novalnet Callback Script executed successfully. The subsequent TID: (' . $_REQUEST['tid'] . ') on ' . date('Y-m-d H:i:s');
+			if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {
+				$payment->setTransactionId($_REQUEST['tid']);
+				$transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
+				$transaction->setParentTxnId($_REQUEST['tid_payment'])
+							->save();
+				$amount = Mage::helper('novalnet_payment')->getFormatedAmount($_REQUEST['amount'], 'RAW');
+    				$currency = Mage::app()->getLocale()->currency($getAdminTransaction->getCurrency())->getSymbol();
+    				$script = 'Novalnet Callback Script executed successfully. The subsequent TID: (' . $_REQUEST['tid'] . ') on ' . date('Y-m-d H:i:s').' for the amount : '.$currency.' '.$amount;
 			} else {
 			    $script = 'Novalnet Callback Script executed successfully on ' . date('Y-m-d H:i:s');
 			}
@@ -470,14 +467,20 @@ function setOrderStatus ($incrementId) {
   }
   return true;
 }
-function getOrderByIncrementId($incrementId) {
+
+function getOrderByIncrementId($incrementId)
+{
   $order = Mage::getModel('sales/order')->loadByIncrementId($incrementId);
   return $order;
 }
-function getPaymentMethod ($order) {
+
+function getPaymentMethod ($order)
+{
   return $order->getPayment()->getData('method');
 }
-function checkIP($_request){
+
+function checkIP($_request)
+{
   global $lineBreak, $ipAllowed, $test, $emailBody;
   $callerIp  = Mage::helper('novalnet_payment')->getRealIpAddr();
   if ($test){
@@ -494,32 +497,52 @@ function checkIP($_request){
   return true;
 }
 
-function saveInvoice (Mage_Sales_Model_Order $order) {
-  global $lineBreak, $emailBody, $paypalAllowed, $invoiceAllowed, $callBackExecuted;
+function saveInvoice (Mage_Sales_Model_Order $order)
+{
+  global $lineBreak, $emailBody, $paypalAllowed, $invoiceAllowed, $callBackExecuted, $getAdminTransaction;
 	if(!$callBackExecuted) {
-		if ($order->canInvoice()) {
-				$invoice = $order->prepareInvoice();
-				$invoice->setState(Mage_Sales_Model_Order_Invoice::STATE_PAID)
-					->register();
-				Mage::getModel('core/resource_transaction')
-					->addObject($invoice)
-					->addObject($invoice->getOrder())
-					->save();
-				//$invoice->sendEmail(true, '');//this would send orig. order details to customer againif			
-				if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {					
-					$emailBody .= "Novalnet Callback Script executed successfully. Payment for order id :" . $_REQUEST['order_no'] . '. New TID: ('. $_REQUEST['tid'] . ') on ' . date('Y-m-d H:i:s').$lineBreak;
-				} else {
-					$emailBody .= "Novalnet Callback Script executed successfully. Payment for order id :" . $_REQUEST['order_no'] . ' on ' . date('Y-m-d H:i:s').$lineBreak;
-				}			
-		}else{
-			$emailBody .= "Novalnet callback received. Callback Script executed already. Refer Order :".$_REQUEST['order_no'].$lineBreak;
+		$modNovalCallback = Mage::getModel('novalnet_payment/callback')->loadLogByOrderId($_REQUEST['order_no']);
+		$request_amount = Mage::helper('novalnet_payment')->getFormatedAmount($_REQUEST['amount'], 'RAW');
+		$sum = $request_amount + $modNovalCallback->getCallbackAmount();
+
+		if (in_array($_REQUEST['payment_type'],$invoiceAllowed) && $sum < $order->getGrandTotal()) {
+
+			doNovalnetCallbackLog($modNovalCallback, $_REQUEST, $sum);
+            $amount = Mage::helper('novalnet_payment')->getFormatedAmount($_REQUEST['amount'], 'RAW');
+            $emailBody .= "Novalnet Callback Script executed successfully. Payment for order id :" . $_REQUEST['order_no'] . '. New TID: ('. $_REQUEST['tid'] . ') on ' . date('Y-m-d H:i:s').' for the amount : '.$amount.' '.$getAdminTransaction->getCurrency().$lineBreak;
 			return false;
+		} else {
+
+			doNovalnetCallbackLog($modNovalCallback, $_REQUEST, $sum);
+
+			if ($order->canInvoice()) {
+					$invoice = $order->prepareInvoice();
+					$invoice->setTransactionId($_REQUEST['tid']);
+					$invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE)
+							->setState(Mage_Sales_Model_Order_Invoice::STATE_PAID)
+							->register();
+					Mage::getModel('core/resource_transaction')
+						->addObject($invoice)
+						->addObject($invoice->getOrder())
+						->save();
+					$amount = Mage::helper('novalnet_payment')->getFormatedAmount($_REQUEST['amount'], 'RAW');
+
+					if(in_array($_REQUEST['payment_type'],$invoiceAllowed)) {
+						$emailBody = "Novalnet Callback Script executed successfully for the TID: " . $_REQUEST['tid_payment']. " with amount ". $amount .$getAdminTransaction->getCurrency(). " on " . date('Y-m-d H:i:s'). ". Please refer PAID transaction in our Novalnet Merchant Administration with the TID: " . $_REQUEST['tid']. "$lineBreak$lineBreak";
+					} else {
+						$emailBody = "Novalnet Callback Script executed successfully for the TID: " . $_REQUEST['tid']. " with amount ". $amount . $getAdminTransaction->getCurrency(). " on " . date('d-m-Y H:i:s') . ". $lineBreak$lineBreak";
+					}
+			} else {
+				echo "Novalnet callback received. Callback Script executed already. Refer Order :".$_REQUEST['order_no'].$lineBreak;
+				exit;
+			}
 		}
 	}
   return true;
 }
 
-function doTransactionStatusSave($response, $transactionStatus, $orderNo) {
+function doTransactionStatusSave($response, $transactionStatus, $orderNo)
+{
 	$order = getOrderByIncrementId($orderNo);
 	$amount = $response['amount'];
 	$ncNo = (isset($response['nc_no'])) ? $response['nc_no'] : NULL;
@@ -542,7 +565,8 @@ function doTransactionStatusSave($response, $transactionStatus, $orderNo) {
 			->save();
 }
 
- function doTransactionOrderLog($response, $orderno) {
+function doTransactionOrderLog($response, $orderno)
+{
  	$order = getOrderByIncrementId($orderNo);
 	$helper = Mage::helper('novalnet_payment');
 	$storeId = $order->getStoreId();
@@ -554,6 +578,17 @@ function doTransactionStatusSave($response, $transactionStatus, $orderNo) {
 			->setStoreId($storeId)
 			->setShopUrl($helper->getCurrentSiteUrl())
 			->save();
+}
+
+function doNovalnetCallbackLog($modNovalCallback, $response, $sum)
+{
+	$org_tid =  $response['payment_type'] == 'INVOICE_CREDIT' ? trim($response['tid_payment']) : trim($response['tid']);
+	$modNovalCallback->setOrderId($response['order_no'])
+					 ->setCallbackAmount($sum)
+					 ->setReferenceTid($org_tid)
+					 ->setCallbackDatetime(date('Y-m-d H:i:s'))
+					 ->setCallbackLog($_SERVER['REQUEST_URI'])
+					 ->save();
 }
 
 ?>

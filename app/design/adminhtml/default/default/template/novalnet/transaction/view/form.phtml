@@ -61,7 +61,11 @@ $data  = $this->getNovalnetTransactionStatus();
 						<label><?php echo $this->helper('novalnet_payment')->__('Order-ID') ?></label>
 					</td>
 					<td class="label">
-						<strong><?php echo $data->getOrderId() ?></strong>
+						<?php 						
+							$orderViewId = Mage::getModel('sales/order')->loadByIncrementId($data->getOrderId())->getId();
+							$orderViewUrl = Mage::helper('adminhtml')->getUrl('adminhtml/sales_order/view', array('order_id' => $orderViewId));
+						?>
+						<strong><a href="<?php echo $orderViewUrl ?>"><?php echo $data->getOrderId() ?></a></strong>
 					</td>
 				</tr>
 				<tr>

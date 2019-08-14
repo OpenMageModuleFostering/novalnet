@@ -61,5 +61,10 @@ class Novalnet_Payment_Model_Transactionstatus extends Mage_Core_Model_Abstract 
         $this->load($transactionStatus->getNnTxnId(), 'nn_txn_id');
         return $this;
     }
+    
+    public function loadLogByOrderId($orderId) {
+        $this->load($orderId, 'order_id');
+        return $this;
+    }
 
 }

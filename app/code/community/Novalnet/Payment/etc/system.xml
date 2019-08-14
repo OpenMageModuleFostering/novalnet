@@ -8,10 +8,10 @@
         </novalnet>
     </tabs>
     <sections>
-		
+
 		<!--{{{ Global tab-->
 		<novalnet_global translate="label" module="novalnet_payment">
-			<label>Global</label>
+			<label>General</label>
             <tab>novalnet</tab>
             <frontend_type>text</frontend_type>
             <sort_order>20</sort_order>
@@ -110,6 +110,15 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</api_sign>
+						<referrer_id translate="label">
+							<label>Referrer ID</label>
+							<comment>Referrer ID Desc</comment>
+							<frontend_type>text</frontend_type>
+							<sort_order>100</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</referrer_id>
 					</fields>
 				</novalnet>
 			</groups>
@@ -164,41 +173,70 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<manual_checking_amount tranlate="label" >
-							<label>Manual checking amount in cents</label>
-							<comment>Please enter the amount in cents</comment>
+							<label>Manual checking of order</label>
+							<comment>Manual checking of order Desc</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/manual_checking_amount</config_path>
-							<sort_order>10</sort_order>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</manual_checking_amount>
 						<second_product_id translate="label">
-							<label>Second Novalnet Product ID</label>
-							<comment>for the manual checking</comment>
+							<label>Second Product ID for manual check condition</label>
+							<comment>Second Product ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/second_product_id</config_path>
-							<sort_order>11</sort_order>
+							<sort_order>5</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_product_id>
 						<second_tariff_id translate="label">
-							<label>Second Novalnet Tariff Id</label>
-							<comment>for the manual checking</comment>
+							<label>Second Tariff ID for manual check condition</label>
+							<comment>Second Tariff ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/second_tariff_id</config_path>
-							<sort_order>12</sort_order>
+							<sort_order>6</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_tariff_id>
+						<cc_error translate="label">
+							<label>Auto refill the payment data entered in payment page</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetCc/cc_error</config_path>
+							<sort_order>7</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</cc_error>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetCc/reference_one</config_path>
+							<sort_order>12</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetCc/reference_two</config_path>
+							<sort_order>13</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/booking_reference</config_path>
-							<sort_order>13</sort_order>
+							<sort_order>14</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -208,7 +246,7 @@
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/user_group_excluded</config_path>
-							<sort_order>14</sort_order>
+							<sort_order>15</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -218,7 +256,7 @@
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/gateway_timeout</config_path>
-							<sort_order>17</sort_order>
+							<sort_order>16</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -227,7 +265,7 @@
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
 							<config_path>payment/novalnetCc/allowspecific</config_path>
-							<sort_order>18</sort_order>
+							<sort_order>17</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -237,7 +275,7 @@
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
 							<config_path>payment/novalnetCc/specificcountry</config_path>
-							<sort_order>19</sort_order>
+							<sort_order>18</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -248,7 +286,7 @@
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/min_order_total</config_path>
-							<sort_order>20</sort_order>
+							<sort_order>19</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -257,7 +295,7 @@
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/max_order_total</config_path>
-							<sort_order>21</sort_order>
+							<sort_order>20</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -266,7 +304,7 @@
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/orderscount</config_path>
-							<sort_order>22</sort_order>
+							<sort_order>21</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -277,7 +315,7 @@
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetCc/sort_order</config_path>
-							<sort_order>23</sort_order>
+							<sort_order>22</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -285,10 +323,221 @@
 					</fields>
 				</novalnetCc>
 				<!--}}} Novalnet Credit Card-->
+				<!--{{{ Novalnet SEPA-->
+				<novalnetSepa translate="label" module="novalnet_payment">
+					<label>Novalnet Direct Debit SEPA</label>
+					<sort_order>683</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+					<fields>
+						<active translate="label">
+							<label>Enable Novalnet Module</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetSepa/active</config_path>
+							<sort_order>1</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</active>
+						<title translate="label">
+							<label>Novalnet Title</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/title</config_path>
+							<sort_order>2</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</title>
+						<order_status translate="label">
+							<label>Set order Status</label>
+                            <comment>Set the status of orders made with this payment module to this value</comment>
+							<frontend_type>select</frontend_type>
+							<config_path>payment/novalnetSepa/order_status</config_path>
+							<source_model>adminhtml/system_config_source_order_status</source_model>
+							<sort_order>3</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</order_status>
+						<manual_checking_amount tranlate="label" >
+							<label>Manual checking of order</label>
+							<comment>Manual checking of order Desc</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/manual_checking_amount</config_path>
+							<sort_order>4</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</manual_checking_amount>
+						<second_product_id translate="label">
+							<label>Second Product ID for manual check condition</label>
+							<comment>Second Product ID in Novalnet to use the manual check condition</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/second_product_id</config_path>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</second_product_id>
+						<second_tariff_id translate="label">
+							<label>Second Tariff ID for manual check condition</label>
+							<comment>Second Tariff ID in Novalnet to use the manual check condition</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/second_tariff_id</config_path>
+							<sort_order>6</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</second_tariff_id>
+						<sepatypes translate="label">
+							<label>SEPA Payment Type</label>
+							<comment>SEPA Payment type Desc</comment>
+							<frontend_type>select</frontend_type>
+							<config_path>payment/novalnetSepa/sepatypes</config_path>
+							<source_model>novalnet_payment/novalnet_source_sepatype</source_model>
+							<sort_order>7</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</sepatypes>
+						<sepa_duedate translate="label">
+							<label>SEPA Payment duration in days</label>
+							<comment>SEPA Due Date description</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/sepa_due_date</config_path>
+							<sort_order>8</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<depends><sepatypes>DD_SEPA</sepatypes></depends>
+						</sepa_duedate>
+						<sepa_error translate="label">
+							<label>Auto refill the payment data entered in payment page</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetSepa/sepa_error</config_path>
+							<sort_order>9</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</sepa_error>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/reference_one</config_path>
+							<sort_order>14</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/reference_two</config_path>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
+						<booking_reference translate="label">
+							<label>Information to the end customer (this will appear in the payment page)</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/booking_reference</config_path>
+							<sort_order>16</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</booking_reference>
+						<user_group_excluded translate="label">
+							<comment>Excluded User Group Desc</comment>
+							<label>User Group Excluded</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/user_group_excluded</config_path>
+							<sort_order>17</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</user_group_excluded>
+						<gateway_timeout translate="label">
+							<comment>Gateway Timeout in seconds</comment>
+							<label>Gateway Timeout</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/gateway_timeout</config_path>
+							<sort_order>18</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</gateway_timeout>
+						<allowspecific translate="label">
+							<label>Payment from applicable countries</label>
+							<frontend_type>allowspecific</frontend_type>
+							<config_path>payment/novalnetSepa/allowspecific</config_path>
+							<sort_order>19</sort_order>
+							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</allowspecific>
+						<specificcountry translate="label">
+							<label>Payment from Specific countries</label>
+							<frontend_type>multiselect</frontend_type>
+							<config_path>payment/novalnetSepa/specificcountry</config_path>
+							<sort_order>20</sort_order>
+							<source_model>adminhtml/system_config_source_country</source_model>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<depends><allowspecific>1</allowspecific></depends>
+						</specificcountry>
+						<min_order_total translate="label">
+							<label>Novalnet Minimum Order Total</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/min_order_total</config_path>
+							<sort_order>21</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</min_order_total>
+						<max_order_total translate="label">
+							<label>Novalnet Maximum Order Total</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/max_order_total</config_path>
+							<sort_order>22</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</max_order_total>
+						<orderscount translate="label">
+							<label>Novalnet Minimum Orders Count</label>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/orderscount</config_path>
+							<sort_order>23</sort_order>
+							<comment>Novalnet Minimum Orders Count Desc</comment>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</orderscount>
+						<sort_order translate="label">
+							<label>Novalnet Sort Order</label>
+							<comment>Sort order of display. Lowest is displayed first.</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSepa/sort_order</config_path>
+							<sort_order>24</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</sort_order>
+					</fields>
+				</novalnetSepa>
+				<!--}}} Novalnet SEPA-->
 				<!--{{{ Novalnet Elvgerman-->
 				<novalnetElvgerman translate="label" module="novalnet_payment">
 					<label>Novalnet Direct Debit German</label>
-					<sort_order>683</sort_order>
+					<sort_order>684</sort_order>
 					<show_in_default>1</show_in_default>
 					<show_in_website>1</show_in_website>
 					<show_in_store>1</show_in_store>
@@ -324,61 +573,91 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<manual_checking_amount tranlate="label" >
-							<label>Manual checking amount in cents</label>
-							<comment>Please enter the amount in cents</comment>
+							<label>Manual checking of order</label>
+							<comment>Manual checking of order Desc</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/manual_checking_amount</config_path>
-							<sort_order>9</sort_order>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</manual_checking_amount>
 						<second_product_id translate="label">
-							<label>Second Novalnet Product ID</label>
-							<comment>for the manual checking</comment>
+							<label>Second Product ID for manual check condition</label>
+							<comment>Second Product ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetElvgerman/second_product_id</config_path>
-							<sort_order>10</sort_order>
+							<config_path>payment/novalnetElvgerman/second_product_id</config_path>
+							<sort_order>5</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_product_id>
 						<second_tariff_id translate="label">
-							<label>Second Novalnet Tariff Id</label>
-							<comment>for the manual checking</comment>
+							<label>Second Tariff ID for manual check condition</label>
+							<comment>Second Tariff ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/second_tariff_id</config_path>
-							<sort_order>11</sort_order>
+							<sort_order>6</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_tariff_id>
 						<acdc_check translate="label">
-							<label>Enable credit rating check</label>
+							<label>Enable Account Check Direct Control (ACDC)</label>
+							<comment>Activates the Account Check Direct Control at the payment process</comment>
 							<frontend_type>select</frontend_type>
 							<config_path>payment/novalnetElvgerman/acdc_check</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
-							<sort_order>12</sort_order>
+							<sort_order>7</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
-						</acdc_check>						
+						</acdc_check>
+						<elvgerman_error translate="label">
+							<label>Auto refill the payment data entered in payment page</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetElvgerman/elvgerman_error</config_path>
+							<sort_order>8</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</elvgerman_error>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetElvgerman/reference_one</config_path>
+							<sort_order>9</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetElvgerman/reference_two</config_path>
+							<sort_order>10</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/user_group_excluded</config_path>
-							<sort_order>15</sort_order>
+							<sort_order>11</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</user_group_excluded>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/booking_reference</config_path>
-							<sort_order>16</sort_order>
+							<sort_order>12</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -388,7 +667,7 @@
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/gateway_timeout</config_path>
-							<sort_order>18</sort_order>
+							<sort_order>13</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -397,7 +676,7 @@
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
 							<config_path>payment/novalnetElvgerman/allowspecific</config_path>
-							<sort_order>19</sort_order>
+							<sort_order>14</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -407,7 +686,7 @@
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
 							<config_path>payment/novalnetElvgerman/specificcountry</config_path>
-							<sort_order>20</sort_order>
+							<sort_order>15</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -418,7 +697,7 @@
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/min_order_total</config_path>
-							<sort_order>21</sort_order>
+							<sort_order>16</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -427,7 +706,7 @@
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/max_order_total</config_path>
-							<sort_order>22</sort_order>
+							<sort_order>17</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -436,7 +715,7 @@
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/orderscount</config_path>
-							<sort_order>23</sort_order>
+							<sort_order>18</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -447,7 +726,7 @@
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvgerman/sort_order</config_path>
-							<sort_order>24</sort_order>
+							<sort_order>19</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -494,51 +773,80 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<manual_checking_amount tranlate="label" >
-							<label>Manual checking amount in cents</label>
-							<comment>Please enter the amount in cents</comment>
+							<label>Manual checking of order</label>
+							<comment>Manual checking of order Desc</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/manual_checking_amount</config_path>
-							<sort_order>8</sort_order>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</manual_checking_amount>
 						<second_product_id translate="label">
-							<label>Second Novalnet Product ID</label>
-							<comment>for the manual checking</comment>
+							<label>Second Product ID for manual check condition</label>
+							<comment>Second Product ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/second_product_id</config_path>
-							<sort_order>9</sort_order>
+							<sort_order>5</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_product_id>
 						<second_tariff_id translate="label">
-							<label>Second Novalnet Tariff Id</label>
-							<comment>for the manual checking</comment>
+							<label>Second Tariff ID for manual check condition</label>
+							<comment>Second Tariff ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/second_tariff_id</config_path>
-							<sort_order>10</sort_order>
+							<sort_order>6</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
-						</second_tariff_id>						
+						</second_tariff_id>
+						<elvastria_error translate="label">
+							<label>Auto refill the payment data entered in payment page</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetElvaustria/elvastria_error</config_path>
+							<sort_order>7</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</elvastria_error>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetElvaustria/reference_one</config_path>
+							<sort_order>8</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetElvaustria/reference_two</config_path>
+							<sort_order>9</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/user_group_excluded</config_path>
-							<sort_order>13</sort_order>
+							<sort_order>10</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</user_group_excluded>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/booking_reference</config_path>
-							<sort_order>14</sort_order>
+							<sort_order>11</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -548,7 +856,7 @@
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/gateway_timeout</config_path>
-							<sort_order>16</sort_order>
+							<sort_order>12</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -557,7 +865,7 @@
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
 							<config_path>payment/novalnetElvaustria/allowspecific</config_path>
-							<sort_order>17</sort_order>
+							<sort_order>13</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -567,7 +875,7 @@
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
 							<config_path>payment/novalnetElvaustria/specificcountry</config_path>
-							<sort_order>18</sort_order>
+							<sort_order>14</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -578,7 +886,7 @@
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/min_order_total</config_path>
-							<sort_order>19</sort_order>
+							<sort_order>15</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -586,8 +894,8 @@
 						<max_order_total translate="label">
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetElvaustria/max_order_total</config_path>
-							<sort_order>20</sort_order>
+							<config_path>payment/novalnetElvaustria/max_order_total</config_path>
+							<sort_order>16</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -596,7 +904,7 @@
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/orderscount</config_path>
-							<sort_order>21</sort_order>
+							<sort_order>17</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -607,7 +915,7 @@
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetElvaustria/sort_order</config_path>
-							<sort_order>22</sort_order>
+							<sort_order>18</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -626,7 +934,7 @@
 						<active translate="label">
 							<label>Enable Novalnet Module</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetInvoice/active</config_path>
+							<config_path>payment/novalnetInvoice/active</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>1</sort_order>
 							<show_in_default>1</show_in_default>
@@ -636,7 +944,7 @@
 						<title translate="label">
 							<label>Novalnet Title</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/title</config_path>
+							<config_path>payment/novalnetInvoice/title</config_path>
 							<sort_order>2</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -646,7 +954,7 @@
 							<label>Set order Status</label>
 							<comment>Set the status of orders made with this payment module to this value</comment>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetInvoice/order_status</config_path>
+							<config_path>payment/novalnetInvoice/order_status</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>3</sort_order>
 							<show_in_default>1</show_in_default>
@@ -654,20 +962,39 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/booking_reference</config_path>
-							<sort_order>8</sort_order>
+							<config_path>payment/novalnetInvoice/booking_reference</config_path>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</booking_reference>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetInvoice/reference_one</config_path>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetInvoice/reference_two</config_path>
+							<sort_order>6</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<payment_duration translate="label">
 							<label>Payment Duration</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/payment_duration</config_path>
-							<sort_order>11</sort_order>
+							<config_path>payment/novalnetInvoice/payment_duration</config_path>
+							<sort_order>7</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -676,18 +1003,18 @@
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/user_group_excluded</config_path>
-							<sort_order>12</sort_order>
+							<config_path>payment/novalnetInvoice/user_group_excluded</config_path>
+							<sort_order>8</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
-						</user_group_excluded>						
+						</user_group_excluded>
 						<gateway_timeout translate="label">
 							<comment>Gateway Timeout in seconds</comment>
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/gateway_timeout</config_path>
-							<sort_order>14</sort_order>
+							<config_path>payment/novalnetInvoice/gateway_timeout</config_path>
+							<sort_order>9</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -695,8 +1022,8 @@
 						<allowspecific translate="label">
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
-						<config_path>payment/novalnetInvoice/allowspecific</config_path>
-							<sort_order>15</sort_order>
+							<config_path>payment/novalnetInvoice/allowspecific</config_path>
+							<sort_order>10</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -705,8 +1032,8 @@
 						<specificcountry translate="label">
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetInvoice/specificcountry</config_path>
-							<sort_order>16</sort_order>
+							<config_path>payment/novalnetInvoice/specificcountry</config_path>
+							<sort_order>11</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -716,8 +1043,8 @@
 						<min_order_total translate="label">
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/min_order_total</config_path>
-							<sort_order>17</sort_order>
+							<config_path>payment/novalnetInvoice/min_order_total</config_path>
+							<sort_order>12</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -725,8 +1052,8 @@
 						<max_order_total translate="label">
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/max_order_total</config_path>
-							<sort_order>18</sort_order>
+							<config_path>payment/novalnetInvoice/max_order_total</config_path>
+							<sort_order>13</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -734,8 +1061,8 @@
 						<orderscount translate="label">
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/orderscount</config_path>
-							<sort_order>19</sort_order>
+							<config_path>payment/novalnetInvoice/orderscount</config_path>
+							<sort_order>14</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -745,8 +1072,8 @@
 							<label>Novalnet Sort Order</label>
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetInvoice/sort_order</config_path>
-							<sort_order>20</sort_order>
+							<config_path>payment/novalnetInvoice/sort_order</config_path>
+							<sort_order>15</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -765,7 +1092,7 @@
 						<active translate="label">
 							<label>Enable Novalnet Module</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetPrepayment/active</config_path>
+							<config_path>payment/novalnetPrepayment/active</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>1</sort_order>
 							<show_in_default>1</show_in_default>
@@ -775,7 +1102,7 @@
 						<title translate="label">
 							<label>Novalnet Title</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/title</config_path>
+							<config_path>payment/novalnetPrepayment/title</config_path>
 							<sort_order>2</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -785,7 +1112,7 @@
 							<label>Set order Status</label>
 							<comment>Set the status of orders made with this payment module to this value</comment>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetPrepayment/order_status</config_path>
+							<config_path>payment/novalnetPrepayment/order_status</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>3</sort_order>
 							<show_in_default>1</show_in_default>
@@ -793,21 +1120,40 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/booking_reference</config_path>
-							<sort_order>8</sort_order>
+							<config_path>payment/novalnetPrepayment/booking_reference</config_path>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</booking_reference>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetPrepayment/reference_one</config_path>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetPrepayment/reference_two</config_path>
+							<sort_order>6</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/user_group_excluded</config_path>
-							<sort_order>9</sort_order>
+							<config_path>payment/novalnetPrepayment/user_group_excluded</config_path>
+							<sort_order>7</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -816,8 +1162,8 @@
 							<comment>Gateway Timeout in seconds</comment>
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/gateway_timeout</config_path>
-							<sort_order>11</sort_order>
+							<config_path>payment/novalnetPrepayment/gateway_timeout</config_path>
+							<sort_order>8</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -825,8 +1171,8 @@
 						<allowspecific translate="label">
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
-						<config_path>payment/novalnetPrepayment/allowspecific</config_path>
-							<sort_order>12</sort_order>
+							<config_path>payment/novalnetPrepayment/allowspecific</config_path>
+							<sort_order>9</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -835,8 +1181,8 @@
 						<specificcountry translate="label">
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetPrepayment/specificcountry</config_path>
-							<sort_order>13</sort_order>
+							<config_path>payment/novalnetPrepayment/specificcountry</config_path>
+							<sort_order>10</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -846,8 +1192,8 @@
 						<min_order_total translate="label">
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/min_order_total</config_path>
-							<sort_order>14</sort_order>
+							<config_path>payment/novalnetPrepayment/min_order_total</config_path>
+							<sort_order>11</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -855,8 +1201,8 @@
 						<max_order_total translate="label">
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/max_order_total</config_path>
-							<sort_order>15</sort_order>
+							<config_path>payment/novalnetPrepayment/max_order_total</config_path>
+							<sort_order>12</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -864,8 +1210,8 @@
 						<orderscount translate="label">
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/orderscount</config_path>
-							<sort_order>16</sort_order>
+							<config_path>payment/novalnetPrepayment/orderscount</config_path>
+							<sort_order>13</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -875,8 +1221,8 @@
 							<label>Novalnet Sort Order</label>
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPrepayment/sort_order</config_path>
-							<sort_order>17</sort_order>
+							<config_path>payment/novalnetPrepayment/sort_order</config_path>
+							<sort_order>14</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -895,7 +1241,7 @@
 						<active translate="label">
 							<label>Enable Novalnet Module</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/active</config_path>
+							<config_path>payment/novalnetSofortueberweisung/active</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>0</sort_order>
 							<show_in_default>1</show_in_default>
@@ -905,7 +1251,7 @@
 						<title translate="label">
 							<label>Novalnet Title</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/title</config_path>
+							<config_path>payment/novalnetSofortueberweisung/title</config_path>
 							<sort_order>2</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -914,7 +1260,7 @@
 						<order_status translate="label">
 							<label>Order Status Before Payment</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/order_status</config_path>
+							<config_path>payment/novalnetSofortueberweisung/order_status</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>3</sort_order>
 							<show_in_default>1</show_in_default>
@@ -924,7 +1270,7 @@
 						<order_status_after_payment translate="label">
 							<label>Order Status After Successful Payment</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/order_status_after_payment</config_path>
+							<config_path>payment/novalnetSofortueberweisung/order_status_after_payment</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
@@ -932,21 +1278,40 @@
 							<show_in_store>1</show_in_store>
 						</order_status_after_payment>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/booking_reference</config_path>
-							<sort_order>10</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/booking_reference</config_path>
+							<sort_order>5</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</booking_reference>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSofortueberweisung/reference_one</config_path>
+							<sort_order>6</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSofortueberweisung/reference_two</config_path>
+							<sort_order>7</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/user_group_excluded</config_path>
-							<sort_order>11</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/user_group_excluded</config_path>
+							<sort_order>8</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -954,9 +1319,9 @@
 						<save_cancelled_tid translate="label">
 							<label>Display Novalnet Transaction ID for Cancelled Order</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/save_cancelled_tid</config_path>
+							<config_path>payment/novalnetSofortueberweisung/save_cancelled_tid</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
-							<sort_order>14</sort_order>
+							<sort_order>9</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -965,8 +1330,8 @@
 							<comment>Gateway Timeout in seconds</comment>
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/gateway_timeout</config_path>
-							<sort_order>15</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/gateway_timeout</config_path>
+							<sort_order>10</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -974,8 +1339,8 @@
 						<allowspecific translate="label">
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/allowspecific</config_path>
-							<sort_order>16</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/allowspecific</config_path>
+							<sort_order>11</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -984,8 +1349,8 @@
 						<specificcountry translate="label">
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/specificcountry</config_path>
-							<sort_order>17</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/specificcountry</config_path>
+							<sort_order>12</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -995,8 +1360,8 @@
 						<min_order_total translate="label">
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/min_order_total</config_path>
-							<sort_order>18</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/min_order_total</config_path>
+							<sort_order>13</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1004,8 +1369,8 @@
 						<max_order_total translate="label">
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/max_order_total</config_path>
-							<sort_order>19</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/max_order_total</config_path>
+							<sort_order>14</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1013,8 +1378,8 @@
 						<orderscount translate="label">
 							<label>Novalnet Minimum Orders Count</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/orderscount</config_path>
-							<sort_order>20</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/orderscount</config_path>
+							<sort_order>15</sort_order>
 							<comment>Novalnet Minimum Orders Count Desc</comment>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1024,8 +1389,8 @@
 							<label>Novalnet Sort Order</label>
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSofortueberweisung/sort_order</config_path>
-							<sort_order>21</sort_order>
+							<config_path>payment/novalnetSofortueberweisung/sort_order</config_path>
+							<sort_order>16</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1082,21 +1447,40 @@
 						<show_in_store>1</show_in_store>
 					</order_status_after_payment>
 					<booking_reference translate="label">
-					   <label>Information to the end customer</label>
-					   <comment>will appear in the payment form</comment>
+					   <label>Information to the end customer (this will appear in the payment page)</label>
 					   <frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/booking_reference</config_path>
-					   <sort_order>10</sort_order>
+					   <sort_order>5</sort_order>
 					   <show_in_default>1</show_in_default>
 					   <show_in_website>1</show_in_website>
 					   <show_in_store>1</show_in_store>
 					</booking_reference>
+					<reference_one translate="label">
+						<label>Transaction reference 1</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetPaypal/reference_one</config_path>
+						<sort_order>6</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_one>
+					<reference_two translate="label">
+						<label>Transaction reference 2</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetPaypal/reference_two</config_path>
+						<sort_order>7</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_two>
 					<user_group_excluded translate="label">
 						<comment>Excluded User Group Desc</comment>
 						<label>User Group Excluded</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/user_group_excluded</config_path>
-						<sort_order>11</sort_order>
+						<sort_order>8</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1106,7 +1490,7 @@
 						<frontend_type>select</frontend_type>
 						<config_path>payment/novalnetPaypal/save_cancelled_tid</config_path>
 						<source_model>adminhtml/system_config_source_yesno</source_model>
-						<sort_order>14</sort_order>
+						<sort_order>9</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1116,7 +1500,7 @@
 						<label>Gateway Timeout</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/gateway_timeout</config_path>
-						<sort_order>15</sort_order>
+						<sort_order>10</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1125,7 +1509,7 @@
 						<label>Payment from applicable countries</label>
 						<frontend_type>allowspecific</frontend_type>
 						<config_path>payment/novalnetPaypal/allowspecific</config_path>
-						<sort_order>16</sort_order>
+						<sort_order>11</sort_order>
 						<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1135,7 +1519,7 @@
 						<label>Payment from Specific countries</label>
 						<frontend_type>multiselect</frontend_type>
 						<config_path>payment/novalnetPaypal/specificcountry</config_path>
-						<sort_order>17</sort_order>
+						<sort_order>12</sort_order>
 						<source_model>adminhtml/system_config_source_country</source_model>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1147,8 +1531,8 @@
 					<min_order_total translate="label">
 					  <label>Novalnet Minimum Order Total</label>
 					  <frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPaypal/min_order_total</config_path>
-					  <sort_order>21</sort_order>
+					  <config_path>payment/novalnetPaypal/min_order_total</config_path>
+					  <sort_order>13</sort_order>
 					  <show_in_default>1</show_in_default>
 					  <show_in_website>1</show_in_website>
 					  <show_in_store>1</show_in_store>
@@ -1157,7 +1541,7 @@
 					  <label>Novalnet Maximum Order Total</label>
 					  <frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/max_order_total</config_path>
-					  <sort_order>22</sort_order>
+					  <sort_order>14</sort_order>
 					  <show_in_default>1</show_in_default>
 					  <show_in_website>1</show_in_website>
 					  <show_in_store>1</show_in_store>
@@ -1166,7 +1550,7 @@
 						<label>Novalnet Minimum Orders Count</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/orderscount</config_path>
-						<sort_order>23</sort_order>
+						<sort_order>15</sort_order>
 						<comment>Novalnet Minimum Orders Count Desc</comment>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1177,7 +1561,7 @@
 						<comment>Sort order of display. Lowest is displayed first.</comment>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetPaypal/sort_order</config_path>
-						<sort_order>24</sort_order>
+						<sort_order>16</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1197,7 +1581,7 @@
 					<active translate="label">
 					  <label>Enable Novalnet Module</label>
 					  <frontend_type>select</frontend_type>
-						<config_path>payment/novalnetIdeal/active</config_path>
+					  <config_path>payment/novalnetIdeal/active</config_path>
 					  <source_model>adminhtml/system_config_source_yesno</source_model>
 					  <sort_order>1</sort_order>
 					  <show_in_default>1</show_in_default>
@@ -1234,21 +1618,40 @@
 						<show_in_store>1</show_in_store>
 					</order_status_after_payment>
 					<booking_reference translate="label">
-					   <label>Information to the end customer</label>
-					   <comment>will appear in the payment form</comment>
+					   <label>Information to the end customer (this will appear in the payment page)</label>
 					   <frontend_type>text</frontend_type>
 						<config_path>payment/novalnetIdeal/booking_reference</config_path>
-					   <sort_order>10</sort_order>
+					   <sort_order>5</sort_order>
 					   <show_in_default>1</show_in_default>
 					   <show_in_website>1</show_in_website>
 					   <show_in_store>1</show_in_store>
 					</booking_reference>
+					<reference_one translate="label">
+						<label>Transaction reference 1</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetIdeal/reference_one</config_path>
+						<sort_order>6</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_one>
+					<reference_two translate="label">
+						<label>Transaction reference 2</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetIdeal/reference_two</config_path>
+						<sort_order>7</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_two>
 					<user_group_excluded translate="label">
 						<comment>Excluded User Group Desc</comment>
 						<label>User Group Excluded</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetIdeal/user_group_excluded</config_path>
-						<sort_order>11</sort_order>
+						<sort_order>8</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1258,7 +1661,7 @@
 						<frontend_type>select</frontend_type>
 						<config_path>payment/novalnetIdeal/save_cancelled_tid</config_path>
 						<source_model>adminhtml/system_config_source_yesno</source_model>
-						<sort_order>14</sort_order>
+						<sort_order>9</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1268,7 +1671,7 @@
 						<label>Gateway Timeout</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetIdeal/gateway_timeout</config_path>
-						<sort_order>15</sort_order>
+						<sort_order>10</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1277,7 +1680,7 @@
 						<label>Payment from applicable countries</label>
 						<frontend_type>allowspecific</frontend_type>
 						<config_path>payment/novalnetIdeal/allowspecific</config_path>
-						<sort_order>16</sort_order>
+						<sort_order>11</sort_order>
 						<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1287,7 +1690,7 @@
 						<label>Payment from Specific countries</label>
 						<frontend_type>multiselect</frontend_type>
 						<config_path>payment/novalnetIdeal/specificcountry</config_path>
-						<sort_order>17</sort_order>
+						<sort_order>12</sort_order>
 						<source_model>adminhtml/system_config_source_country</source_model>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1295,28 +1698,28 @@
 						<depends><allowspecific>1</allowspecific></depends>
 					</specificcountry>
 					<min_order_total translate="label">
-					  <label>Novalnet Minimum Order Total</label>
-					  <frontend_type>text</frontend_type>
-						<config_path>payment/novalnetIdeal/min_order_total</config_path>
-					  <sort_order>18</sort_order>
-					  <show_in_default>1</show_in_default>
-					  <show_in_website>1</show_in_website>
-					  <show_in_store>1</show_in_store>
+					    <label>Novalnet Minimum Order Total</label>
+					    <frontend_type>text</frontend_type>
+					    <config_path>payment/novalnetIdeal/min_order_total</config_path>
+					    <sort_order>13</sort_order>
+					    <show_in_default>1</show_in_default>
+					    <show_in_website>1</show_in_website>
+					    <show_in_store>1</show_in_store>
 					</min_order_total>
 					<max_order_total translate="label">
-					  <label>Novalnet Maximum Order Total</label>
-					  <frontend_type>text</frontend_type>
-						<config_path>payment/novalnetIdeal/max_order_total</config_path>
-					  <sort_order>19</sort_order>
-					  <show_in_default>1</show_in_default>
-					  <show_in_website>1</show_in_website>
-					  <show_in_store>1</show_in_store>
+					    <label>Novalnet Maximum Order Total</label>
+					    <frontend_type>text</frontend_type>
+					    <config_path>payment/novalnetIdeal/max_order_total</config_path>
+					    <sort_order>14</sort_order>
+					    <show_in_default>1</show_in_default>
+					    <show_in_website>1</show_in_website>
+					    <show_in_store>1</show_in_store>
 					</max_order_total>
 					<orderscount translate="label">
 						<label>Novalnet Minimum Orders Count</label>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetIdeal/orderscount</config_path>
-						<sort_order>20</sort_order>
+						<sort_order>15</sort_order>
 						<comment>Novalnet Minimum Orders Count Desc</comment>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
@@ -1327,7 +1730,7 @@
 						<comment>Sort order of display. Lowest is displayed first.</comment>
 						<frontend_type>text</frontend_type>
 						<config_path>payment/novalnetIdeal/sort_order</config_path>
-						<sort_order>21</sort_order>
+						<sort_order>16</sort_order>
 						<show_in_default>1</show_in_default>
 						<show_in_website>1</show_in_website>
 						<show_in_store>1</show_in_store>
@@ -1356,7 +1759,7 @@
 						<title translate="label">
 							<label>Novalnet Title</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/title</config_path>
+							<config_path>payment/novalnetPhonepayment/title</config_path>
 							<sort_order>2</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1365,7 +1768,7 @@
 						<order_status translate="label">
 							<label>Set order Status</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetPhonepayment/order_status</config_path>
+							<config_path>payment/novalnetPhonepayment/order_status</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>3</sort_order>
 							<show_in_default>1</show_in_default>
@@ -1373,21 +1776,40 @@
 							<show_in_store>1</show_in_store>
 						</order_status>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/booking_reference</config_path>
-							<sort_order>9</sort_order>
+							<config_path>payment/novalnetPhonepayment/booking_reference</config_path>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</booking_reference>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetPhonepayment/reference_one</config_path>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetPhonepayment/reference_two</config_path>
+							<sort_order>6</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/user_group_excluded</config_path>
-							<sort_order>10</sort_order>
+							<config_path>payment/novalnetPhonepayment/user_group_excluded</config_path>
+							<sort_order>7</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1396,8 +1818,8 @@
 							<comment>Gateway Timeout in seconds</comment>
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/gateway_timeout</config_path>
-							<sort_order>12</sort_order>
+							<config_path>payment/novalnetPhonepayment/gateway_timeout</config_path>
+							<sort_order>8</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1405,8 +1827,8 @@
 						<allowspecific translate="label">
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
-						<config_path>payment/novalnetPhonepayment/allowspecific</config_path>
-							<sort_order>13</sort_order>
+							<config_path>payment/novalnetPhonepayment/allowspecific</config_path>
+							<sort_order>9</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1415,8 +1837,8 @@
 						<specificcountry translate="label">
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetPhonepayment/specificcountry</config_path>
-							<sort_order>14</sort_order>
+							<config_path>payment/novalnetPhonepayment/specificcountry</config_path>
+							<sort_order>10</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1426,8 +1848,8 @@
 						<min_order_total translate="label">
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/min_order_total</config_path>
-							<sort_order>15</sort_order>
+							<config_path>payment/novalnetPhonepayment/min_order_total</config_path>
+							<sort_order>11</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1435,8 +1857,8 @@
 						<max_order_total translate="label">
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/max_order_total</config_path>
-							<sort_order>16</sort_order>
+							<config_path>payment/novalnetPhonepayment/max_order_total</config_path>
+							<sort_order>12</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1444,8 +1866,8 @@
 						<orderscount translate="label">
 						  <label>Novalnet Minimum Orders Count</label>
 						  <frontend_type>text</frontend_type>
-						<config_path>payment/novalnetPhonepayment/orderscount</config_path>
-						  <sort_order>17</sort_order>
+						  <config_path>payment/novalnetPhonepayment/orderscount</config_path>
+						  <sort_order>13</sort_order>
 						  <comment>Novalnet Minimum Orders Count Desc</comment>
 						  <show_in_default>1</show_in_default>
 						  <show_in_website>1</show_in_website>
@@ -1456,7 +1878,7 @@
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetPhonepayment/sort_order</config_path>
-							<sort_order>18</sort_order>
+							<sort_order>14</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1467,7 +1889,7 @@
 				<!--{{{ Novalnet Secure-->
 				<novalnetSecure translate="label" module="novalnet_payment">
 					<label>Novalnet Credit Card 3D-Secure</label>
-					<sort_order>681</sort_order>
+					<sort_order>682</sort_order>
 					<show_in_default>1</show_in_default>
 					<show_in_website>1</show_in_website>
 					<show_in_store>1</show_in_store>
@@ -1494,7 +1916,7 @@
 						<order_status translate="label">
 							<label>Order Status Before Payment</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSecure/order_status</config_path>
+							<config_path>payment/novalnetSecure/order_status</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>3</sort_order>
 							<show_in_default>1</show_in_default>
@@ -1504,7 +1926,7 @@
 						<order_status_after_payment translate="label">
 							<label>Order Status After Successful Payment</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSecure/order_status_after_payment</config_path>
+							<config_path>payment/novalnetSecure/order_status_after_payment</config_path>
 							<source_model>adminhtml/system_config_source_order_status</source_model>
 							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
@@ -1514,7 +1936,7 @@
 						<cctypes translate="label">
 							<label>Credit Card Types</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetSecure/cctypes</config_path>
+							<config_path>payment/novalnetSecure/cctypes</config_path>
 							<source_model>novalnet_payment/novalnet_source_cctype</source_model>
 							<sort_order>5</sort_order>
 							<show_in_default>1</show_in_default>
@@ -1522,51 +1944,80 @@
 							<show_in_store>1</show_in_store>
 						</cctypes>
 						<manual_checking_amount tranlate="label" >
-							<label>Manual checking amount in cents</label>
-							<comment>Please enter the amount in cents</comment>
+							<label>Manual checking of order</label>
+							<comment>Manual checking of order Desc</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/manual_checking_amount</config_path>
-							<sort_order>10</sort_order>
+							<config_path>payment/novalnetSecure/manual_checking_amount</config_path>
+							<sort_order>6</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</manual_checking_amount>
 						<second_product_id translate="label">
-							<label>Second Novalnet Product ID</label>
-							<comment>for the manual checking</comment>
+							<label>Second Product ID for manual check condition</label>
+							<comment>Second Product ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/second_product_id</config_path>
-							<sort_order>11</sort_order>
+							<config_path>payment/novalnetSecure/second_product_id</config_path>
+							<sort_order>7</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_product_id>
 						<second_tariff_id translate="label">
-							<label>Second Novalnet Tariff Id</label>
-							<comment>for the manual checking</comment>
+							<label>Second Tariff ID for manual check condition</label>
+							<comment>Second Tariff ID in Novalnet to use the manual check condition</comment>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/second_tariff_id</config_path>
-							<sort_order>12</sort_order>
+							<config_path>payment/novalnetSecure/second_tariff_id</config_path>
+							<sort_order>8</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</second_tariff_id>
+						<novalnetSecure_error translate="label">
+							<label>Auto refill the payment data entered in payment page</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<config_path>payment/novalnetSecure/novalnetSecure_error</config_path>
+							<sort_order>9</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</novalnetSecure_error>
 						<booking_reference translate="label">
-							<label>Information to the end customer</label>
-							<comment>will appear in the payment form</comment>
+							<label>Information to the end customer (this will appear in the payment page)</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/booking_reference</config_path>
-							<sort_order>13</sort_order>
+							<config_path>payment/novalnetSecure/booking_reference</config_path>
+							<sort_order>10</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</booking_reference>
+						<reference_one translate="label">
+							<label>Transaction reference 1</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSecure/reference_one</config_path>
+							<sort_order>11</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_one>
+						<reference_two translate="label">
+							<label>Transaction reference 2</label>
+							<comment>This will appear in the transactions details / account statement</comment>
+							<frontend_type>text</frontend_type>
+							<config_path>payment/novalnetSecure/reference_two</config_path>
+							<sort_order>12</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</reference_two>
 						<user_group_excluded translate="label">
 							<comment>Excluded User Group Desc</comment>
 							<label>User Group Excluded</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/user_group_excluded</config_path>
-							<sort_order>14</sort_order>
+							<config_path>payment/novalnetSecure/user_group_excluded</config_path>
+							<sort_order>13</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1574,9 +2025,9 @@
 						<save_cancelled_tid translate="label">
 							<label>Display Novalnet Transaction ID for Cancelled Order</label>
 							<frontend_type>select</frontend_type>
-						<config_path>payment/novalnetSecure/save_cancelled_tid</config_path>
+							<config_path>payment/novalnetSecure/save_cancelled_tid</config_path>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
-							<sort_order>16</sort_order>
+							<sort_order>14</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1585,8 +2036,8 @@
 							<comment>Gateway Timeout in seconds</comment>
 							<label>Gateway Timeout</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/gateway_timeout</config_path>
-							<sort_order>17</sort_order>
+							<config_path>payment/novalnetSecure/gateway_timeout</config_path>
+							<sort_order>15</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1594,8 +2045,8 @@
 						<allowspecific translate="label">
 							<label>Payment from applicable countries</label>
 							<frontend_type>allowspecific</frontend_type>
-						<config_path>payment/novalnetSecure/allowspecific</config_path>
-							<sort_order>18</sort_order>
+							<config_path>payment/novalnetSecure/allowspecific</config_path>
+							<sort_order>16</sort_order>
 							<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1604,8 +2055,8 @@
 						<specificcountry translate="label">
 							<label>Payment from Specific countries</label>
 							<frontend_type>multiselect</frontend_type>
-						<config_path>payment/novalnetSecure/specificcountry</config_path>
-							<sort_order>19</sort_order>
+							<config_path>payment/novalnetSecure/specificcountry</config_path>
+							<sort_order>17</sort_order>
 							<source_model>adminhtml/system_config_source_country</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -1615,8 +2066,8 @@
 						<min_order_total translate="label">
 							<label>Novalnet Minimum Order Total</label>
 							<frontend_type>text</frontend_type>
-						<config_path>payment/novalnetSecure/min_order_total</config_path>
-							<sort_order>20</sort_order>
+							<config_path>payment/novalnetSecure/min_order_total</config_path>
+							<sort_order>18</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1625,27 +2076,27 @@
 							<label>Novalnet Maximum Order Total</label>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetSecure/max_order_total</config_path>
-							<sort_order>21</sort_order>
+							<sort_order>19</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</max_order_total>
 						<orderscount translate="label">
-						  <label>Novalnet Minimum Orders Count</label>
-						  <frontend_type>text</frontend_type>
-							<config_path>payment/novalnetSecure/orderscount</config_path>
-						  <sort_order>22</sort_order>
-						  <comment>Novalnet Minimum Orders Count Desc</comment>
+						    <label>Novalnet Minimum Orders Count</label>
+						    <frontend_type>text</frontend_type>
+						    <config_path>payment/novalnetSecure/orderscount</config_path>
+						    <sort_order>20</sort_order>
+						    <comment>Novalnet Minimum Orders Count Desc</comment>
 						   <show_in_default>1</show_in_default>
-						  <show_in_website>1</show_in_website>
-						  <show_in_store>1</show_in_store>
+						    <show_in_website>1</show_in_website>
+						    <show_in_store>1</show_in_store>
 						</orderscount>
 						<sort_order translate="label">
 							<label>Novalnet Sort Order</label>
 							<comment>Sort order of display. Lowest is displayed first.</comment>
 							<frontend_type>text</frontend_type>
 							<config_path>payment/novalnetSecure/sort_order</config_path>
-							<sort_order>23</sort_order>
+							<sort_order>21</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
@@ -1653,16 +2104,185 @@
 					</fields>
 				</novalnetSecure>
 				<!--}}} Novalnet Secure-->
+				<!--{{{ Novalnet Safetypay-->
+				<novalnetSafetypay translate="label" module="novalnet_payment">
+				  <label>Novalnet Safetypay</label>
+				  <frontend_type>text</frontend_type>
+				  <sort_order>690</sort_order>
+				  <show_in_default>1</show_in_default>
+				  <show_in_website>1</show_in_website>
+				  <show_in_store>1</show_in_store>
+				  <fields>
+					<active translate="label">
+					  <label>Enable Novalnet Module</label>
+					  <frontend_type>select</frontend_type>
+					  <config_path>payment/novalnetSafetypay/active</config_path>
+					  <source_model>adminhtml/system_config_source_yesno</source_model>
+					  <sort_order>1</sort_order>
+					  <show_in_default>1</show_in_default>
+					  <show_in_website>1</show_in_website>
+					  <show_in_store>1</show_in_store>
+					</active>
+					<title translate="label">
+						<label>Novalnet Title</label>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/title</config_path>
+						<sort_order>2</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</title>
+					<order_status translate="label">
+						<label>Order Status Before Payment</label>
+						<frontend_type>select</frontend_type>
+						<config_path>payment/novalnetSafetypay/order_status</config_path>
+						<source_model>adminhtml/system_config_source_order_status</source_model>
+						<sort_order>3</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</order_status>
+					<order_status_after_payment translate="label">
+						<label>Order Status After Successful Payment</label>
+						<frontend_type>select</frontend_type>
+						<config_path>payment/novalnetSafetypay/order_status_after_payment</config_path>
+						<source_model>adminhtml/system_config_source_order_status</source_model>
+						<sort_order>4</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</order_status_after_payment>
+					<booking_reference translate="label">
+					   <label>Information to the end customer (this will appear in the payment page)</label>
+					   <frontend_type>text</frontend_type>
+					   <config_path>payment/novalnetSafetypay/booking_reference</config_path>
+					   <sort_order>5</sort_order>
+					   <show_in_default>1</show_in_default>
+					   <show_in_website>1</show_in_website>
+					   <show_in_store>1</show_in_store>
+					</booking_reference>
+					<reference_one translate="label">
+						<label>Transaction reference 1</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/reference_one</config_path>
+						<sort_order>6</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_one>
+					<reference_two translate="label">
+						<label>Transaction reference 2</label>
+						<comment>This will appear in the transactions details / account statement</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/reference_two</config_path>
+						<sort_order>7</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</reference_two>
+					<user_group_excluded translate="label">
+						<comment>Excluded User Group Desc</comment>
+						<label>User Group Excluded</label>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/user_group_excluded</config_path>
+						<sort_order>8</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</user_group_excluded>
+					<save_cancelled_tid translate="label">
+						<label>Display Novalnet Transaction ID for Cancelled Order</label>
+						<frontend_type>select</frontend_type>
+						<config_path>payment/novalnetSafetypay/save_cancelled_tid</config_path>
+						<source_model>adminhtml/system_config_source_yesno</source_model>
+						<sort_order>9</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</save_cancelled_tid>
+					<gateway_timeout translate="label">
+						<comment>Gateway Timeout in seconds</comment>
+						<label>Gateway Timeout</label>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/gateway_timeout</config_path>
+						<sort_order>10</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</gateway_timeout>
+					<allowspecific translate="label">
+						<label>Payment from applicable countries</label>
+						<frontend_type>allowspecific</frontend_type>
+						<config_path>payment/novalnetSafetypay/allowspecific</config_path>
+						<sort_order>11</sort_order>
+						<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</allowspecific>
+					<specificcountry translate="label">
+						<label>Payment from Specific countries</label>
+						<frontend_type>multiselect</frontend_type>
+						<config_path>payment/novalnetSafetypay/specificcountry</config_path>
+						<sort_order>12</sort_order>
+						<source_model>adminhtml/system_config_source_country</source_model>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+						<depends><allowspecific>1</allowspecific></depends>
+					</specificcountry>
+					<min_order_total translate="label">
+					  <label>Novalnet Minimum Order Total</label>
+					  <frontend_type>text</frontend_type>
+					  <config_path>payment/novalnetSafetypay/min_order_total</config_path>
+					  <sort_order>13</sort_order>
+					  <show_in_default>1</show_in_default>
+					  <show_in_website>1</show_in_website>
+					  <show_in_store>1</show_in_store>
+					</min_order_total>
+					<max_order_total translate="label">
+					  <label>Novalnet Maximum Order Total</label>
+					  <frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/max_order_total</config_path>
+					  <sort_order>14</sort_order>
+					  <show_in_default>1</show_in_default>
+					  <show_in_website>1</show_in_website>
+					  <show_in_store>1</show_in_store>
+					</max_order_total>
+					<orderscount translate="label">
+						<label>Novalnet Minimum Orders Count</label>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/orderscount</config_path>
+						<sort_order>15</sort_order>
+						<comment>Novalnet Minimum Orders Count Desc</comment>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</orderscount>
+					<sort_order translate="label">
+						<label>Novalnet Sort Order</label>
+						<comment>Sort order of display. Lowest is displayed first.</comment>
+						<frontend_type>text</frontend_type>
+						<config_path>payment/novalnetSafetypay/sort_order</config_path>
+						<sort_order>16</sort_order>
+						<show_in_default>1</show_in_default>
+						<show_in_website>1</show_in_website>
+						<show_in_store>1</show_in_store>
+					</sort_order>
+				  </fields>
+				</novalnetSafetypay>
+				<!--}}} Novalnet Safetypay-->
 			</groups>
 		</novalnet_paymethods>
-		<!-- novalnet paymethods -->		
-		
+		<!-- novalnet paymethods -->
+
 		<!-- Fraud prevention -->
 		<fraud_prevent translate="label" module="novalnet_payment">
 			<label>Risk and Control</label>
             <tab>novalnet</tab>
 			 <frontend_type>text</frontend_type>
-            <sort_order>30</sort_order>
+            <sort_order>40</sort_order>
             <show_in_default>1</show_in_default>
             <show_in_website>1</show_in_website>
             <show_in_store>1</show_in_store>
@@ -1678,7 +2298,7 @@
 					<fields>
 						<callback translate="label">
 							<comment>PIN by Callback/SMS/E-Mail Desc</comment>
-							<label>PIN by Callback/SMS/E-Mail</label>
+							<label>Fraudprevention through PIN by Callback/SMS/E-Mail</label>
 							<frontend_type>select</frontend_type>
 							<config_path>payment/novalnetCc/callback</config_path>
 							<source_model>novalnet_payment/novalnet_source_callbacktypes</source_model>
@@ -1709,7 +2329,7 @@
 					<fields>
 						<callback translate="label">
 							<comment>PIN by Callback/SMS/E-Mail Desc</comment>
-							<label>PIN by Callback/SMS/E-Mail</label>
+							<label>Fraudprevention through PIN by Callback/SMS/E-Mail</label>
 							<frontend_type>select</frontend_type>
 							<config_path>payment/novalnetElvaustria/callback</config_path>
 							<source_model>novalnet_payment/novalnet_source_callbacktypes</source_model>
@@ -1740,7 +2360,7 @@
 					<fields>
 						<callback translate="label">
 							<comment>PIN by Callback/SMS/E-Mail Desc</comment>
-							<label>PIN by Callback/SMS/E-Mail</label>
+							<label>Fraudprevention through PIN by Callback/SMS/E-Mail</label>
 							<frontend_type>select</frontend_type>
 							<config_path>payment/novalnetElvgerman/callback</config_path>
 							<source_model>novalnet_payment/novalnet_source_callbacktypes</source_model>
@@ -1772,7 +2392,7 @@
 					<fields>
 						<callback translate="label">
 							<comment>PIN by Callback/SMS/E-Mail Desc</comment>
-							<label>PIN by Callback/SMS/E-Mail</label>						
+							<label>Fraudprevention through PIN by Callback/SMS/E-Mail</label>
 							<frontend_type>select</frontend_type>
 							<config_path>payment/novalnetInvoice/callback</config_path>
 							<source_model>novalnet_payment/novalnet_source_callbacktypes</source_model>

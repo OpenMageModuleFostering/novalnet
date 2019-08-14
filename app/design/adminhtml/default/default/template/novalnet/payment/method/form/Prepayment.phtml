@@ -32,7 +32,7 @@
     <!-- PAYMENT LOGO -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."/img/vorauskasse.jpg";  ?>
+            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."vorauskasse.jpg";  ?>
             <img style="height:30px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
         </a>
     </div>

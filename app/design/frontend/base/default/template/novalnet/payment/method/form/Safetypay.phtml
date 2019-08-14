@@ -1,0 +1,64 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodule of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Novalnet AG
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<a name="<?php echo $this->getMethodCode() ?>"></a>
+<?php
+$_code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+?>
+<fieldset class="form-list">
+    <!--{{{ Payment Logo -->
+    <div>
+        <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+            <?php  $image = "safetypay_logo.jpg"; ?>
+			<?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image; ?>
+            <img style="height:32px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+        </a>
+    </div>
+    <!--}}} Payment Logo -->
+    <!--{{{ Payment Description -->
+    <div>
+        <ul id="payment_form_<?php echo $_code ?>" style="display:none;">
+            <li>
+            <?php echo $this->__('You will be redirected to Novalnet AG website when you place an order.') ?>
+            </li>
+                <?php if ($this->getUserInfo()): ?>
+                <li>
+                <?php echo $this->getUserInfo() ?>
+                </li>
+            <?php endif; ?>
+			<?php if ($this->getLiveMode() == 0): ?>
+                <li>
+                    <div style="font-weight:bold;color:red;font-size:12px;">
+					<?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+                    </div>
+                </li>
+			<?php endif ?>
+        </ul>
+    </div>
+    <!--}}} Payment Description -->
+    <div class="clear"></div>
+</fieldset>

@@ -5,6 +5,9 @@
             <action method="addJs">
                 <script>novalnet/novalnetcc.js</script>
             </action>
+            <action method="addJs">
+                <script>novalnet/novalnetsepa.js</script>
+            </action>
         </reference>
     </adminhtml_sales_order_create_index>
 
@@ -35,6 +38,16 @@
                 <block>novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview</block>
             </action>
         </reference>
+        <reference name="order_tab_info">
+			<action method="setTemplate">
+				<template>novalnet/sales/order/view/info.phtml</template>
+			</action>
+		</reference>
+<!--
+        <reference name="content">	
+			<block type="adminhtml/sales_order_view" name="order_info" template="novalnet/sales/order/info.phtml" />		
+		</reference>
+-->
     </adminhtml_sales_order_view>
 
 	<!--

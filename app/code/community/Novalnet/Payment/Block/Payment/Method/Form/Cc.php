@@ -32,42 +32,6 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
     }
 
     /**
-     * Retrieve payment configuration object
-     *
-     * @return Mage_Payment_Model_Config
-     */
-    protected function _getConfig() {
-        return Mage::getModel('payment/config');
-    }
-
-    /**
-     * Retrieve availables credit card types
-     *
-     * @return array
-     */
-    public function getCcAvailableTypes() {
-        return array('VI', 'MC');
-    }
-
-    /**
-     * Get information to end user from config
-     *
-     * @return string
-     */
-    public function getUserInfo() {
-        return $this->getMethod()->getConfigData('booking_reference');
-    }
-
-    /**
-     * Retrieve Novalnet Mode in Configuration
-     *
-     * @return bool
-     */
-    public function getLiveMode() {
-        return $this->getMethod()->_getConfigData('live_mode');
-    }
-    
-    /**
      * Check whether Callback type allowed
      *
      * @return bool

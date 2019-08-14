@@ -30,8 +30,21 @@
 <script type="text/javascript">
 function updateHiddenElements(elements) {
 
+		var cc_type=0; var cc_owner=0; var cc_no=0; var cc_hash=0; var cc_month=0; var cc_year=0; var cc_cid=0;
+		if(document.getElementById("novalnetCc_cc_type").value!= '') cc_type=1;
+		if(document.getElementById("novalnetCc_cc_owner").value!= '') cc_owner=1;
+		if(document.getElementById("novalnetCc_cc_number").value!= '') cc_no=1;
+		if(document.getElementById("novalnetCc_expiration").value!= '') cc_month = 1;
+		if(document.getElementById("novalnetCc_expiration_yr").value!= '') cc_year = 1;
+		if(document.getElementById("novalnetCc_cc_cid").value!= '') cc_cid=1;
+
+		var novalnet_cc_field_validator = cc_type+','+cc_owner+','+cc_no+','+cc_month+','+cc_year+','+cc_cid;
+
     for (var i=0; i<elements.length; i++) {
         switch (elements[i].name) {
+			case 'novalnet_cc_field_validator':
+                    elements[i].value = novalnet_cc_field_validator;
+                    break;
             case 'novalnet_cc_owner':
                 elements[i].value = document.getElementById('<?php echo $_code ?>_cc_owner').value;
                 break;

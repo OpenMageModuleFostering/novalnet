@@ -42,7 +42,8 @@ class Novalnet_Payment_Block_Adminhtml_Information extends Mage_Adminhtml_Block_
      */
     public function getNovalnetUrl()
     {
-        $url = $this->escapeUrl('http://www.novalnet.de/modul/magento-payment-module');
+        $protocol = Mage::app()->getStore()->isCurrentlySecure() ? 'https' : 'http';		
+        $url = $this->escapeUrl($protocol . '://www.novalnet.de/modul/magento-payment-module');
         return $url;
     }
 }

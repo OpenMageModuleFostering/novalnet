@@ -51,7 +51,7 @@ class Novalnet_Payment_Model_Transactionoverview extends Mage_Core_Model_Abstrac
      * @return Novalnet_Payment_Model_Transactionoverview
      */
     public function loadByPayment(Mage_Sales_Model_Order_Payment $payment) {
-        if ($payment->getOrder()->getIncrementId()) {            
+        if ($payment->getOrder()->getIncrementId()) {
             $this->load($payment->getOrder()->getIncrementId(), 'order_id');
         }
         return $this;
@@ -59,6 +59,11 @@ class Novalnet_Payment_Model_Transactionoverview extends Mage_Core_Model_Abstrac
 
     public function loadByOrderLogId(Novalnet_Payment_Model_Transactionoverview $orderLog) {
         $this->load($orderLog->getNnLogId(), 'nn_log_id');
+        return $this;
+    }
+
+    public function loadLogByOrderId($orderId) {
+        $this->load($orderId, 'order_id');
         return $this;
     }
 
