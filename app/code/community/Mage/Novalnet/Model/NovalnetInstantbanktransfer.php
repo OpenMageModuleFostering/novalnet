@@ -27,20 +27,25 @@
  */
 
 
-class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
+class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model_Method_Abstract #Mage_Payment_Model_Method_Cc
 {
-	const CGI_URL = 'https://payport.novalnet.de/global_pci_payport';
-    const PAYMENT_METHOD = '3D-Secure Credit Card';
-	const RESPONSE_DELIM_CHAR = '&';
+	const CGI_URL = 'https://payport.novalnet.de/online_transfer_payport';
+    const PAYMENT_METHOD = 'Instant Bank Transfer';
+	const RESPONSE_DELIM_CHAR    = '&';
 	const RESPONSE_CODE_APPROVED = 100;
+    const KEY                    = 33;
+    const PROJECT_ID             = 80036;#todo: replace with real project id; (80036 => test project id at www.sofortueberweisung.de/registration
+    const USER_ID                = 29236;#the user id from www.sofortueberweisung.de/registration
+
+	private $debug = false; #todo: set to false
     /**
     * unique internal payment method identifier
     * 
     * @var string [a-z0-9_]
     */
-    protected $_code = 'novalnet_secure';
-    protected $_formBlockType = 'novalnet/cc_form';
-	protected $_infoBlockType = 'novalnet/cc_info';
+    protected $_code = 'novalnetInstantbanktransfer';#path = magento\app\code\community\Mage\Novalnet\Model\novalnetInstantbanktransfer.php
+    protected $_formBlockType = 'novalnet/instantbanktransfer_form';#path = magento\app\design\frontend\default\default\template\novalnet\instantbanktransfer\form.phtml
+	protected $_infoBlockType = 'novalnet/instantbanktransfer_info';
 
   
     /**
@@ -116,8 +121,6 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
 		}
 
         $session = Mage::getSingleton('checkout/session');
-        $session->setCcNumber(Mage::helper('core')->encrypt($payment->getCcNumber()));
-        $session->setCcCid(Mage::helper('core')->encrypt($payment->getCcCid()));
    		return $this;
     }
     public function refund(Varien_Object $payment, $amount)
@@ -168,9 +171,11 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
         $session = Mage::getSingleton('checkout/session');
         $paymentInfo = $this->getInfoInstance();
         $order = $this->getOrder();
+
         $fieldsArr['vendor'] = $this->getConfigData('merchant_id');
         $fieldsArr['auth_code'] = $this->getConfigData('auth_code');
-        $fieldsArr['key'] = 6;
+        #$fieldsArr['key'] = self::KEY;
+        $fieldsArr['key'] = self::KEY;
         $fieldsArr['product'] = $this->getConfigData('product_id');
         $fieldsArr['tariff'] = $this->getConfigData('tariff_id');
         $fieldsArr['amount'] = ($order->getBaseGrandTotal()*100);
@@ -191,21 +196,39 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
         $fieldsArr['fax'] = $billing->getFax();
         $fieldsArr['birth_date'] = $order->getRemoteIp();
         $fieldsArr['session'] = session_id();
-        $fieldsArr['cc_holder'] = $payment->getCcOwner();
-        $fieldsArr['cc_no'] = Mage::helper('core')->decrypt($session->getCcNumber()) ;
-        $fieldsArr['cc_exp_month'] = $payment->getCcExpMonth();
-        $fieldsArr['cc_exp_year'] = $payment->getCcExpYear();
-        $fieldsArr['cc_cvc2'] = Mage::helper('core')->decrypt($session->getCcCid());
-        $fieldsArr['return_url'] = Mage::getUrl('novalnet/secure/success', array('_secure' => true));
+        #$fieldsArr['return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));
+		$fieldsArr['return_url'] = Mage::getUrl('checkout/onepage/saveOrder/', array('success' => true, 'error' => false, 'redirect' => Mage::getUrl('checkout/onepage/saveOrder/', array()) ) );
         $fieldsArr['return_method'] = 'POST';
-        $fieldsArr['error_return_url'] = Mage::getUrl('novalnet/secure/success', array('_secure' => true));;
+        #$fieldsArr['error_return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#todo:failure
+		$fieldsArr['error_return_url'] = Mage::getUrl('checkout/onepage/savePayment/', array('error' => true, 'success' => false, 'redirect' => Mage::getUrl('checkout/onepage/savePayment/', array()) ) );#redirect
         $fieldsArr['error_return_method'] = 'POST';
-        $fieldsArr['input1']= 'order_id';
-        $fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
-        $session->setCcNumber('');
-        $session->setCcCid();
+        #$fieldsArr['input1'] = 'order_id';
+        #$fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
+
+		#on Clicking onto <Weiter> after choice of payment type
+		/*
+		payment[method]=novalnetInstantbanktransfer
+		payment[cc_type]=VI
+		payment[cc_owner]=Zhang
+		payment[cc_number]=4200000000000000
+		payment[cc_exp_month]=1
+		payment[cc_exp_year]=2012
+		payment[cc_cid]=123
+		*/
+		$fieldsArr['payment[method]'] = 'novalnetInstantbanktransfer';
+
+		############## INSTANT BANK Transfer specific parameters
+        $prefix                               = 'instantbanktransfer_';
+        $fieldsArr[$prefix.'url']             = self::CGI_URL;
+		$fieldsArr[$prefix.'project_id']      = self::PROJECT_ID;
+		$fieldsArr[$prefix.'user_id']         = self::USER_ID;
+		$fieldsArr[$prefix.'reason_1']        = 'Test2';#todo?
+		$fieldsArr[$prefix.'reason_2']        = 'Test3';#todo?
+		$fieldsArr[$prefix.'amount']          = str_replace(',', '.', $order->getBaseGrandTotal()*100);
+        $fieldsArr[$prefix.'user_variable_0'] = $paymentInfo->getOrder()->getRealOrderId();
+
         $request = '';
-        foreach ($fieldsArr as $k=>$v) {
+        foreach ($fieldsArr as $k => $v) {
             $request .= '<' . $k . '>' . $v . '</' . $k . '>';
         }
         return $fieldsArr;
@@ -213,10 +236,10 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
     
     public function getOrderPlaceRedirectUrl()
     {
-          return Mage::getUrl('novalnet/secure/redirect');
+          return Mage::getUrl('novalnet/instantbanktransfer/redirect');#path: magento\app\code\community\Mage\Novalnet\Block\Instantbanktransfer\redirect.php
     }
     
-    public function getNovalnetSecureUrl()
+    public function getNovalnetInstantbanktransferUrl()
     {
          return self::CGI_URL;
     }
@@ -251,5 +274,45 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
 			return $_SERVER['HTTP_FORWARDED_FOR'];
 		}
 		return $_SERVER['REMOTE_ADDR'];
+	}
+
+	public function assignData($data)#this mehtode will be called twice: once after choice of payment, once after klicking on <Place Order>
+	{
+		$this->debug2(__FUNCTION__, 'magento_assignData.txt');
+		$this->debug2($data, 'magento_assignData.txt');
+		/*if(!session_is_registered('tid')){
+			$this->debug2($data, 'magento_assignData1.txt');
+			$addresses = $this->getQuote()->getAllAddresses();
+			$this->checkAmountAllowed();
+			$this->aBillingAddress = $this->getBillingAddress($addresses);
+			$this->debug2($this, 'magento_assignData_this.txt');
+			$this->getFirstCall();
+		}else{
+			$this->debug2($data, 'magento_assignData2.txt');
+			#Mage::throwException($this->text.'hl');
+		}
+
+        if (!($data instanceof Varien_Object)) {
+            $data = new Varien_Object($data);
+        }
+        $info=$this->getInfoInstance();*/
+        /*$info->setNnElvCountry($data->getElvCountry())
+        ->setNnAccountHolder($data->getAccountHolder())
+        ->setNnAccountNumber($data->getAccountNumber())
+        ->setNnBankSortingCode($data->getBankSortingCode());*/
+
+		return $this;
+	}
+	public function debug2($object, $filename)
+	{
+		if (!$this->debug){return;}
+		$fh = fopen("/tmp/$filename", 'a+');
+		if (gettype($object) == 'object' or gettype($object) == 'array'){
+			fwrite($fh, serialize($object));
+		}else{
+			fwrite($fh, date('H:i:s').' '.$object);
+		}
+		fwrite($fh, "<hr />\n");
+		fclose($fh);
 	}
 }

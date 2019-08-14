@@ -215,8 +215,14 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 
             $billing = $order->getBillingAddress();
             $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1]) or !$street[1]){$street[1]='';}
-			if (!isset($street[2]) or !$street[2]){$street[2]='';}
+			if (!isset($street[1])){$street[1]='';}
+			if (!isset($street[2])){$street[2]='';}
+            if (!$street[0]){$street[0] = $street[1].$street[2];}
+            if (!$street[0])
+            {
+                Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
+            }
+
             if (!empty($billing)) {
 				if (session_is_registered('tid')){
 					$this->debug2($billing, 'magento_billing2.txt');
@@ -597,7 +603,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		->setstreet(utf8_encode($this->aBillingAddress['street']))
 		->setcity(utf8_encode($this->aBillingAddress['city']))
 		->setzip($this->aBillingAddress['postcode'])
-		->setcountry($this->aBillingAddress['country'])
+		->setcountry(utf8_encode($this->aBillingAddress['country']))
 		->settel($this->aBillingAddress['telephone'])
 		->setfax($this->aBillingAddress['fax'])
 		->setremote_ip($this->getRealIpAddr())
@@ -606,6 +612,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		->setsearch_in_street(1);
 		#$request->setinvoice_type(self::PAYMENT_METHOD);
 
+		$this->debug2($request, 'magento_getFirstCall_request.txt');
 		$result = $this->_postRequest($request);
 
 		if(!$this->aryResponse){
@@ -623,7 +630,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		{
 			preg_match('/novaltel_status>?([^<]+)/i', $data, $matches);
 			$aryResponse['status'] = $matches[1];
-	
+
 			preg_match('/novaltel_status_message>?([^<]+)/i', $data, $matches);
 			$aryResponse['status_desc'] = $matches[1];
 		}
@@ -694,7 +701,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 				}
 			}
 		   else $status = $aryResponse['status'];
-	
+
 		   ### Passing through the Error Response from Novalnet's paygate into order-info ###
 		   #$order->info['comments'] .= '. Novalnet Error Code : '.$aryResponse['status'].', Novalnet Error Message : '.$aryResponse['status_desc'];
 

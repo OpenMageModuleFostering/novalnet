@@ -29,9 +29,9 @@
 class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abstract
 {
     const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
+    const PAYMENT_METHOD = 'Invoice';
     const RESPONSE_DELIM_CHAR = '&';
     const RESPONSE_CODE_APPROVED = 100;
-    const PAYMENT_METHOD = 'Invoice';
     const KEY = 27;
 	const STATUS_PENDING = 'PENDING';
     /**
@@ -190,13 +190,20 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
         if (!empty($order)) {
             $request->setinput1($order->getIncrementId());
             $billing = $order->getBillingAddress();
-            $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1]) or !$street[1]){$street[1]='';}
-			if (!isset($street[2]) or !$street[2]){$street[2]='';}
+            /*$street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
+			if (!isset($street[1])){$street[1]='';}
+			if (!isset($street[2])){$street[2]='';}
+            if (!$street[0]){$street[0] = $street[1].$street[2];}
+            if (!$street[0])
+            {
+                Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
+            }*/
+            if (!$billing->getStreet(1)){Mage::throwException(Mage::helper('novalnet')->__('Street missing'));}
             if (!empty($billing)) {
                 $request->setfirst_name($billing->getFirstname())
                 ->setLast_name($billing->getlastname())
-                ->setstreet($street[0].$street[1].$street[2])
+                ->setsearch_in_street(1)
+                ->setstreet($billing->getStreet(1))
                 ->setcity($billing->getCity())
                 ->setzip($billing->getPostcode())
                 ->setcountry($billing->getCountry())
@@ -208,6 +215,7 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
                 ->setsearch_in_street(1);
                 #->setremote_ip($order->getRemoteIp())
                 #->sethouse_no($street[1].$street[2])
+                #->setstreet($street[0].$street[1].$street[2])
             }
         }
         /*$request->setbank_account_holder($payment->getNnAccountHolder())

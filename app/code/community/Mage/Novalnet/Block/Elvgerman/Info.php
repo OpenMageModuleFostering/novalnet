@@ -53,6 +53,10 @@ class Mage_Novalnet_Block_Elvgerman_Info extends Mage_Payment_Block_Info
     {
         return $this->getInfo()->getMethodInstance();
     }
+    public function getPaymentMethod()
+    {
+        return $this->htmlEscape($this->getMethod()->getConfigData('title'));
+    }
     public function getInfoData($field)
     {
         return $this->htmlEscape($this->getMethod()->getInfoInstance()->getData($field));

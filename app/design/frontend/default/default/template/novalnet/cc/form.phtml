@@ -27,9 +27,13 @@
 ?>
 <?php $_code=$this->getMethodCode();?>
 <?php
-$customer_id = $_SESSION['customer_base']['id'];
-$accountData = $this->getCcData($customer_id);
 $cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';
+if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
+{
+    $customer_id = $_SESSION['customer_base']['id'];
+    $accountData = $this->getCcData($customer_id);
+}
+
 if ($accountData){
 	list($cc_type, $cc_last4, $cc_owner, $cc_exp_month, $cc_exp_year) = array_values($accountData);
 }

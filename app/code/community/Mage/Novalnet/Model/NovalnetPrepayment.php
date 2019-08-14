@@ -187,12 +187,19 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
 
             $billing = $order->getBillingAddress();
             $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1]) or !$street[1]){$street[1]='';}
-			if (!isset($street[2]) or !$street[2]){$street[2]='';}
+            /*$street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
+			if (!isset($street[1])){$street[1]='';}
+			if (!isset($street[2])){$street[2]='';}
+            if (!$street[0]){$street[0] = $street[1].$street[2];}
+            if (!$street[0])
+            {
+                Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
+            }*/
+            if (!$billing->getStreet(1)){Mage::throwException(Mage::helper('novalnet')->__('Street missing'));}
             if (!empty($billing)) {
                 $request->setfirst_name($billing->getFirstname())
                 ->setLast_name($billing->getlastname())
-                ->setstreet($street[0].$street[1].$street[2])
+                ->setstreet($billing->getStreet(1))
                 ->setcity($billing->getCity())
                 ->setzip($billing->getPostcode())
                 ->setcountry($billing->getCountry())
@@ -204,8 +211,7 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
                 ->setsearch_in_street(1);
                 #->setremote_ip($order->getRemoteIp())
                 #->sethouse_no($street[1].$street[2])
-                #birth_date #todo:
-                #language#todo:
+                #->setstreet($street[0].$street[1].$street[2])
             }
         }
         /*$request->setbank_account_holder($payment->getNnAccountHolder())

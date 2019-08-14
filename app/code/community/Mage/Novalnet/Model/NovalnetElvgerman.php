@@ -29,6 +29,7 @@
 class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Abstract
 {
     const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
+    const PAYMENT_METHOD = 'Direct Debit';
     const RESPONSE_DELIM_CHAR = '&';
     const RESPONSE_CODE_APPROVED = 100;
 	const KEY = "2";
@@ -40,6 +41,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
     protected $_code = 'novalnetElvgerman';
     protected $_formBlockType = 'novalnet/elvgerman_form';
     protected $_infoBlockType = 'novalnet/elvgerman_info';
+    private   $_debug = false; #todo: set to false for live system
 
      
     /**
@@ -90,7 +92,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
     /**
      * Can save credit card information for future processing?
      */
-    protected $_canSaveCc = false;
+    protected $_canSaveCc               = false;
 
     /**
      * Here you will need to implement authorize, capture and void public methods
@@ -99,12 +101,12 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
      * authorize, capture and void in Mage_Paygate_Model_Authorizenet
      */
     public function authorize(Varien_Object $payment, $amount)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
 
         return $this;
     }
     public function capture(Varien_Object $payment, $amount)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         $error = false;
         $payment->setAmount($amount);
 
@@ -150,12 +152,12 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
         return $this;
     }
     public function refund(Varien_Object $payment, $amount)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         return $this;
     }
 
     public function void(Varien_Object $payment)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         return $this;
     }
     /**
@@ -166,14 +168,14 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
      * @return unknown
      */
     protected function _saveObject (Varien_Object $payment)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         $order = $payment->getOrder();
         if (!empty($order)) {
             $billing = $order->getBillingAddress();
         }
     }
     protected function _buildRequest(Varien_Object $payment)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         $order = $payment->getOrder();
 
         $request = Mage::getModel('novalnet/novalnet_request');
@@ -194,14 +196,20 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
         if (!empty($order)) {
             $request->setinput1($order->getIncrementId());
             $billing = $order->getBillingAddress();
-            $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1]) or !$street[1]){$street[1]='';}
-			if (!isset($street[2]) or !$street[2]){$street[2]='';}
+            /*$street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
+			if (!isset($street[1])){$street[1]='';}
+			if (!isset($street[2])){$street[2]='';}
+            if (!$street[0]){$street[0] = $street[1].$street[2];}
+            if (!$street[0])
+            {
+                Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
+            }*/
+            if (!$billing->getStreet(1)){Mage::throwException(Mage::helper('novalnet')->__('Street missing'));}
             if (!empty($billing)) {
                 $request->setfirst_name($billing->getFirstname())
                 ->setlast_name($billing->getLastname())
-                ->setstreet($street[0])
-                ->sethouse_no($street[1].$street[2])
+                ->setsearch_in_street(1)
+                ->setstreet($billing->getStreet(1))
                 ->setcity($billing->getCity())
                 ->setzip($billing->getPostcode())
                 ->setcountry($billing->getCountry())
@@ -211,6 +219,9 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
                 ->setgender('u')
                 ->setemail($order->getCustomerEmail());
             }#->setremote_ip($order->getRemoteIp())
+             #->setstreet($street[0])
+             #->sethouse_no($street[1].$street[2])
+
 
 
         }
@@ -223,7 +234,10 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
     }
 
     protected function _postRequest(Varien_Object $request)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
+        $this->debug2($request, 'magento_postRequest_request.txt');
+        $this->debug2($_REQUEST, 'magento_postRequest__REQUEST.txt');
+        $this->debug2($_SESSION, 'magento_postRequest__SESSION.txt');
         $result = Mage::getModel('novalnet/novalnet_result');
 
         $client = new Varien_Http_Client();
@@ -284,7 +298,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
 
 
     public function assignData($data)
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
         }
@@ -305,7 +319,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
      * @return Mage_Sales_Model_Quote
      */
     public function getQuote()
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         if (empty($this->_quote)) {
             $this->_quote = $this->getCheckout()->getQuote();
         }
@@ -317,7 +331,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
      * @return Mage_Sales_Model_Order
      */
     public function getCheckout()
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         if (empty($this->_checkout)) {
             //$this->_checkout = Mage::getSingleton('checkout/type_multishipping');
             $this->_checkout = Mage::getSingleton('checkout/session');
@@ -326,12 +340,12 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
     }
    
     public function getTitle()
-    {
+    {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
         return Mage::helper('novalnet')->__($this->getConfigData('title'));
     }
     
    public function validate()
-   {
+   {$this->debug2(__FUNCTION__, 'magento_func_calls.txt');
          parent::validate();
          $info = $this->getInfoInstance();
          $nnAccountNumber = $info->getNnAccountNumber();
@@ -385,5 +399,17 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
 			return $_SERVER['HTTP_FORWARDED_FOR'];
 		}
 		return $_SERVER['REMOTE_ADDR'];
+	}
+    public function debug2($object, $filename)
+	{
+		if (!$this->_debug){return;}
+		$fh = fopen("/tmp/$filename", 'a+');
+		if (gettype($object) == 'object' or gettype($object) == 'array'){
+			fwrite($fh, serialize($object));
+		}else{
+			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		}
+		fwrite($fh, "<hr />\n");
+		fclose($fh);
 	}
 }

@@ -83,4 +83,12 @@ class Mage_Novalnet_Block_Cc_Info extends Mage_Payment_Block_Info
         $this->setTemplate('payment/info/pdf/cc.phtml');
         return $this->toHtml();
     }
+    public function getMethod()
+    {
+        return $this->getInfo()->getMethodInstance();
+    }
+    public function getPaymentMethod()
+    {
+        return $this->htmlEscape($this->getMethod()->getConfigData('title'));
+    }
 }

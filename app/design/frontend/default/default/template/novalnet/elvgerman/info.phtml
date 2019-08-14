@@ -26,7 +26,7 @@
  */
 ?>
 <?php if($_info = $this->getInfo()):?>
-
+<?php echo $this->__($this->htmlEscape($this->getPaymentMethod())) ?><br />
 <?php #echo $this->__('Country: ').$this->__($this->htmlEscape($this->getInfo()->getNnElvCountry())) ?><!--br /-->
 <?php echo $this->__('Account Holder: %s', $this->htmlEscape($this->getInfo()->getNnAccountHolder())) ?><br />
 <?php echo $this->__('Account Number: %s', $this->htmlEscape($this->getInfo()->getNnAccountNumber())) ?><br />

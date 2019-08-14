@@ -29,7 +29,11 @@
 ?>
 <?php
 $_code=$this->getMethodCode();
-$customer_id = $_SESSION['customer_base']['id'];
+if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
+{
+    $customer_id = $_SESSION['customer_base']['id'];
+}
+
 $user_group_id = $this->getUserGroupId($customer_id);
 $user_group_name = $this->getUserGroupExcluded();
 if (!$user_group_name){$allowed = true;}
