@@ -1,0 +1,117 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$billingInfo = $helper->getCheckout()->getQuote()->getBillingAddress();
+?>
+<ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
+    <!-- Payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getPaymentLogoUrl() . "invoice.png"; ?>
+                <img class="nnlogo-img" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>"
+                title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Payment logo -->
+    <!-- Payment description -->
+    <li>
+        <?php echo $this->__('Invoice/Prepayment payment description') ?>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->getUserInfo() ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == false): ?>
+        <li>
+            <div class="nn-mode">
+                <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- Display the payment mode notification -->
+
+    <!-- DOB for invoice payment guarantee -->
+    <?php if ($helper->getMethodSession($code)->getPaymentGuaranteeFlag()): ?>
+        <li>
+            <p class="required"><?php echo $this->__('* Required Fields'); ?></p>
+            <label for="<?php echo $code ?>_dob" class="required"><em>*</em><?php echo $this->__('Date Of Birth') ?></label>
+            <div class="input-box">
+                <input type="text" autocomplete="off" id="<?php echo $code ?>_dob" name="payment[dob]"
+                title="<?php echo $this->__('DOB') ?>" class="required-entry validate-date" value="<?php echo date('Y-m-d');?>" readonly="readonly"/>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- DOB for invoice payment guarantee -->
+
+    <!-- Payment fraud prevention form -->
+    <?php if ($helper->getModel('Service_Api_FraudPrevention')->getFraudPreventionStatus($this->getMethod()->getInfoInstance(), $code)): ?>
+        <!-- PIN by Callback/Sms -->
+        <li>
+            <label for="<?php echo $code ?>_callback_tel" class="required"><em>*</em>
+                <?php if ($this->getMethod()->getConfigData('callback') == 2): ?>
+                    <?php echo $this->__('Mobile phone number'); ?>
+                <?php else: ?>
+                    <?php echo $this->__('NN Mobile Number'); ?>
+                <?php endif; ?>
+            </label>
+            <div class="input-box">
+                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text validate-number" value="<?php echo $billingInfo->getTelephone(); ?>"/>
+            </div>
+        </li>
+        <li>
+            <div class="nncallback-note">
+                <?php echo $this->__('Note for pin by sms and callback') ?>
+            </div>
+            <label for="<?php echo $code ?>_callback_pin" class="required"><em>*</em><?php echo $this->__('PIN') ?></label>
+            <div class="input-box">
+                <input onkeydown="document.getElementById('<?php echo $code ?>_callback_new_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                <input id="<?php echo $code ?>_callback_new_pin" type="checkbox" name="payment[callback_new_pin]" value="1">
+                <label style="float:none;" for="<?php echo $code ?>_callback_new_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+            </div>
+        </li>
+        <!-- PIN by Callback/Sms -->
+    <?php endif; ?>
+    <!-- Payment fraud prevention form -->
+</ul>
+<script type="text/javascript">
+    if (document.getElementById("<?php echo $code ?>_dob") != undefined) {
+        Calendar.setup({
+            inputField: "<?php echo $code ?>_dob",
+            ifFormat: '%Y-%m-%d',
+            button: 'date_to_trig',
+            align: 'Bl',
+            singleClick: true
+        });
+    }
+</script>

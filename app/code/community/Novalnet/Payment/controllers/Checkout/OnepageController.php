@@ -18,12 +18,13 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 require_once 'Mage/Checkout/controllers/OnepageController.php';
+
 class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageController
 {
 
@@ -34,9 +35,11 @@ class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageC
     {
         $magentoVersion = Mage::helper("novalnet_payment")->getMagentoVersion();
         $quote = Mage::getModel('checkout/cart')->getQuote();
+        $paymentCode = $quote->getPayment()->getMethodInstance()->getCode();
 
-        if (!$quote->hasNominalItems() || version_compare($magentoVersion, '1.7', '>=')
-            || version_compare($magentoVersion, '1.5', '<')) {
+        if (!preg_match("/novalnet/i", $paymentCode) || !$quote->hasNominalItems()
+            || version_compare($magentoVersion, '1.7', '>=') || version_compare($magentoVersion, '1.5', '<')
+        ) {
             return parent::saveOrderAction();
         }
 
@@ -46,9 +49,11 @@ class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageC
 
         $result = array();
         try {
-            if ($requiredAgreements = Mage::helper('checkout')->getRequiredAgreementIds()) {
+            $requiredAgreements = Mage::helper('checkout')->getRequiredAgreementIds();
+            if ($requiredAgreements) {
                 $postedAgreements = array_keys($this->getRequest()->getPost('agreement', array()));
-                if ($diff = array_diff($requiredAgreements, $postedAgreements)) {
+                $diff = array_diff($requiredAgreements, $postedAgreements);
+                if ($diff) {
                     $result['success'] = false;
                     $result['error'] = true;
                     $result['error_messages'] = $this->__('Please agree to all the terms and conditions before placing the order.');
@@ -56,9 +61,11 @@ class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageC
                     return;
                 }
             }
+
             if ($data = $this->getRequest()->getPost('payment', false)) {
                 $this->getOnepage()->getQuote()->getPayment()->importData($data);
             }
+
             $this->getOnepage()->saveOrder();
 
             $redirectUrl = $this->getOnepage()->getCheckout()->getRedirectUrl();
@@ -66,7 +73,7 @@ class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageC
             $result['error']   = false;
         } catch (Mage_Payment_Model_Info_Exception $e) {
             $message = $e->getMessage();
-            if( !empty($message) ) {
+            if (!empty($message)) {
                 $result['error_messages'] = $message;
             }
             $result['goto_section'] = 'payment';
@@ -81,12 +88,13 @@ class Novalnet_Payment_Checkout_OnepageController extends Mage_Checkout_OnepageC
             $result['error'] = true;
             $result['error_messages'] = $e->getMessage();
 
-            if ($gotoSection = $this->getOnepage()->getCheckout()->getGotoSection()) {
+            $gotoSection = $this->getOnepage()->getCheckout()->getGotoSection();
+            if ($gotoSection) {
                 $result['goto_section'] = $gotoSection;
                 $this->getOnepage()->getCheckout()->setGotoSection(null);
             }
-
-            if ($updateSection = $this->getOnepage()->getCheckout()->getUpdateSection()) {
+            $updateSection = $this->getOnepage()->getCheckout()->getUpdateSection();
+            if ($updateSection) {
                 if (isset($this->_sectionUpdateFunctions[$updateSection])) {
                     $updateSectionFunction = $this->_sectionUpdateFunctions[$updateSection];
                     $result['update_section'] = array(

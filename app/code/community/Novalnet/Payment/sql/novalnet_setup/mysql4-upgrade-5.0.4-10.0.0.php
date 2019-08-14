@@ -18,18 +18,22 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/** magento table */
+/**
+* 
+ * magento table 
+*/
 $tableOrderPayment = $this->getTable('sales/order_payment');
 
-/** Novalnet tables  */
-$tableSeparefill = $this->getTable('novalnet_payment/separefill');
-$tableAmountchanged = $this->getTable('novalnet_payment/amountchanged');
-$tableRecurring = $this->getTable('novalnet_payment/recurring');
+/**
+* 
+ * Novalnet tables  
+*/
+$recurring = $this->getTable('novalnet_payment/recurring');
 
 $installer = $this;
 
@@ -42,38 +46,12 @@ $installer->getConnection()->update(
     $tableOrderPayment, $paymentMethod, array('method = ?' => 'novalnetSofortueberweisung')
 );
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_separefill
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableSeparefill}` (
-          `id` int(11) UNSIGNED NOT NULL auto_increment,
-          `customer_id` VARCHAR(50) NOT NULL DEFAULT '',
-          `pan_hash` VARCHAR(50) NOT NULL,
-          `sepa_datetime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-          PRIMARY KEY  (`id`),
-          INDEX `NOVALNET_SEPA_REFILL` (`customer_id` ASC)
-        );
-");
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_amountchanged
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableAmountchanged}` (
-          `id` int(11) UNSIGNED NOT NULL auto_increment,
-          `order_id` VARCHAR(50) NOT NULL DEFAULT '',
-          `amount_changed` VARCHAR(50) NOT NULL,
-          `amount_datetime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-          PRIMARY KEY  (`id`),
-          INDEX `NOVALNET_AMOUNT_CHANGED` (`order_id` ASC)
-        );
-");
-
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_recurring
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableRecurring}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_recurring
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$recurring}` (
           `id` int(11) UNSIGNED NOT NULL auto_increment,
           `profile_id` VARCHAR(50) NOT NULL DEFAULT '',
           `signup_tid` VARCHAR(50) NOT NULL DEFAULT '',
@@ -83,6 +61,7 @@ $installer->run("
           PRIMARY KEY  (`id`),
           INDEX `NOVALNET_RECURRING` (`profile_id` ASC)
         );
-");
+"
+);
 
 $installer->endSetup();

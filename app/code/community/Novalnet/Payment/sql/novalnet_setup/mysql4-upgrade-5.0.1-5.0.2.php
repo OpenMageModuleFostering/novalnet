@@ -18,26 +18,33 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/** Novalnet table */
-$tableCallback = $this->getTable('novalnet_payment/callback');
+/**
+* 
+ * Novalnet table 
+*/
+$callback = $this->getTable('novalnet_payment/callback');
 
-/** magento table */
+/**
+* 
+ * magento table 
+*/
 $tableOrderPayment = $this->getTable('sales/order_payment');
 
 $installer = $this;
 
 $installer->startSetup();
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_callback
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableCallback}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_callback
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$callback}` (
           `id` int(11) UNSIGNED NOT NULL auto_increment,
           `order_id` VARCHAR(50) NOT NULL DEFAULT '',
           `callback_amount` int(11) UNSIGNED NOT NULL,
@@ -48,7 +55,8 @@ $installer->run("
           PRIMARY KEY  (`id`),
           INDEX `NOVALNET_CALLBACK` (`order_id` ASC)
         );
-");
+"
+);
 
 $methodFields = array();
 $methodData = array(
@@ -66,7 +74,7 @@ $methodData = array(
 foreach ($methodData as $variableId => $value) {
     $methodFields['method'] = $value;
     $installer->getConnection()->update(
-            $tableOrderPayment, $methodFields, array('method = ?' => $variableId)
+        $tableOrderPayment, $methodFields, array('method = ?' => $variableId)
     );
 }
 $installer->endSetup();

@@ -18,24 +18,28 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/** novalnet table */
-$tableAffAccountDetail = $this->getTable('novalnet_payment/aff_account_detail');
-$tableAffUserDetail = $this->getTable('novalnet_payment/aff_user_detail');
+/**
+* 
+ * novalnet table 
+*/
+$affiliateInfo = $this->getTable('novalnet_payment/affiliate_info');
+$affiliateUserInfo = $this->getTable('novalnet_payment/affiliate_user');
 
 $installer = $this;
 
 $installer->startSetup();
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_affiliate_account_info
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableAffAccountDetail}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_aff_account_detail
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$affiliateInfo}` (
           `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
           `vendor_id` int(11) unsigned NOT NULL,
           `vendor_authcode` varchar(40) NOT NULL,
@@ -51,13 +55,15 @@ $installer->run("
           KEY `aff_id` (`aff_id`),
           INDEX `NOVALNET_AFFILIATE` (`aff_id` ASC)
         );
-");
+"
+);
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_aff_user_detail
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableAffUserDetail}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_aff_user_detail
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$affiliateUserInfo}` (
           `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
           `aff_id` int(11) unsigned NULL,
           `customer_no` varchar(40) NULL,
@@ -68,6 +74,7 @@ $installer->run("
           KEY `aff_order_no` (`aff_order_no`),
           INDEX `NOVALNET_AFFILIATE_USER` (`customer_no` ASC)
         );
-");
+"
+);
 
 $installer->endSetup();

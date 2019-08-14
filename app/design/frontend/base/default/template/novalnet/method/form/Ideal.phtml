@@ -1,0 +1,65 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+?>
+<ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
+    <!-- Payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getPaymentLogoUrl() . "ideal.png"; ?>
+                <img class="nnlogo-img" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>"
+                title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Payment logo -->
+    <!-- Payment description -->
+    <li>
+        <?php
+            echo $this->__('redirect payment description');
+            echo "<br>".$this->__('Please don’t close the browser after successful payment, until you have been redirected back to the Shop');
+        ?>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->getUserInfo() ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == false): ?>
+        <li>
+            <div class="nn-mode">
+                <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- Display the payment mode notification -->
+</ul>

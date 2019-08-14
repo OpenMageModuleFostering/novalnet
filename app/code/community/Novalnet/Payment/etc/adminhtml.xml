@@ -26,83 +26,91 @@
  */
 -->
 <config>
+    <!-- Defines Novalnet tab/menu in admin -->
     <menu>
         <novalnet translate="title" module="novalnet_payment">
             <title>Novalnet</title>
             <sort_order>100</sort_order>
             <children>
+                <!-- Sales orders for Novalnet payments -->
                 <sales_order module="novalnet_payment">
                     <title>Orders</title>
                     <sort_order>1</sort_order>
                     <action>adminhtml/novalnetpayment_sales_order</action>
                 </sales_order>
+                <!-- Sales recurring profiles for Novalnet payments -->
                 <sales_recurring module="novalnet_payment">
                     <title>Recurring Profiles</title>
                     <sort_order>2</sort_order>
                     <action>adminhtml/novalnetpayment_sales_recurring_profile</action>
                 </sales_recurring>
+                <!-- Sales transaction for Novalnet payments -->
                 <transaction module="novalnet_payment">
-                    <title>Novalnet Transactions</title>
+                    <title>Transactions</title>
                     <sort_order>3</sort_order>
                     <children>
-                        <transactionStatus module="novalnet_payment">
-                            <title>Novalnet Transactions Overview</title>
+                        <!-- Sales transaction status overview for Novalnet payments -->
+                        <transactionOverview module="novalnet_payment">
+                            <title>Transactions Overview</title>
                             <sort_order>1</sort_order>
-                            <action>adminhtml/novalnetpayment_transaction</action>
-                        </transactionStatus>
-                        <transactionOverivew module="novalnet_payment">
-                            <title>Novalnet Transactions Log</title>
-                            <sort_order>2</sort_order>
                             <action>adminhtml/novalnetpayment_transactionoverview</action>
-                        </transactionOverivew>
+                        </transactionOverview>
+                        <!-- Sales transaction traces for Novalnet payments -->
+                        <transactionTraces module="novalnet_payment">
+                            <title>Transactions Log</title>
+                            <sort_order>2</sort_order>
+                            <action>adminhtml/novalnetpayment_transactiontraces</action>
+                        </transactionTraces>
                     </children>
                 </transaction>
+                <!-- Fraud prevention configuration settings for Novalnet payments -->
                 <fraud_prevention module="novalnet_payment">
                     <title>Risk and Control</title>
                     <sort_order>4</sort_order>
                     <action>adminhtml/system_config/edit/section/fraud_prevent/</action>
                 </fraud_prevention>
-                <configuration_wizard module="novalnet_payment">
-                    <title>Configuration-wizard</title>
-                    <sort_order>5</sort_order>
-                    <action>adminhtml/novalnetpayment_configuration_wizard_page</action>
-                </configuration_wizard>
+                <!-- Configuration settings for Novalnet payments -->
                 <configuration module="novalnet_payment">
                     <title>Configuration</title>
-                    <sort_order>6</sort_order>
+                    <sort_order>5</sort_order>
                     <children>
+                        <!-- Global configuration settings for Novalnet payments -->
                         <general module="novalnet_payment">
                             <title>General</title>
                             <sort_order>1</sort_order>
                             <action>adminhtml/system_config/edit/section/novalnet_global/</action>
                         </general>
+                        <!-- Payment configuration settings for Novalnet payments -->
                         <payment module="novalnet_payment">
                             <title>Payment Methods</title>
                             <sort_order>2</sort_order>
-                            <action>adminhtml/system_config/edit/section/novalnet_paymethods/</action>
+                            <action>adminhtml/system_config/edit/section/novalnet_payments/</action>
                         </payment>
                     </children>
                 </configuration>
+                <!-- Informations about Novalnet -->
                 <information module="novalnet_payment">
                     <title>Information</title>
-                    <sort_order>7</sort_order>
+                    <sort_order>6</sort_order>
                     <children>
-                        <novalnetmerchantadmin module="novalnet_payment">
+                        <!-- Novalnet merchant admin portal -->
+                        <merchantadmin module="novalnet_payment">
                             <title>Novalnet Merchant Admin</title>
                             <sort_order>1</sort_order>
-                            <action>adminhtml/novalnetpayment_information_novalnetmerchantadmin/</action>
-                        </novalnetmerchantadmin>
-                        <information module="novalnet_payment">
+                            <action>adminhtml/novalnetpayment_information_merchantadmin</action>
+                        </merchantadmin>
+                        <!-- Novalnet payment module information -->
+                        <moduleinfo module="novalnet_payment">
                             <title>Novalnet Magento Module</title>
                             <sort_order>2</sort_order>
                             <action>adminhtml/novalnetpayment_information_module/</action>
-                        </information>
+                        </moduleinfo>
                     </children>
                 </information>
             </children>
         </novalnet>
     </menu>
-    <!-- Access control list-->
+    <!-- Defines access control list-->
     <acl>
         <resources>
             <admin>
@@ -115,18 +123,14 @@
                                         <title>General</title>
                                         <sort_order>1</sort_order>
                                     </novalnet_global>
-                                    <novalnet_paymethods>
+                                    <novalnet_payments>
                                         <title>Payment</title>
                                         <sort_order>2</sort_order>
-                                    </novalnet_paymethods>
+                                    </novalnet_payments>
                                     <fraud_prevent>
-                                        <title>Payment</title>
+                                        <title>Risk and Control</title>
                                         <sort_order>3</sort_order>
                                     </fraud_prevent>
-                                    <callback_script>
-                                        <title>Payment</title>
-                                        <sort_order>4</sort_order>
-                                    </callback_script>
                                 </children>
                             </config>
                         </children>
@@ -147,27 +151,23 @@
                                 <title>Novalnet Transactions</title>
                                 <sort_order>3</sort_order>
                                 <children>
-                                    <transactionStatus module="novalnet_payment">
+                                    <transactionOverview module="novalnet_payment">
                                         <title>Novalnet Transactions Overview</title>
                                         <sort_order>1</sort_order>
-                                    </transactionStatus>
-                                    <transactionOverivew module="novalnet_payment">
-                                        <title>Novalnet Transactions Log</title>
+                                    </transactionOverview>
+                                    <transactionTraces module="novalnet_payment">
+                                        <title>Novalnet Transactions Traces</title>
                                         <sort_order>2</sort_order>
-                                    </transactionOverivew>
+                                    </transactionTraces>
                                 </children>
                             </transaction>
-                            <fraud_prevention module="novalnet_payment">
+                            <fraud_prevent module="novalnet_payment">
                                 <title>Risk and Control</title>
                                 <sort_order>4</sort_order>
-                            </fraud_prevention>
-                            <configuration_wizard module="novalnet_payment">
-                                <title>Configuration-wizard</title>
-                                <sort_order>5</sort_order>
-                            </configuration_wizard>
+                            </fraud_prevent>
                             <configuration module="novalnet_payment">
                                 <title>Configuration</title>
-                                <sort_order>6</sort_order>
+                                <sort_order>5</sort_order>
                                 <children>
                                     <general module="novalnet_payment">
                                         <title>General</title>
@@ -181,7 +181,17 @@
                             </configuration>
                             <information module="novalnet_payment">
                                 <title>Information</title>
-                                <sort_order>7</sort_order>
+                                <sort_order>6</sort_order>
+                                    <children>
+                                    <merchantadmin module="novalnet_payment">
+                                        <title>Novalnet Merchant Admin</title>
+                                        <sort_order>1</sort_order>
+                                    </merchantadmin>
+                                    <moduleinfo module="novalnet_payment">
+                                        <title>Novalnet Magento Module</title>
+                                        <sort_order>2</sort_order>
+                                    </moduleinfo>
+                                </children>
                             </information>
                         </children>
                     </novalnet>

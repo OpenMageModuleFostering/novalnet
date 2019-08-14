@@ -18,12 +18,15 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/** magento table */
+/**
+* 
+ * magento table 
+*/
 $tableOrderPayment = $this->getTable('sales/order_payment');
 
 $installer = $this;
@@ -31,19 +34,17 @@ $installer = $this;
 $installer->startSetup();
 
 $methodFields = array();
-$methodData =  array(
-        'novalnetElvaustria' => 'novalnetSepa',
-        'novalnetElvgerman' => 'novalnetSepa',
-        'novalnetSecure' => 'novalnetCc'
-        );
+$methodData = array(
+    'novalnetElvaustria' => 'novalnetSepa',
+    'novalnetElvgerman' => 'novalnetSepa',
+    'novalnetSecure' => 'novalnetCc'
+);
 
 foreach ($methodData as $variableId => $value) {
     $methodFields['method'] = $value;
     $installer->getConnection()->update(
-                                    $tableOrderPayment,
-                                    $methodFields,
-                                    array('method = ?' => $variableId)
-                                    );
+        $tableOrderPayment, $methodFields, array('method = ?' => $variableId)
+    );
 }
 
 $installer->endSetup();

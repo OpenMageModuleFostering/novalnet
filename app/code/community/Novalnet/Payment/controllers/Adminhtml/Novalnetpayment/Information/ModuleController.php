@@ -18,16 +18,19 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Adminhtml_Novalnetpayment_Information_ModuleController extends Mage_Adminhtml_Controller_Action
 {
+
     /**
      * Render layout
      *
+     * @param  none
+     * @return none
      */
     public function indexAction()
     {
@@ -38,4 +41,15 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Information_ModuleController ex
 
         $this->renderLayout();
     }
+
+    /**
+     * Check admin permissions for this controller
+     *
+     * @return bool
+     */
+    protected function _isAllowed()
+    {
+        return Mage::getSingleton('admin/session')->isAllowed('novalnetpayment_information_module');
+    }
+
 }

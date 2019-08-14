@@ -18,13 +18,14 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurring_Profile
 {
+
     /**
      * Initialize new order based on profile data
      *
@@ -73,7 +74,7 @@ class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurrin
         $payment = Mage::getModel('sales/order_payment')
                 ->setMethod($this->getMethodCode());
 
-        $transferDataKays = array(
+        $transferDataKeys = array(
             'store_id', 'store_name', 'customer_id', 'customer_email',
             'customer_firstname', 'customer_lastname', 'customer_middlename', 'customer_prefix',
             'customer_suffix', 'customer_taxvat', 'customer_gender', 'customer_is_guest',
@@ -85,7 +86,7 @@ class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurrin
         );
 
         $orderInfo = $this->getOrderInfo();
-        foreach ($transferDataKays as $key) {
+        foreach ($transferDataKeys as $key) {
             if (isset($orderInfo[$key])) {
                 $order->setData($key, $orderInfo[$key]);
             } elseif (isset($shippingInfo[$key])) {
@@ -94,24 +95,24 @@ class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurrin
         }
 
         $order->setStoreId($this->getStoreId())
-                ->setState(Mage_Sales_Model_Order::STATE_NEW)
-                ->setBaseToOrderRate($this->getInfoValue('order_info', 'base_to_quote_rate'))
-                ->setStoreToOrderRate($this->getInfoValue('order_info', 'store_to_quote_rate'))
-                ->setOrderCurrencyCode($this->getInfoValue('order_info', 'quote_currency_code'))
-                ->setBaseSubtotal($billingAmount)
-                ->setSubtotal($billingAmount)
-                ->setBaseShippingAmount($shippingAmount)
-                ->setShippingAmount($shippingAmount)
-                ->setBaseTaxAmount($taxAmount)
-                ->setTaxAmount($taxAmount)
-                ->setBaseGrandTotal($grandTotal)
-                ->setGrandTotal($grandTotal)
-                ->setIsVirtual($isVirtual)
-                ->setWeight($weight)
-                ->setTotalQtyOrdered($this->getInfoValue('order_info', 'items_qty'))
-                ->setBillingAddress($billingAddress)
-                ->setShippingAddress($shippingAddress)
-                ->setPayment($payment);
+            ->setState(Mage_Sales_Model_Order::STATE_NEW)
+            ->setBaseToOrderRate($this->getInfoValue('order_info', 'base_to_quote_rate'))
+            ->setStoreToOrderRate($this->getInfoValue('order_info', 'store_to_quote_rate'))
+            ->setOrderCurrencyCode($this->getInfoValue('order_info', 'quote_currency_code'))
+            ->setBaseSubtotal($billingAmount)
+            ->setSubtotal($billingAmount)
+            ->setBaseShippingAmount($shippingAmount)
+            ->setShippingAmount($shippingAmount)
+            ->setBaseTaxAmount($taxAmount)
+            ->setTaxAmount($taxAmount)
+            ->setBaseGrandTotal($grandTotal)
+            ->setGrandTotal($grandTotal)
+            ->setIsVirtual($isVirtual)
+            ->setWeight($weight)
+            ->setTotalQtyOrdered($this->getInfoValue('order_info', 'items_qty'))
+            ->setBillingAddress($billingAddress)
+            ->setShippingAddress($shippingAddress)
+            ->setPayment($payment);
 
         foreach ($items as $item) {
             $order->addItem($item);
@@ -123,25 +124,24 @@ class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurrin
     /**
      * Get the reqular order items
      *
-     * @param varien_object $itemInfo
+     * @param  varien_object $itemInfo
      * @return mixed
      */
     protected function _getRegularItem($itemInfo)
     {
         $price = $itemInfo->getPrice() ? $itemInfo->getPrice() : $this->getBillingAmount();
-        $shippingAmount = $itemInfo->getShippingAmount() ? $itemInfo->getShippingAmount()
-                    : $this->getShippingAmount();
+        $shippingAmount = $itemInfo->getShippingAmount() ? $itemInfo->getShippingAmount() : $this->getShippingAmount();
         $taxAmount = $itemInfo->getTaxAmount() ? $itemInfo->getTaxAmount() : $this->getTaxAmount();
 
         $qtyOrdered = $this->getInfoValue('order_info', 'items_qty');
-        $pricevalue = ($price / $qtyOrdered);
+        $priceValue = ($price / $qtyOrdered);
 
         $item = Mage::getModel('sales/order_item')
                 ->setData($this->getOrderItemInfo())
                 ->setQtyOrdered($this->getInfoValue('order_item_info', 'qty'))
                 ->setBaseOriginalPrice($this->getInfoValue('order_item_info', 'price'))
-                ->setPrice($pricevalue)
-                ->setBasePrice($pricevalue)
+                ->setPrice($priceValue)
+                ->setBasePrice($priceValue)
                 ->setRowTotal($price)
                 ->setBaseRowTotal($price)
                 ->setTaxAmount($taxAmount)
@@ -149,4 +149,5 @@ class Novalnet_Payment_Model_Recurring_Profile extends Mage_Sales_Model_Recurrin
                 ->setId(null);
         return $item;
     }
+
 }

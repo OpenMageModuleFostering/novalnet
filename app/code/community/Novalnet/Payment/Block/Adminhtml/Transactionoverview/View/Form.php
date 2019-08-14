@@ -18,17 +18,21 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View_Form extends Mage_Adminhtml_Block_Widget
 {
-
+    /**
+     * Transaction status view
+     */
     public function __construct()
     {
-        $this->_headerText = Mage::helper('novalnet_payment')->__('Transaction Overview');
+        $this->_blockGroup = 'novalnet_payment';
+        $this->_controller = 'adminhtml_transactionoverview';
+        $this->_headerText = Mage::helper('novalnet_payment')->__('Transactions');
         parent::__construct();
     }
 

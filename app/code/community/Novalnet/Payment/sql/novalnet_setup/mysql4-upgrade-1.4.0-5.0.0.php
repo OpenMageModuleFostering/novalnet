@@ -18,28 +18,35 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-/** Novalnet tables  */
-$tableOrderLog = $this->getTable('novalnet_payment/order_log');
-$tableTransactionStatus = $this->getTable('novalnet_payment/transaction_status');
-$tableCallback = $this->getTable('novalnet_payment/callback');
+/**
+* 
+ * Novalnet tables  
+*/
+$orderTraces = $this->getTable('novalnet_payment/order_log');
+$transactionStatus = $this->getTable('novalnet_payment/transaction_status');
+$callback = $this->getTable('novalnet_payment/callback');
 
-/** magento tables */
+/**
+* 
+ * magento tables 
+*/
 $tableOrderPayment = $this->getTable('sales/order_payment');
 
 $installer = $this;
 
 $installer->startSetup();
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_log
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableOrderLog}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_order_log
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$orderTraces}` (
             `nn_log_id`         int(11) UNSIGNED NOT NULL auto_increment,
             `request_data`      TEXT NOT NULL DEFAULT '',
             `response_data`     TEXT NOT NULL DEFAULT '',
@@ -52,16 +59,18 @@ $installer->run("
             `transaction_id`        VARCHAR(50) NOT NULL,
             `additional_data`       TEXT NOT NULL DEFAULT '',
             `created_date`      datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-			PRIMARY KEY  (`nn_log_id`),
-			INDEX `NOVALNET_ORDER_LOG` (`nn_log_id` ASC)
+            PRIMARY KEY  (`nn_log_id`),
+            INDEX `NOVALNET_ORDER_LOG` (`order_id` ASC, `transaction_id` ASC)
         );
-");
+"
+);
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_transaction_status
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableTransactionStatus}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_transaction_status
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$transactionStatus}` (
             `nn_txn_id`         int(11) UNSIGNED NOT NULL auto_increment,
             `transaction_no`        VARCHAR(50) NOT NULL,
             `order_id`          VARCHAR(50) NOT NULL DEFAULT '',
@@ -76,15 +85,17 @@ $installer->run("
             `additional_data`       TEXT NOT NULL DEFAULT '',
             `created_date`      datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
         PRIMARY KEY  (`nn_txn_id`),
-        INDEX `NOVALNET_TRANSACTION_STATUS` (`nn_txn_id` ASC)
+        INDEX `NOVALNET_TRANSACTION_STATUS` (`order_id` ASC, `transaction_no` ASC)
         );
-");
+"
+);
 
-#-----------------------------------------------------------------
-#-- Create Table novalnet_order_callback
-#-----------------------------------------------------------------
-$installer->run("
-        CREATE TABLE IF NOT EXISTS `{$tableCallback}` (
+// -----------------------------------------------------------------
+// -- Create Table novalnet_payment_callback
+// -----------------------------------------------------------------
+$installer->run(
+    "
+        CREATE TABLE IF NOT EXISTS `{$callback}` (
             `id` int(11) UNSIGNED NOT NULL auto_increment,
             `order_id` VARCHAR(50) NOT NULL DEFAULT '',
             `callback_amount` int(11) UNSIGNED NOT NULL,
@@ -95,7 +106,8 @@ $installer->run("
         PRIMARY KEY  (`id`),
         INDEX `NOVALNET_CALLBACK` (`order_id` ASC)
         );
-");
+"
+);
 
 $methodFields = array();
 $methodData = array(
@@ -110,7 +122,7 @@ $methodData = array(
 foreach ($methodData as $variableId => $value) {
     $methodFields['method'] = $value;
     $installer->getConnection()->update(
-            $tableOrderPayment, $methodFields, array('method = ?' => $variableId)
+        $tableOrderPayment, $methodFields, array('method = ?' => $variableId)
     );
 }
 $installer->endSetup();

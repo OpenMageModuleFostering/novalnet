@@ -18,16 +18,16 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Block_Adminhtml_Recurring_Profile_Grid extends Mage_Adminhtml_Block_Widget_Grid
 {
+
     /**
      * Set ajax/session parameters
-     *
      */
     public function __construct()
     {
@@ -40,15 +40,18 @@ class Novalnet_Payment_Block_Adminhtml_Recurring_Profile_Grid extends Mage_Admin
     /**
      * Prepare grid collection object
      *
+     * @param  none
      * @return Mage_Sales_Block_Adminhtml_Recurring_Profile_Grid
      */
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('sales/recurring_profile_collection')
-                            ->addFieldToFilter('method_code', array(
-                       'like' => '%novalnet%',
-                   ));
-         $collection->setOrder('profile_id', 'desc');
+                ->addFieldToFilter(
+                    'method_code', array(
+                    'like' => '%novalnet%',
+                    )
+                );
+        $collection->setOrder('profile_id', 'desc');
         $this->setCollection($collection);
 
         if (!$this->getParam($this->getVarNameSort())) {
@@ -60,71 +63,86 @@ class Novalnet_Payment_Block_Adminhtml_Recurring_Profile_Grid extends Mage_Admin
     /**
      * Prepare grid columns
      *
+     * @param  none
      * @return Mage_Sales_Block_Adminhtml_Recurring_Profile_Grid
      */
     protected function _prepareColumns()
     {
         $profile = Mage::getModel('sales/recurring_profile');
 
-        $this->addColumn('reference_id', array(
+        $this->addColumn(
+            'reference_id', array(
             'header' => $profile->getFieldLabel('reference_id'),
             'index' => 'reference_id',
             'html_decorators' => array('nobr'),
             'width' => 1,
-        ));
+            )
+        );
 
         if (!Mage::app()->isSingleStoreMode()) {
-            $this->addColumn('store_id', array(
-                'header'     => Mage::helper('adminhtml')->__('Store'),
-                'index'      => 'store_id',
-                'type'       => 'store',
+            $this->addColumn(
+                'store_id', array(
+                'header' => Mage::helper('adminhtml')->__('Store'),
+                'index' => 'store_id',
+                'type' => 'store',
                 'store_view' => true,
                 'display_deleted' => true,
-            ));
+                )
+            );
         }
 
-        $this->addColumn('state', array(
+        $this->addColumn(
+            'state', array(
             'header' => $profile->getFieldLabel('state'),
             'index' => 'state',
-            'type'  => 'options',
+            'type' => 'options',
             'options' => $profile->getAllStates(),
             'html_decorators' => array('nobr'),
             'width' => 1,
-        ));
+            )
+        );
 
-        $this->addColumn('created_at', array(
+        $this->addColumn(
+            'created_at', array(
             'header' => $profile->getFieldLabel('created_at'),
             'index' => 'created_at',
             'type' => 'datetime',
             'html_decorators' => array('nobr'),
             'width' => 1,
-        ));
+            )
+        );
 
-        $this->addColumn('updated_at', array(
+        $this->addColumn(
+            'updated_at', array(
             'header' => $profile->getFieldLabel('updated_at'),
             'index' => 'updated_at',
             'type' => 'datetime',
             'html_decorators' => array('nobr'),
             'width' => 1,
-        ));
+            )
+        );
 
         $methods = array();
         foreach (Mage::helper('payment')->getRecurringProfileMethods() as $method) {
-            if(preg_match("/novalnet/i",$method->getCode())){
-            $methods[$method->getCode()] = $method->getTitle();
+            if (preg_match("/novalnet/i", $method->getCode())) {
+                $methods[$method->getCode()] = $method->getTitle();
             }
         }
-        $this->addColumn('method_code', array(
-            'header'  => $profile->getFieldLabel('method_code'),
-            'index'   => 'method_code',
-            'type'    => 'options',
+        $this->addColumn(
+            'method_code', array(
+            'header' => $profile->getFieldLabel('method_code'),
+            'index' => 'method_code',
+            'type' => 'options',
             'options' => $methods,
-        ));
+            )
+        );
 
-        $this->addColumn('schedule_description', array(
+        $this->addColumn(
+            'schedule_description', array(
             'header' => $profile->getFieldLabel('schedule_description'),
             'index' => 'schedule_description',
-        ));
+            )
+        );
 
         return parent::_prepareColumns();
     }
@@ -132,7 +150,7 @@ class Novalnet_Payment_Block_Adminhtml_Recurring_Profile_Grid extends Mage_Admin
     /**
      * Get row url for js event handlers
      *
-     * @param Varien_Object
+     * @param  mixed $row
      * @return string
      */
     public function getRowUrl($row)
@@ -143,10 +161,12 @@ class Novalnet_Payment_Block_Adminhtml_Recurring_Profile_Grid extends Mage_Admin
     /**
      * Get grid url
      *
+     * @param  none
      * @return string
      */
     public function getGridUrl()
     {
-        return $this->getUrl('*/*/grid', array('_current'=>true));
+        return $this->getUrl('*/*/grid', array('_current' => true));
     }
+
 }

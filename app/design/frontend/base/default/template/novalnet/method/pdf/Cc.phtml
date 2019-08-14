@@ -1,0 +1,59 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+$_info = $this->getInfo();
+$helper = Mage::helper('novalnet_payment');
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $_info->getLastTransId();
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
+?>
+<?php if ($_info): ?>
+    <?php if ($this->getAdditionalData('NnTestOrder')) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
+    <?php echo $this->htmlEscape($this->getMethod()->getTitle()) ?>{{pdf_row_separator}}
+    <?php if ($transactionId) echo $this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId)) . '<br /><br>' ?>{{pdf_row_separator}}
+    <?php if ($nextCycleDate) echo $this->__('Next Payment Date is: %s', $nextCycleDate) . '<br /><br>' ?>{{pdf_row_separator}}
+    <?php if ($this->getAdditionalData('captureTid')) echo $this->__('The transaction has been confirmed on %s', $this->getAdditionalData('captureCreateAt')) . '<br /><br>' ?>{{pdf_row_separator}}
+    <?php if ($this->getAdditionalData('voidTid')) echo $this->__('The transaction has been canceled on %s', $this->getAdditionalData('voidCreateAt')) . '<br><br>' ?>{{pdf_row_separator}}
+    <?php if ($this->getAdditionalData('subsCancelReason')) echo $this->__('Subscription Cancellation: %s', $this->getAdditionalData('subsCancelReason')) . '<br>' ?>{{pdf_row_separator}}
+    <?php
+        if ($this->getAdditionalData('refunded_tid')):
+            foreach ($this->getAdditionalData('refunded_tid') as $key => $value):
+                if ($this->getAdditionalData('fullRefund') == true || preg_match("/-refund/i", $value['reftid'])):
+                    echo $this->__('The refund has been executed for the TID: %s with the amount of %s', $helper->makeValidNumber($value['reqtid']), $value['refamount']) . '<br><br>';
+                    ?>
+                    {{pdf_row_separator}}
+                    <?php
+                else:
+                    echo $this->__('The refund has been executed for the TID: %s with the amount of %s.Your new TID for the refund amount: %s', $helper->makeValidNumber($value['reqtid']), $value['refamount'], $helper->makeValidNumber($value['reftid'])) . '<br><br>';
+                    ?>
+                    {{pdf_row_separator}}
+                    <?php
+                endif;
+            endforeach;
+        endif;
+    ?>{{pdf_row_separator}}
+    <?php if ($this->getAdditionalData('NnComments')) echo $this->getAdditionalData('NnComments'); ?>
+<?php else: ?>
+    <?php echo $this->__('Error in getting payment method') ?>
+<?php endif; ?>

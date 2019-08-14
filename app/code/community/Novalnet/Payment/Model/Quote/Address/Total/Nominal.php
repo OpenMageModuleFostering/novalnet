@@ -18,22 +18,30 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+
+ /**
+ * Nominal items total
+ * Collects only items segregated by isNominal property
+ * Aggregates row totals per item
  */
 class Novalnet_Payment_Model_Quote_Address_Total_Nominal extends Mage_Sales_Model_Quote_Address_Total_Nominal
 {
+
     /**
      * Invoke collector for nominal items
      *
-     * @param Mage_Sales_Model_Quote_Address $address
+     * @param Mage_Sales_Model_Quote_Address               $address
      * @param Mage_Sales_Model_Quote_Address_Total_Nominal
      */
     public function collect(Mage_Sales_Model_Quote_Address $address)
     {
-        $collector = Mage::getSingleton('sales/quote_address_total_nominal_collector', array(
+        $collector = Mage::getSingleton(
+            'sales/quote_address_total_nominal_collector', array(
                     'store' => $address->getQuote()->getStore())
         );
 
@@ -57,31 +65,32 @@ class Novalnet_Payment_Model_Quote_Address_Total_Nominal extends Mage_Sales_Mode
                 } else {
                     $isCompounded = false;
                 }
-                
+
                 if ((float) $itemRowTotal > 0) {
-					$label = $model->getLabel();
+                    $label = $model->getLabel();
                     $helper = Mage::helper('novalnet_payment');
                     $regularPayment = $helper->__('Regular Payment');
                     $shipping = $helper->__('Shipping');
                     $tax = $helper->__('Tax');
-                    if ($label == $regularPayment || $label == $shipping || $label
-                            == $tax) {
+                    if ($label == $regularPayment || $label == $shipping || $label == $tax) {
                         $total = $total + $itemRowTotal;
                     }
-                    $totalDetails[] = new Varien_Object(array(
+                    $totalDetails[] = new Varien_Object(
+                        array(
                         'label' => $label,
                         'amount' => $itemRowTotal,
                         'is_compounded' => $isCompounded,
-                    ));
+                        )
+                    );
                 }
             }
-            $session = Mage::getSingleton('checkout/session');
-            $session->setNnRegularAmount($total);
-            $session->setNnRowAmount($rowTotal);
 
             $item->setNominalRowTotal($rowTotal);
             $item->setBaseNominalRowTotal($baseRowTotal);
             $item->setNominalTotalDetails($totalDetails);
+            // Assign recurring payment amount for Novalnet subscription process (fraud prevention)
+            Mage::getSingleton('checkout/session')->setNnRegularAmount($total)
+                                            ->setNnRowAmount($rowTotal);
         }
 
         return $this;
@@ -90,20 +99,23 @@ class Novalnet_Payment_Model_Quote_Address_Total_Nominal extends Mage_Sales_Mode
     /**
      * Fetch collected nominal items
      *
-     * @param Mage_Sales_Model_Quote_Address $address
+     * @param  Mage_Sales_Model_Quote_Address $address
      * @return Mage_Sales_Model_Quote_Address_Total_Nominal
      */
     public function fetch(Mage_Sales_Model_Quote_Address $address)
     {
         $items = $address->getAllNominalItems();
         if ($items) {
-            $address->addTotal(array(
+            $address->addTotal(
+                array(
                 'code' => $this->getCode(),
                 'title' => Mage::helper('sales')->__('Nominal Items'),
                 'items' => $items,
                 'area' => 'footer',
-            ));
+                )
+            );
         }
         return $this;
     }
+
 }

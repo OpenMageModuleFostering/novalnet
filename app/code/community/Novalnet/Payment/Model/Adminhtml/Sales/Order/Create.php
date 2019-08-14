@@ -18,13 +18,14 @@
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
- * @category   Novalnet
- * @package    Novalnet_Payment
- * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @category  Novalnet
+ * @package   Novalnet_Payment
+ * @copyright Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Novalnet_Payment_Model_Adminhtml_Sales_Order_Create extends Mage_Adminhtml_Model_Sales_Order_Create
 {
+
     /**
      * Create new order
      *
@@ -50,33 +51,35 @@ class Novalnet_Payment_Model_Adminhtml_Sales_Order_Create extends Mage_Adminhtml
                 'relation_parent_id' => $oldOrder->getId(),
                 'relation_parent_real_id' => $oldOrder->getIncrementId(),
                 'edit_increment' => $oldOrder->getEditIncrement() + 1,
-                'increment_id' => $originalId . '-' . ($oldOrder->getEditIncrement()
-                + 1)
+                'increment_id' => $originalId . '-' . ($oldOrder->getEditIncrement() + 1)
             );
             $quote->setReservedOrderId($orderData['increment_id']);
             $service->setOrderData($orderData);
         }
 
         $order = $service->submit();
-        $paymentMethod = $order->getPayment()->getMethodInstance()->getCode();
+        $paymentCode = $order->getPayment()->getMethodInstance()->getCode();
 
-        if (preg_match("/novalnet/i", $paymentMethod)) {
-            $payment = $order->getPayment();
-            $paymentObj = $payment->getMethodInstance();
-            $request = $this->getSession()->getPaymentReqData();
-            $response = $paymentObj->postRequest($request);
-            $paymentObj->validateNovalnetResponse($payment, $response);
-            $this->getSession()->unsPaymentReqData()
-                               ->unsPaymentResData();
+        if (preg_match("/novalnet/i", $paymentCode)) {
+            $helper = Mage::helper('novalnet_payment'); // Novalnet payment helper
+            $methodSession = $helper->getMethodSession($paymentCode); // Get payment method session
+            $request = $methodSession->getPaymentReqData(); // Get payment request
+            $paymentObj = $order->getPayment()->getMethodInstance(); // Get payment method instance
+            $response = $paymentObj->postRequest($request); // Send payment request to Novalnet Gateway
+
+            $responseModel = $helper->getModel('Service_Api_Response'); // Get Novalnet Api response model
+            $responseModel->validateResponse($order, $request, $response); // Validate Novalnet payment response
+            $helper->unsetMethodSession($paymentCode); // Unset payment method session
         }
 
-        if ((!$quote->getCustomer()->getId() || !$quote->getCustomer()->isInStore($this->getSession()->getStore()))
-                && !$quote->getCustomerIsGuest()
+        if ((!$quote->getCustomer()->getId()
+            || !$quote->getCustomer()->isInStore($this->getSession()->getStore()))
+            && !$quote->getCustomerIsGuest()
         ) {
             $quote->getCustomer()->setCreatedAt($order->getCreatedAt());
             $quote->getCustomer()
-                    ->save()
-                    ->sendNewAccountEmail('registered', '', $quote->getStoreId());
+                ->save()
+                ->sendNewAccountEmail('registered', '', $quote->getStoreId());
         }
         if ($this->getSession()->getOrder()->getId()) {
             $oldOrder = $this->getSession()->getOrder();
@@ -84,16 +87,19 @@ class Novalnet_Payment_Model_Adminhtml_Sales_Order_Create extends Mage_Adminhtml
             $this->getSession()->getOrder()->setRelationChildId($order->getId());
             $this->getSession()->getOrder()->setRelationChildRealId($order->getIncrementId());
             $this->getSession()->getOrder()->cancel()
-                    ->save();
+                ->save();
             $order->save();
         }
         if ($this->getSendConfirmation()) {
             $order->sendNewOrderEmail();
         }
 
-        Mage::dispatchEvent('checkout_submit_all_after', array('order' => $order,
-            'quote' => $quote));
+        Mage::dispatchEvent(
+            'checkout_submit_all_after', array('order' => $order,
+            'quote' => $quote)
+        );
 
         return $order;
     }
+
 }
