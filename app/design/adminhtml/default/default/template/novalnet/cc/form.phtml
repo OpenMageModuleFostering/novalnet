@@ -1,0 +1,134 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodul of Novalnet AG
+ * http://www.novalnet.de 
+ * If you have found this script usefull a small        
+ * recommendation as well as a comment on merchant form 
+ * would be greatly appreciated.
+ * 
+ * @category   design_default
+ * @package    Mage
+ * @copyright  Copyright (c) 2008 Novalnet AG
+ * @version    1.0.0
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php $_code=$this->getMethodCode();?>
+<?php
+$allowed = true;
+$cc_type = '';
+$cc_owner = '';
+$cc_last4 = '';
+$cc_exp_month = '';
+$cc_exp_year = '';
+if (isset($_SESSION['adminhtml_quote']["customer_id"]))
+{
+	$customer_id = $_SESSION['adminhtml_quote']['customer_id'];
+	$accountData = $this->getCcData($customer_id);
+	$cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';
+	if ($accountData){
+		list($cc_type, $cc_last4, $cc_owner, $cc_exp_month, $cc_exp_year) = array_values($accountData);
+	}
+	$user_group_id = $this->getUserGroupId($customer_id);
+	$user_group_name = $this->getUserGroupExcluded();
+	if (!$user_group_name){$allowed = true;}
+	else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
+}
+?>
+<?php /*if ($allowed)*/ {?>
+  <fieldset class="form-list">
+    <?php $_code=$this->getMethodCode() ?>
+    <?php $baseUrl=Mage::getBaseUrl('skin') ?>
+    <div style="position: relative; left: 14em; top: -2.5em">
+    <?php foreach($this->getCcAvailableTypes() as $_typeCode => $_typeName): ?>
+    	<img src='<?php echo $baseUrl?>frontend/default/default/images/novalnet/<?php echo $_typeCode ?>_Logo.png' alt='$cctype Logo'/>
+    <?php endforeach ?>
+    </div>
+    <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+		<li>
+            <div class="input-box">
+                <label for="<?php echo $_code ?>_cc_type"><?php echo $this->__('Credit Card Type') ?> <span class="required">*</span></label><br />
+                <select id="<?php echo $_code ?>_cc_type" name="payment[cc_type]" class="required-entry validate-cc-type-select">
+                    <option value=""><?php echo $this->__('--Please Select--')?></option>
+                <?php $_ccType = $cc_type; #$this->getInfoData('cc_type') ?>
+                <?php foreach ($this->getCcAvailableTypes() as $_typeCode => $_typeName): ?>
+                    <option value="<?php echo $_typeCode ?>"<?php if($_typeCode==$_ccType): ?> selected="selected"<?php endif ?>><?php echo $_typeName ?></option>
+                <?php endforeach ?>
+                </select>
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $_code ?>_cc_owner"><?php echo $this->__('Name on Card') ?> <span class="required">*</span></label><br/>
+                <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $_code ?>_cc_owner" name="payment[cc_owner]" value="<?php echo $cc_owner; #$this->htmlEscape($this->getInfoData('cc_owner')) ?>"/>
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $_code ?>_cc_number"><?php echo $this->__('Credit Card Number') ?> <span class="required">*</span></label><br/>
+                <input type="text" id="<?php echo $_code ?>_cc_number" name="payment[cc_number]" title="<?php echo$cc_last4;# $this->__('Credit Card Number') ?>" class="input-text validate-cc-number validate-cc-type" value="" />
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $_code ?>_expiration"><?php echo $this->__('Expiration Date') ?> <span class="required">*</span></label><br />
+                <div class="v-fix">
+                <select id="<?php echo $_code ?>_expiration" style="width:140px;" name="payment[cc_exp_month]" class="required-entry">
+                <?php $_ccExpMonth = $cc_exp_month; #$this->getInfoData('cc_exp_month') ?>
+                <?php foreach ($this->getCcMonths() as $k=>$v): ?>
+                    <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpMonth): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
+                <?php endforeach ?>
+                </select>
+                </div>
+                <div class="v-fix" style="padding-left:5px;">
+                <?php $_ccExpYear = $cc_exp_year; #$this->getInfoData('cc_exp_year') ?>
+                <select id="<?php echo $_code ?>_expiration_yr" style="width:103px;" name="payment[cc_exp_year]" class="required-entry">
+                <?php foreach ($this->getCcYears() as $k=>$v): ?>
+                    <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpYear): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
+                <?php endforeach ?>
+                </select>
+                </div>
+            </div>
+        </li>
+        <?php if($this->hasVerification()): ?>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $_code ?>_cc_cid"><?php echo $this->__('Card Verification Number') ?> <span class="required">*</span></label><br />
+                <div class="v-fix"><input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="required-entry input-text validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" name="payment[cc_cid]" style="width:3em;" value="" /></div>
+                &nbsp;
+                <a href="#" class="cvv-what-is-this"><?php echo $this->__('What is this?') ?></a>
+            </div>
+        </li>
+        <?php endif; ?>
+        <li>
+        <?php echo $this->__('The amount will be booked from your credit card<BR>with <B>%s</B> note.',$this->getMethod()->getBookingReference());?>
+        </li>
+    </ul>
+  </fieldset>
+<?php }?>
+<script type="text/javascript">
+	function hideMe(payment_code){
+		t = 'p_method_' + payment_code.toString();
+		document.getElementById(t).style.visibility = 'hidden';
+		aTags = document.getElementsByTagName("label");
+		for (i=0; i<aTags.length; i++){
+			if (aTags[i].htmlFor == t){
+				aTags[i].style.visibility = 'hidden';
+				i = aTags.length;
+			}
+		}
+	}
+	<?php #if (!$allowed){echo"hideMe('$_code')"; }?>
+</script>
