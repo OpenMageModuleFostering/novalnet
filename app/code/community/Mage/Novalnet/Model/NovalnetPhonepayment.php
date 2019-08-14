@@ -22,7 +22,7 @@
  * @category   design_default
  * @package    Mage
  * @copyright  Copyright (c) 2012 Novalnet AG
- * @version    1.0.0
+ * @version    3.0.1
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -476,6 +476,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		$note = Mage::helper('novalnet')->__('Please transfer the amount to following account').":<br /><br />\n\n";
 
 		$note.= Mage::helper('novalnet')->__('Account Holder2').": NOVALNET AG<br />\n";
+
 		$note.= Mage::helper('novalnet')->__('Account Number').": ".$aryResponse['invoice_account']."<br />\n";
 		$note.= Mage::helper('novalnet')->__('Bank Sorting Code').": ".$aryResponse['invoice_bankcode']."<br />\n";
 		$note.= Mage::helper('novalnet')->__('Bank').": ".$aryResponse['invoice_bankname'].' Muenchen<br /><br />'."\n\n"; #.$aryResponse['invoice_bankplace']."\n\n";

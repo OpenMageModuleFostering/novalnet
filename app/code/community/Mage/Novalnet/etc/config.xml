@@ -3,7 +3,7 @@
 	<global>
       <template>
 		<email>
-			<novalnet_callback_email_template module="Mage_Novalnet">
+			<novalnet_callback_email_template module="novalnet">
 				<label>Novalnet Callback Email</label>
 				<file>novalnet/novalnet_callback_email.html</file>
 				<type>html</type>
@@ -112,6 +112,26 @@
 				</Mage_Novalnet>
 			</modules>
 		</translate>
+		<events>
+			<controller_action_predispatch_checkout_onepage_index>
+                <observers>
+                    <Mage_Novalnet_Model_Observer>
+                        <type>singleton</type>
+                        <class>Mage_Novalnet_Model_Observer</class>
+                        <method>getFormData</method>
+                    </Mage_Novalnet_Model_Observer>
+                </observers>
+            </controller_action_predispatch_checkout_onepage_index>		
+			<controller_action_postdispatch_checkout_onepage_saveOrder>
+                <observers>
+                    <Mage_Novalnet_Model_Observer>
+                        <type>singleton</type>
+                        <class>Mage_Novalnet_Model_Observer</class>
+                        <method>SaveOrderStatus</method>
+                    </Mage_Novalnet_Model_Observer>
+                </observers>
+            </controller_action_postdispatch_checkout_onepage_saveOrder>	
+		</events>
 		 <layout>
             <updates>
                 <novalnet>

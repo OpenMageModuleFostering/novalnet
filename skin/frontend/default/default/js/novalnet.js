@@ -878,6 +878,13 @@ Novalnet.prototype = {
 			{
 				document.getElementById('review-buttons-container-novalnet').style.display='none';
 			}
+          var login = document.getElementById('opc-login');
+         if(login) { login.setAttribute('class', 'section'); }
+         document.getElementById('opc-billing').setAttribute('class', 'section');
+         document.getElementById('opc-shipping').setAttribute('class', 'section');
+         document.getElementById('opc-shipping_method').setAttribute('class', 'section');
+         document.getElementById('opc-payment').setAttribute('class', 'section');
+         document.getElementById('opc-review').setAttribute('class', 'section');	
 			document.getElementById('nn_iframe').style.display='block';
 		}else
 		{

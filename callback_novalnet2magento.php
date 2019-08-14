@@ -51,52 +51,77 @@ $logFile        = 'novalnet_callback_script_'.date('Y-m-d').'.log';
 $log            = false;//false|true; adapt
 $debug          = false; //false|true; adapt: set to false for go-live
 $test           = false; //false|true; adapt: set to false for go-live
-$createInvoice  = true; //false|true; adapt
-$useZendEmail   = true;//false|true; adapt
+$createInvoice  = true; //false|true; adapt for your need
+$useZendEmail   = true;//false|true; adapt for your need
 $lineBreak      = empty($_SERVER['HTTP_HOST'])? PHP_EOL: '<br />';
 $addSubsequentTidToDb = true;//whether to add the new tid to db; adapt if necessary
 
 $aPaymentTypes = array('INVOICE_CREDIT');//adapt here if needed; Options are:
       /*
-        COLLECTION_REVERSAL_AT
-        COLLECTION_REVERSAL_DE
-        CREDITCARD
-        CREDITCARD_BOOKBACK
-        CREDITCARD_CHARGEBACK
-        CREDITCARD_REPRESENTMENT
-        CREDIT_ENTRY_AT
-        CREDIT_ENTRY_CREDITCARD
-        CREDIT_ENTRY_DE
-        DEBT_COLLECTION_AT
-        DEBT_COLLECTION_CREDITCARD
-        DEBT_COLLECTION_DE
-        DIRECT_DEBIT_AT
-        DIRECT_DEBIT_DE
-        DIRECT_DEBIT_ES
-        DIRECT_DEBIT_SEPA
-        INVOICE
-        INVOICE_CREDIT
-        INVOICE_START
-        NC_CONVERT
-        NC_CREDIT
-        NC_DEBIT
-        NC_ENCASH
-        NC_PAYOUT
-        NOVALCARD
-        NOVALTEL_DE
-        NOVALTEL_DE_CB_REVERSAL
-        NOVALTEL_DE_CHARGEBACK
-        NOVALTEL_DE_COLLECTION
-        ONLINE_TRANSFER
-        PAYPAL
-        PAYSAFECARD
-        REFUND_BY_BANK_TRANSFER_EU
-        RETURN_DEBIT_AT
-        RETURN_DEBIT_DE
-        REVERSAL
-        WAP_CREDITCARD
-        WAP_DIRECT_DEBIT_AT
-        WAP_DIRECT_DEBIT_DE
+        COLLECTION_REVERSAL_AT (7)
+        COLLECTION_REVERSAL_DE (7)
+        CREDITCARD (1)
+        CREDITCARD_BOOKBACK (4)
+        CREDITCARD_CHARGEBACK (3)
+        CREDITCARD_REPRESENTMENT (5)
+        CREDIT_ENTRY_AT (5)
+        CREDIT_ENTRY_CREDITCARD (5)
+        CREDIT_ENTRY_DE (5)
+        DEBT_COLLECTION_AT (6)
+        DEBT_COLLECTION_CREDITCARD (6)
+        DEBT_COLLECTION_DE (6)
+        DIRECT_DEBIT_AT (1)
+        DIRECT_DEBIT_DE (1)
+        DIRECT_DEBIT_ES (1)
+        DIRECT_DEBIT_SEPA (1)
+        INVOICE (8)
+        INVOICE_CREDIT (2)
+        INVOICE_START (2)
+        NC_CONVERT (8)
+        NC_CREDIT (8)
+        NC_DEBIT (8)
+        NC_ENCASH (8)
+        NC_PAYOUT (8)
+        NOVALCARD (8)
+        NOVALTEL_DE (1)
+        NOVALTEL_DE_CB_REVERSAL (7)
+        NOVALTEL_DE_CHARGEBACK (3)
+        NOVALTEL_DE_COLLECTION (6)
+        ONLINE_TRANSFER (1)
+        PAYPAL (1)
+        PAYSAFECARD (1)
+        REFUND_BY_BANK_TRANSFER_EU (4)
+        RETURN_DEBIT_AT (3)
+        RETURN_DEBIT_DE (3)
+        REVERSAL (8)
+        WAP_CREDITCARD (1)
+        WAP_DIRECT_DEBIT_AT (1)
+        WAP_DIRECT_DEBIT_DE (1)
+
+      NOTES:
+       (1) Diese Zahlungsarten bedeuten eine unmittelbare Gutschrift für den Händler (bei Kreditkarte nicht durch uns, sondern durch den Acquirer; bei Paypal durch Paypal selbst).
+       (1) These payment types implicate a credit for the merchant. (For credit card payments, this is not done by us, but through the acquirer; PayPal payments are processed directly by PayPal).
+
+       (2) Bei Rechnung/Vorkasse wird zunächst nur der Rechnungsstart (INVOICE_START) eingetragen, die Gutschrift (INVOICE_CREDIT) erfolgt, sobald der Endkunde an uns überwiesen hat
+       (2) For Invoice/prepayment, there will only be an Invoice start recorded (INVOICE_START), and the final Credit (INVOICE_CREDIT) will follow as soon as the payment goes through.
+
+       (3) Diese Zahlungsarten bedeuten jeweils eine Rückbelastung, weil der Endkunde der Zahlung widerspricht oder eine Belastung letztlich nicht möglich ist.
+       (3)These payment types imply a book back or a charge back, as the end customer has denied making the transaction, or the booking could not take place for a particular reason.
+
+       (4) Diese Zahlungsarten kommen in Frage, wenn der Händler von sich aus dem Endkunden das Geld zurück erstattet.
+       (4) These payment types play a role only when the merchant credits the transactional amount back to the end customer.
+
+       (5) Nach einer Rückbelastung begleichen manche Kunden von sich aus die offene Forderung.
+       (5) After a chargeback some customers voluntarily pay the open amount.
+
+       (6)Diese Zahlungsarten bedeuten, dass das Geld über Inkasso hereinkommt.
+       (6) These payment types imply that the amount has been retrieved by the debt collection department/company.
+
+       (7) Gelegentlich muss aus technischen Gründen eine Rückbelastung oder eine Inkasso-Gutschrift storniert werden.
+       (7) Occasionally, due to technical reasons, a chargeback or a debt collection credit needs to be cancelled or aborted.
+
+       (8) Diese Zahlungsarten werden zurzeit noch gar nicht verwendet.
+       (8) These payment types are not being used at all.
 */
 
 // Order State/Status Settings
@@ -108,22 +133,23 @@ $aPaymentTypes = array('INVOICE_CREDIT');//adapt here if needed; Options are:
                5. canceled
           */
 $orderState  = Mage_Sales_Model_Order::STATE_PROCESSING; //Note: Mage_Sales_Model_Order::STATE_COMPLETE => NOK, Refer to function setOrderStatus()
-$orderStatus = Mage_Sales_Model_Order::STATE_COMPLETE;//adapt for your need
+$orderStatus = Mage_Sales_Model_Order::STATE_PROCESSING;//adapt for your need
 $orderComment = $lineBreak.date('d.m.Y H:i:s').': Novalnet callback script changed order state to '.$orderState.' and order status to '. $orderStatus;
 
 //Security Setting; only this IP is allowed for call back script
 $ipAllowed = '195.143.189.210'; //Novalnet IP, is a fixed value, DO NOT CHANGE!!!!!
+//$ipAllowed = '182.72.184.185'; //Novalnet IP, is a fixed value, DO NOT CHANGE!!!!!
 
 //Reporting Email Addresses Settings
-$shopInfo      = 'Magento '.$lineBreak; //adapt for your need
-$mailHost      = Mage::getStoreConfig('system/smtp/host');//'mail.novalnet.de';//adapt or Mage::getStoreConfig('system/smtp/host')
-$mailPort      = Mage::getStoreConfig('system/smtp/port');//25;//adapt or Mage::getStoreConfig('system/smtp/port')
-$emailFromAddr = 'test@novalnet.de';//sender email addr., adapt
-$emailToAddr   = 'test@novalnet.de';//recipient email addr., adapt
+$shopInfo      = 'Magento '.$lineBreak; //manditory;adapt for your need
+$mailHost      = Mage::getStoreConfig('system/smtp/host');//adapt or Mage::getStoreConfig('system/smtp/host')
+$mailPort      = Mage::getStoreConfig('system/smtp/port');//adapt or Mage::getStoreConfig('system/smtp/port')
+$emailFromAddr = '';//sender email addr., manditory, adapt it
+$emailToAddr   = '';//recipient email addr., manditory, adapt it
 $emailSubject  = 'Novalnet Callback Script Access Report'; //adapt if necessary; 
-$emailBody     = 'Novalnet Callback Script Access Report.';//Email text, adapt
-$emailFromName = "Magento Onlineshop"; // Sender name, adapt
-$emailToName   = "test@novalnet.de"; // Recipient name, adapt
+$emailBody     = 'Novalnet Callback Script Access Report.';//Email text's 1. line, can be let blank, adapt for your need
+$emailFromName = ""; // Sender name, adapt
+$emailToName   = ""; // Recipient name, adapt
 
 //Parameters Settings
 $hParamsRequired = array(
@@ -134,10 +160,6 @@ $hParamsRequired = array(
   'amount'       => '',
   'order_no'     => '');
 
-if (in_array('INVOICE_CREDIT', $aPaymentTypes)){
-  $hParamsRequired['tid_payment'] = '';
-}
-
 $hParamsTest = array(
   'vendor_id'    => '4',
   'status'       => '100',
@@ -147,17 +169,20 @@ $hParamsTest = array(
   'order_no'	 => '200000008',	// Order number 
   );
 
-if (in_array('INVOICE_CREDIT', $aPaymentTypes)){
+if (in_array('INVOICE_CREDIT', $aPaymentTypes) and isset($_REQUEST['payment_type']) and $_REQUEST['payment_type'] == 'INVOICE_CREDIT'){
+  $hParamsRequired['tid_payment'] = '';
   $hParamsTest['tid_payment'] = '12497500001209615'; //orig. tid; must be avail. in shop database; adapt for test;
 }
+ksort($hParamsRequired);
+ksort($hParamsTest);
 
 //Test Data Settings
 if ($test){
   $_REQUEST      = $hParamsTest;
   $emailFromName = "Novalnet test"; // Sender name, adapt
   $emailToName   = "Novalnet test"; // Recipient name, adapt
-  $emailFromAddr = 'test@novalnet.de';//adapt
-  $emailToAddr   = 'test@novalnet.de';//adapt
+  $emailFromAddr = 'test@novalnet.de';//manditory for test; adapt
+  $emailToAddr   = 'test@novalnet.de';//manditory for test; adapt
   $emailSubject  = $emailSubject.' - TEST';//adapt
 }
 
@@ -165,12 +190,11 @@ if ($test){
 try {
   //Check Params
   if (checkIP($_REQUEST)){
-    if (checkPaymentTypeAndStatus($_REQUEST['payment_type'], $_REQUEST['status'])){
-      if (checkParams($_REQUEST)){
-        //Get Order ID and Set New Order Status
-        if ($ordercheckstatus = BasicValidation($_REQUEST)){
-          setOrderStatus($_REQUEST['order_no']);//and send error mails if any
-        }
+    if (checkParams($_REQUEST)){
+      //Get Order ID and Set New Order Status
+      if ($ordercheckstatus = BasicValidation($_REQUEST)){
+        $orderNo = $_REQUEST['order_no']? $_REQUEST['order_no']: $_REQUEST['order_id'];
+        setOrderStatus($orderNo);//and send error mails if any
       }
     }
   }
@@ -247,7 +271,7 @@ function sendEmailMagento($emailBody){
   ini_set('SMTP', $mailHost);
   ini_set('smtp_port', $mailPort);
 
-  try {
+  try{
     if ($debug){
       echo __FUNCTION__.': Sending Email suceeded!'.$lineBreak;
     }
@@ -299,33 +323,26 @@ function showDebug(){
     echo $emailBody;
   }
 }
-function checkPaymentTypeAndStatus($paymentType, $status){
-  global $emailBody, $aPaymentTypes;
-  if (empty($paymentType)){
-    $emailBody .= "Novalnet callback received. But Param payment_type missing $lineBreak";
-		return false;
-  }
-
-  if (!in_array($paymentType, $aPaymentTypes)){
-    $emailBody .= "Novalnet callback received. But passed payment_type ($paymentType) not defined in \$aPaymentTypes: (".implode('; ', $aPaymentTypes).")$lineBreak";
-    return false;
-  }
-
-  if(empty($status) or 100 != $status) {
-		$emailBody .= 'The status codes [' . $_request['status'] . '] is not valid: Only 100 is allowed.' . "$lineBreak$lineBreak".$lineBreak;
-    return false;
-	}
-  return true;
-}
 function checkParams($_request){
-  global $lineBreak, $hParamsRequired, $emailBody;
+  global $lineBreak, $hParamsRequired, $emailBody, $aPaymentTypes;
   $error = false;
   $emailBody = '';
 
   if(!$_request){
     $emailBody .= 'No params passed over!'.$lineBreak;
     return false;
-  }elseif($hParamsRequired){
+  }
+  if (!isset($_request['payment_type'])){
+    $emailBody .= "Novalnet callback received. But Param payment_type missing$lineBreak";
+		return false;
+  }
+
+  if (!in_array($_request['payment_type'], $aPaymentTypes)){
+    $emailBody .= "Novalnet callback received. But passed payment_type (".$_request['payment_type'].") not defined in \$aPaymentTypes: (".implode('; ', $aPaymentTypes).")$lineBreak";
+    return false;
+  }
+
+  if($hParamsRequired){
     foreach ($hParamsRequired as $k=>$v){
       if (!isset($_request[$k])){
         $error = true;
@@ -336,24 +353,29 @@ function checkParams($_request){
       return false;
     }
   }
+  if(!isset($_request['status']) or 100 != $_request['status']) {
+    $emailBody .= 'The status codes [' . $_request['status'] . '] is not valid: Only 100 is allowed.' . "$lineBreak$lineBreak".$lineBreak;
+    return false;
+  }
   return true;
 }
 function BasicValidation($_request){
   global $lineBreak, $tableOrderPayment, $tableOrder, $emailBody, $debug;
   $orderDetails = array();
-  $orderDetails = getOrderByIncrementId($_request['order_no']);
-  if ($debug) {echo'Order Details:<pre>'; print_r($orderDetails);echo'</pre>';}
+  $orderNo      = $_request['order_no']? $_request['order_no']: $_request['order_id'];
+  $order = getOrderByIncrementId($orderNo);
+  if ($debug) {echo'Order Details:<pre>'; print_r($order);echo'</pre>';}
 
   //check amount
   $amount  = $_request['amount'];
-  $_amount = isset($orderDetails['base_grand_total']) ? $orderDetails['base_grand_total'] * 100 : 0;
+  $_amount = isset($order['base_grand_total']) ? $order['base_grand_total'] * 100 : 0;
 
   if(!$_amount || (intval("$_amount") != intval("$amount"))) {
     $emailBody .= "The order amount ($_amount) does not match with the request amount ($amount)$lineBreak$lineBreak";
     return false;
   }
 
-  $order = getOrderByIncrementId($orderDetails['increment_id']);
+  #$order = getOrderByIncrementId($orderDetails['increment_id']);
   $paymentType = getPaymentMethod($order);
   if(!in_array($paymentType, array('novalnetPrepayment', 'novalnetInvoice'))) {
     $emailBody .= "The order payment type ($paymentType) is not Prepayment/Invoice!$lineBreak$lineBreak";
@@ -374,7 +396,8 @@ function setOrderStatus ($incrementId) {
     if ($invoice = $order->getInvoiceCollection()->getFirstItem()) {
       $order->setState($orderState, true, 'Novalnet callback set state '.$orderState.' for Order-ID = ' . $incrementId); //processing: ok; complete: not ok -> would cause the error msg: 'Der Bestellzustand "complete" darf nicht manuell gesetzt werden'
       $order->addStatusToHistory($orderStatus, 'Novalnet callback added order status '. $orderStatus);// this line must be located after $order->setState()
-      $emailBody .= 'Novalnet callback set state to '.$orderState.' ... ';
+      $emailBody .= 'Novalnet callback set state to '.$orderState.$lineBreak;
+      $emailBody .= 'Novalnet callback set status to '.$orderStatus.' ... '.$lineBreak;
       $order->save();
 
       //Add subsequent TID to DB column last_trans_id

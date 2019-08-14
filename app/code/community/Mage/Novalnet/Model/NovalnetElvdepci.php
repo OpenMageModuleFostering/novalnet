@@ -21,7 +21,7 @@
  * @category   design_default
  * @package    Mage
  * @copyright  Copyright (c) 2012 Novalnet AG
- * @version    1.0.0
+ * @version    3.0.1
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class Mage_Novalnet_Model_NovalnetElvdepci extends Mage_Novalnet_Model_NovalnetPciAbstract

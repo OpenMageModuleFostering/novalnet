@@ -22,7 +22,7 @@
  * @category   design_default
  * @package    Mage
  * @copyright  Copyright (c) 2012 Novalnet AG
- * @version    1.0.0
+ * @version    3.0.1
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -158,7 +158,7 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 				->setCity($billing->getCity())
 				->setZip($billing->getPostcode())
 				->setCountry($billing->getCountry())
-				->setLang(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2))
+				->setLang(strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2)))
 				->setTel($billing->getTelephone())
 				->setFax($billing->getFax())
 				->setRemoteIp(Mage::helper('novalnet')->getRealIpAddr())
@@ -320,6 +320,25 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 		 if(!trim($this->getConfigData('merchant_id')) || !trim($this->getConfigData('auth_code')) || !trim($this->getConfigData('product_id')) || !trim($this->getConfigData('tariff_id'))) {
 		    Mage::throwException(Mage::helper('novalnet')->__('Basic Parameter Missing').'!');
 		 }
+		 //Customer_id verification
+      try{
+         $login_check = Mage::getSingleton('customer/session')->isLoggedIn();
+         if($login_check){
+            $customer_no = Mage::getSingleton('customer/session')->getCustomer()->getId();
+            if (empty($customer_no)){
+               $customer_no = $_SESSION['core']['visitor_data']['customer_id'];
+            }
+            if($customer_no==""){
+               Mage::log(Mage::getSingleton('customer/session')->getCustomer(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::log("Below are Order Details : ",NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               $order = Mage::getModel('checkout/cart')->getQuote()->getData();
+               Mage::log($order,NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::throwException(Mage::helper('novalnet')->__('Basic Parameter Missing. Please contact Shop Admin').'!');    
+            }
+         }
+      }catch(Exception $e){
+         Mage::log($e->getMessage(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+      }
     	if(!$this->_isPlaceOrder()){
 		parent::validate();
 		$this->_validateCallbackSession();
@@ -553,7 +572,7 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 		$note  .= $helper->__('Account Holder2') . " : <b>NOVALNET AG</b><br />";
 		$note  .= $helper->__('Account Number') . " : <b>" . $result->getInvoiceAccount() . "</b><br />";
 		$note  .= $helper->__('Bank Sorting Code') . " : <b>" . $result->getInvoiceBankcode() . "</b><br />";
-		$note  .= $helper->__('Bank') . " : <b>" . $result->getInvoiceBankname() . "  Muenchen </b><br />";
+		$note  .= $helper->__('Bank') . ": <b>" . $result->getInvoiceBankname()."  ".$result->getInvoiceBankplace()."</b>";
 		$note  .= $helper->__('Amount') . " : <b>" . str_replace('.', ',', $result->getAmount()) . " EUR </b><br />";
 		$note  .= $helper->__('Reference') . " : <b>TID " . $result->getTid() . "</b><br /><br />";
 		$note  .= "<b>".$helper->__('Only for foreign transfers') . ":</b><br />";

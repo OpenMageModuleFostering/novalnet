@@ -89,8 +89,10 @@ class Mage_Novalnet_Model_Observer extends Mage_Payment_Model_Method_Abstract
   *
   */	
 	
-	public function SaveOrderStatus	()
+	public function SaveOrderStatus($observer)
 	{
+	   $result = Mage::helper('core')->jsonDecode($observer->getEvent()->getData('controller_action')->getResponse()->getBody());
+	   if(trim($result['error'])=='' && $result['error']!=true) {
 		$paymentmethod=Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode();
 		if($paymentmethod == 'novalnetCc')
 		{
@@ -104,7 +106,7 @@ class Mage_Novalnet_Model_Observer extends Mage_Payment_Model_Method_Abstract
 					)->save();
 		}
 	}
-
+ }
 }
 
 ?>

@@ -211,7 +211,8 @@
                             <label>Minimum Orders Count</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>200</sort_order>                                                              
-                            <comment>Default: "0" for disabled check.</comment>                            <show_in_default>1</show_in_default>
+                            <comment>Default: "0" for disabled check.</comment>                            
+                            <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </orderscount>
@@ -308,8 +309,7 @@
 							<show_in_store>1</show_in_store>
 						</second_tariff_id>
 						<callback translate="label">
-							<comment>When activated by PIN Callback / SMS
-							</comment>
+							<comment>When activated by PIN Callback / SMS</comment>
 							<label>PIN by Callback/SMS/E-Mail</label>
 							<frontend_type>select</frontend_type>
 							<source_model>novalnet/novalnet_source_callbacktypes</source_model>
@@ -407,7 +407,8 @@
                             <label>Minimum Orders Count</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>200</sort_order>                                                              
-                            <comment>Default: "0" for disabled check.</comment>                            <show_in_default>1</show_in_default>
+                            <comment>Default: "0" for disabled check.</comment>                            
+                            <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </orderscount>

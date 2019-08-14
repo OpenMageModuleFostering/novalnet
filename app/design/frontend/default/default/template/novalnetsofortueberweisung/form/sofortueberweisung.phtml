@@ -2,13 +2,13 @@
 <?php $_code=$this->getMethodCode() ?>
 <?php $baseUrl = Mage::getBaseUrl('skin') ?>
 <fieldset class="form-list">
-<div style="position: relative; left: 17em; top: -2.5em">
+<div>
 	<A HREF="<?php echo Mage::helper('novalnet')->nn_url();?>" TARGET="_new" style="text-decoration:none;">	
     	<?php $imgpath = "https://www.novalnet.de/img/Sofort_Logo_t.jpg";  ?>
-		<img src='<?php echo $imgpath; ?>' alt='<?php echo $this->getMethod()->getConfigData('title'); ?>' title='<?php echo $this->getMethod()->getConfigData('title'); ?>' />
+		<img style="height:32px;" src='<?php echo $imgpath; ?>' alt='<?php echo $this->getMethod()->getConfigData('title'); ?>' title='<?php echo $this->getMethod()->getConfigData('title'); ?>' />
    </A>
  </div>
- <div style="position: relative; top:-2.0em">  
+ <div>  
 		<ul id="payment_form_<?php echo $_code ?>" style="display:none;">
 		<li>
             <?php echo $this->__('You will be redirected to Novalnet AG website when you place an order.') ?>

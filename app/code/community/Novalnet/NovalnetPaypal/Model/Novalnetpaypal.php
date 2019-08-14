@@ -91,7 +91,26 @@ class Novalnet_NovalnetPaypal_Model_NovalnetPaypal extends Mage_Payment_Model_Me
         if(!trim($this->getConfigData('merchant_id')) || !trim($this->getConfigData('auth_code')) || !trim($this->getConfigData('product_id')) || !trim($this->getConfigData('tariff_id')) || !trim($this->getConfigData('paypal_api_signature')) || !trim($this->getConfigData('paypal_api_username')) || !trim($this->getConfigData('paypal_api_password')) || !trim($this->getConfigData('password'))) {
 				Mage::throwException(Mage::helper('novalnet')->__('Basic Parameter Missing').'!');
 			}
-        return $this;
+		//Customer_id verification
+      try{
+         $login_check = Mage::getSingleton('customer/session')->isLoggedIn();
+         if($login_check){
+            $customer_no = Mage::getSingleton('customer/session')->getCustomer()->getId();
+            if (empty($customer_no)){
+               $customer_no = $_SESSION['core']['visitor_data']['customer_id'];
+            }
+            if($customer_no==""){
+               Mage::log(Mage::getSingleton('customer/session')->getCustomer(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::log("Below are Order Details : ",NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               $order = Mage::getModel('checkout/cart')->getQuote()->getData();
+               Mage::log($order,NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::throwException(Mage::helper('novalnet')->__('Basic Parameter Missing. Please contact Shop Admin').'!');    
+            }
+         }
+      }catch(Exception $e){
+         Mage::log($e->getMessage(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+      }
+      return $this;
     }
 	
 	public function isAvailable($quote = null) {
@@ -160,7 +179,8 @@ class Novalnet_NovalnetPaypal_Model_NovalnetPaypal extends Mage_Payment_Model_Me
 		$fieldsArr['city']       		= $billing->getCity();
 		$fieldsArr['zip']        		= $billing->getPostcode();
 		$fieldsArr['country_code']   = $billing->getCountry();
-		$fieldsArr['lang']           = substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2);
+		$fieldsArr['country']         = $billing->getCountry();
+		$fieldsArr['lang']            = strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2));
 		$fieldsArr['remote_ip']      = $this->getRealIpAddr();
 		$fieldsArr['tel']            = $billing->getTelephone();
 		$fieldsArr['fax']            = $billing->getFax();
@@ -172,7 +192,7 @@ class Novalnet_NovalnetPaypal_Model_NovalnetPaypal extends Mage_Payment_Model_Me
 		$fieldsArr['order_no']            = $paymentInfo->getOrder()->getRealOrderId();
 		$fieldsArr['input1']              = 'order_id';
 		$fieldsArr['inputval1']           = $paymentInfo->getOrder()->getRealOrderId();
-		$fieldsArr['user_variable_0'] 	  = Mage::getBaseUrl();
+		$fieldsArr['user_variable_0'] 	  = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
 		$fieldsArr['api_signature']		  = $this->encode(trim($this->getConfigData('paypal_api_signature')), $this->password);
 		$fieldsArr['api_user']			  	  = $this->encode(trim($this->getConfigData('paypal_api_username')), $this->password); 
 		$fieldsArr['api_pw']			  		  = $this->encode(trim($this->getConfigData('paypal_api_password')), $this->password);

@@ -1,10 +1,8 @@
 <?php if( $this->getInfo()->getNnTestorder() || Mage::getSingleton('checkout/session')->getNnInstantTestOrder() ) echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!',$this->__('Testorder'),'!</div>' ?>
-<p><?php  echo $this->getMethod()->getTitle() ?></p>
-<?php if($_info = $this->getInfo()):?>
-	
+<?php  echo $this->getMethod()->getTitle() ?><br/>
+<?php if($_info = $this->getInfo()):?>	
 	<?php if($this->getInfo()->getLastTransId()): ?>
 		<?php echo $this->__('TID : %s', $this->getInfo()->getLastTransId())?><br/>
 	<?php endif; ?>
 <?php else: ?>
-
 <?php endif; ?>

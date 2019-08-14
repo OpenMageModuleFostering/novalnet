@@ -22,7 +22,7 @@
  * @category   design_default
  * @package    Mage
  * @copyright  Copyright (c) 2012 Novalnet AG
- * @version    1.0.0
+ * @version    3.0.1
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
@@ -373,8 +373,8 @@ class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_A
 		$infoInstance = $this->getInfoInstance();
         $infoInstance->setNnElvCountry($data->getElvCountry())
 			->setNnAccountHolder($data->getAccountHolderAt())
-			->setNnAccountNumber($data->getAccountNumberAt())
-			->setNnBankSortingCode($data->getBankSortingCodeAt())
+			->setNnAccountNumber(trim($data->getAccountNumberAt()))
+			->setNnBankSortingCode(trim($data->getBankSortingCodeAt()))
 			->setNnCallbackPin($data->getCallbackPinAt())
 			->setNnNewCallbackPin($data->getNewCallbackPinAt())
 			->setNnCallbackTel($data->getCallbackTelAt())
@@ -397,7 +397,25 @@ class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_A
 		}if((int)$this->getConfigData('manual_checking_amount')&& (!trim($this->getConfigData('second_product_id')) || !trim($this->getConfigData('second_tariff_id')))) {
 		Mage::throwException(Mage::helper('novalnet')->__('Required Second Product Tariff').'!');
 		}
-		
+		//Customer_id verification
+      try{
+         $login_check = Mage::getSingleton('customer/session')->isLoggedIn();
+         if($login_check){
+            $customer_no = Mage::getSingleton('customer/session')->getCustomer()->getId();
+            if (empty($customer_no)){
+               $customer_no = $_SESSION['core']['visitor_data']['customer_id'];
+            }
+            if($customer_no==""){
+               Mage::log(Mage::getSingleton('customer/session')->getCustomer(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::log("Below are Order Details : ",NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               $order = Mage::getModel('checkout/cart')->getQuote()->getData();
+               Mage::log($order,NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+               Mage::throwException(Mage::helper('novalnet')->__('Basic Parameter Missing. Please contact Shop Admin').'!');    
+            }
+         }
+      }catch(Exception $e){
+         Mage::log($e->getMessage(),NULL,"Customerid_Missing_".Mage::getModel('core/date')->date('d-m-Y h:i:s').".log");
+      }
 		$this->_validateCallbackSession();
 		$infoInstance      = $this->getInfoInstance();
 		$nnAccountHolder   = $infoInstance->getNnAccountHolder(); 
@@ -413,10 +431,10 @@ class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_A
 		if (preg_match("/\D/", $nnBankSortingCode)){
 		  Mage::throwException(Mage::helper('novalnet')->__('This is not a valid bank sorting code.').'!');
 		}
-		if (strlen($nnAccountNumber) <= self::ACCNO_MIN_LENGTH) {
+		if (strlen($nnAccountNumber) < self::ACCNO_MIN_LENGTH) {
 		  Mage::throwException(Mage::helper('novalnet')->__('This is not a valid account number.').'!');
 		}	
-		if (strlen($nnBankSortingCode) <= self::BANK_SORTCODE_LENGTH) {
+		if (strlen($nnBankSortingCode) < self::BANK_SORTCODE_LENGTH) {
 		  Mage::throwException(Mage::helper('novalnet')->__('This is not a valid bank sorting code.').'!');
 		}
                   

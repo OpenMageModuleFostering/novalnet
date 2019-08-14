@@ -20,8 +20,8 @@
  * 
  * @category   design_default
  * @package    Mage
- * @copyright  Copyright (c) 2008 Novalnet AG
- * @version    1.0.0
+ * @copyright  Copyright (c) 2012 Novalnet AG
+ * @version    3.0.1
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 class  Mage_Novalnet_Model_Mysql4_Setup extends Mage_Eav_Model_Entity_Setup
