@@ -31,6 +31,7 @@
 <?php $baseUrl=Mage::getBaseUrl('skin') ?>
 <?php
 $_code=$this->getMethodCode();
+$customer_id = '';
 if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
 {
     $customer_id = $_SESSION['customer_base']['id'];

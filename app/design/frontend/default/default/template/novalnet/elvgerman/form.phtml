@@ -28,13 +28,14 @@
 ?>
 <?php
 $nn_account_holder = $nn_account_number = $nn_bank_sorting_code = $nn_elv_country = '';
+$customer_id = '';
 if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
 {
     $customer_id = $_SESSION['customer_base']['id'];
     $accountData = $this->getAccountData($customer_id);
 }
 
-if ($accountData){
+if (isset($accountData) and $accountData){
 	list($nn_account_holder, $nn_account_number, $nn_bank_sorting_code, $nn_elv_country) = array_values($accountData);
 	$nn_account_number = substr($nn_account_number, 0, -4);
 	$nn_bank_sorting_code = substr($nn_bank_sorting_code, 0, -3);
