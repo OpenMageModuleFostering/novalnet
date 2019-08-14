@@ -27,6 +27,7 @@
 ?>
 <?php #$_code=$this->getMethodCode();?>
 <?php
+$allowed = true;
 $cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';
 $customer_id = '';
 if (isset($_SESSION) and isset($_SESSION['customer_base']) and isset($_SESSION['customer_base']['id']))
@@ -48,7 +49,7 @@ else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
     <?php $_code=$this->getMethodCode() ?>
     <?php $baseUrl=Mage::getBaseUrl('skin') ?>
     <div style="position: relative; left: 14em; top: -2.5em">
-		<img src='<?php echo $baseUrl?>frontend/default/default/images/novalnet/Sofort_Logo_t.jpg' alt='Sofortueberweisung Logo'/>
+      <img src='<?php echo $baseUrl?>frontend/default/default/images/novalnet/Sofort_Logo_t.jpg' alt='Sofortueberweisung Logo'/>
     </div>
   </fieldset>
 <?php }?>

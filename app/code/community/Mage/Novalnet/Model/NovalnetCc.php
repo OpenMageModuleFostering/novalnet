@@ -171,6 +171,8 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
             ->settariff($this->getConfigData('tariff_id'))
             ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
+        $request->setcurrency($order->getOrderCurrency());
+
         if($payment->getAmount()){
             $request->setamount($payment->getAmount()*100);
         }

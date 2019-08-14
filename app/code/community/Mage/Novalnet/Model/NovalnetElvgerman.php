@@ -188,6 +188,8 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
         ->settariff($this->getConfigData('tariff_id'))
         ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
+        $request->setcurrency($order->getOrderCurrency());
+
         if ($this->getConfigData('acdc_check')){
           $request->setacdc($this->getConfigData('acdc_check'));
         }
