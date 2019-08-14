@@ -1,0 +1,132 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$assignDatahelper = Mage::helper('novalnet_payment/AssignData');
+$ccRefill = $this->getMethod()->_getConfigData('auto_refill', true);
+// get quote billing address
+$billingaddres = Mage::getSingleton('adminhtml/session_quote')->getQuote()->getBillingAddress();
+?>
+<fieldset class="form-list" id="fieldset_<?php echo $code ?>">
+    <!--{{{ Payment Logo -->
+    <div>
+        <a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;float:none;">
+            <?php foreach ($this->getCcAvailableTypes() as $typeCode => $typeName): ?>
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $typeCode . ".png"; ?>
+                <img style="height:20px;display:inline;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            <?php endforeach; ?>
+        </a>
+    </div>
+    <!--}}} Payment Logo -->
+    <!--{{{ Novalnet Cc Form -->
+    <ul id="payment_form_<?php echo $code ?>" style="display:none">
+        <div class="nnccloader" id='cc_loading' style='display:none;'></div>
+        <li>
+            <?php echo $this->__('The amount will be debited from your credit card once the order is submitted'); ?>
+        </li>
+        <?php if ($this->getUserInfo()): ?>
+            <li>
+                <?php echo $this->getUserInfo() ?>
+            </li>
+        <?php endif ?>
+        <?php if (Mage::helper('novalnet_payment')->getModel('novalnetCc')->_getConfigData('live_mode', true) == 0): ?>
+            <li>
+                <div style="font-weight:bold;color:red;font-size:12px;">
+                    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+                </div>
+            </li>
+        <?php endif ?>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_cc_type"><?php echo $this->__('NN CC type') ?><span class="required">*</span></label><br />
+                <select id="<?php echo $code ?>_cc_type" onchange="cchashcall()" class="required-entry validate-cc-type-select">
+                    <option value=""><?php echo $this->__('NN Select') ?></option>
+                    <?php foreach ($this->getCcAvailableTypes() as $_typeCode => $_typeName): ?>
+                    <option value="<?php echo $_typeCode ?>"><?php echo $_typeName ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_cc_owner"><?php echo $this->__('NN CC holder') ?><span class="required">*</span></label><br/>
+                <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $code ?>_cc_owner" autocomplete="off" onchange="cchashcall()" value="<?php echo $billingaddres->getFirstname() . ' ' . $billingaddres->getLastname(); ?>" />
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_cc_number"><?php echo $this->__('NN CC number') ?><span class="required">*</span></label><br/>
+                <input type="text" id="<?php echo $code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" autocomplete="off" onchange="cchashcall()" onkeypress="return isNumberKey(event,true)" value="" />
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_expiration"><?php echo $this->__('NN Expiration Date') ?><span class="required">*</span></label><br />
+                <select id="<?php echo $code ?>_expiration" style="width:140px;" onchange="cchashcall()" class="month validate-cc-exp required-entry">
+                    <option value=""><?php echo $this->__('Month'); ?></option>
+                    <?php foreach ($this->getCcMonths() as $k => $v): ?>
+                    <option value="<?php echo $k ?>"><?php echo $v ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <select id="<?php echo $code ?>_expiration_yr" style="width:103px;" onchange="cchashcall()" class="required-entry">
+                    <option value=""><?php echo $this->__('Year'); ?></option>
+                    <?php foreach ($this->getCcYears() as $k => $v): ?>
+                    <option value="<?php echo $k ?>"><?php echo $v ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_cc_cid"><?php echo $this->__('NN CVC') ?><span class="required">*</span></label><br />
+                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" onkeypress="return isNumberKey(event, false)" class="required-entry input-text validate-cc-cvn" id="<?php echo $code ?>_cc_cid" name="payment[nn_cc_cid]" style="width:3em;" autocomplete="off" />
+            </div>
+        </li>
+    </ul>
+
+    <input type="hidden" id="original_vendor_id" value="<?php echo trim($this->getMethod()->_getConfigData('merchant_id', true)) ?>" />
+    <input type="hidden" id="original_vendor_authcode" value="<?php echo trim($this->getMethod()->_getConfigData('auth_code', true)) ?>" />
+    <input type="hidden" id="novalnet_cc_pan_hash" value="<?php
+    echo $ccRefill ? $assignDatahelper->getCheckout()->getCcPanHash() : '';
+    ?>" />
+    <input type="hidden" name="novalnet_cc_hash" id="novalnet_cc_hash" value="" />
+    <input type="hidden" name="novalnet_cc_unique_id" id="novalnet_cc_unique_id" value="<?php echo $ccRefill ? $assignDatahelper->getCheckout()->getCcUniqueId() : '';
+    ?>" />
+    <input type="hidden" id="nn_cc_merchant_validate_error_message" value="<?php echo $this->__('Basic parameter not valid') . '!'; ?>" />
+    <input type="hidden" id="nn_cc_validate_error_message" value="<?php echo $this->__('Your credit card details are invalid') . '!'; ?>" />
+    <!--}}} Novalnet Cc Form -->
+</fieldset>
+<style>
+.nnccloader {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: url('<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif') 50% 50% no-repeat;
+}
+</style>

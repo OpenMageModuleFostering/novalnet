@@ -1,0 +1,149 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php /* @var $this Mage_Sales_Block_Recurring_Profile_View */ ?>
+
+<div class="order-page">
+
+    <!-- title 'n' actions -->
+    <div class="page-title title-buttons">
+        <h1><?php echo $this->__('Recurring Profile # %s', $this->escapeHtml($this->getReferenceId())) ?></h1>
+        <div id="recurring_buttons_view">
+            <?php if ($this->getCanCancel()): ?>
+                <button style="position: static;" type="button" title="<?php echo $this->__('Cancel') ?>" class="button" onclick="cancelviewstatus('recurring_buttons_view', 'recurring_cancel_button_view')"><span><span><?php echo $this->__('Cancel') ?></span></span></button>
+            <?php endif; ?>
+            <?php
+            if ($this->getCanSuspend() && $this->_profile->getState() != 'pending'):
+                ?>
+                <button style="position: static;" type="button" title="<?php echo $this->__('Suspend') ?>" class="button" onclick="if (confirm('<?php echo $this->getConfirmationMessage() ?>')) {
+                                window.location.href = '<?php echo $this->getSuspendUrl() ?>';
+                            }
+                            return false;"><span><span><?php echo $this->__('Suspend') ?></span></span></button>
+                    <?php endif; ?>
+                    <?php
+                    if ($this->getCanActivate() && $this->_profile->getState() != 'pending'):
+                        ?>
+                <button style="position: static;" type="button" title="<?php echo $this->__('Activate') ?>" class="button" onclick="if (confirm('<?php echo $this->getConfirmationMessage() ?>')) {
+                                window.location.href = '<?php echo $this->getActivateUrl() ?>';
+                            }
+                            return false;"><span><span><?php echo $this->__('Activate') ?></span></span></button>
+                    <?php endif; ?>
+        </div>
+
+        <div id="recurring_cancel_button_view" style="display:none;">
+            <?php if ($this->getCanCancel()): ?>
+                <?php echo $this->getCancelReason(); ?>
+                <button type="button" title="<?php echo $this->__('Cancel') ?>" class="button" onclick="cancel_action('<?php echo $this->getConfirmationMessage() ?>', '<?php echo $this->getCancelUrl() ?>','<?php echo $this->__('Please select the reason of subscription cancellation'); ?>');"><span><span><?php echo $this->__('Cancel') ?></span></span></button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+
+    <!-- info tabs -->
+    <?php $infoTabs = $this->getChildGroup('info_tabs'); ?>
+
+    <dl class="order-info">
+        <dt><?php echo $this->__('About This Profile:') ?></dt>
+        <dd>
+            <ul id="order-info-tabs">
+                <?php foreach ($infoTabs as $block): ?>
+                    <?php if ($this->getObjectData($block, 'is_view_current')): ?>
+                        <li class="current"><strong><?php echo $this->escapeHtml($this->getObjectData($block, 'view_label')) ?></strong></li>
+                    <?php else: ?>
+                        <li><a href="<?php echo $this->escapeHtml($this->getObjectData($block, 'view_url')) ?>"><?php echo $this->escapeHtml($this->getObjectData($block, 'view_label')) ?></a></li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ul>
+        </dd>
+    </dl>
+
+    <!-- info blocks in 2 columns -->
+    <?php for ($i = 1; $i <= 5; $i++): ?>
+        <?php $infoBlocks = $this->getChildGroup("info_blocks_row_{$i}"); ?>
+        <?php if ($infoBlocks): ?>
+            <div class="col2-set order-info-box">
+                <?php for ($j = 1; $j <= 2; $j++): ?>
+                    <?php foreach ($infoBlocks as $alias => $block): ?>
+                        <?php if ($j == $this->getObjectData($block, 'view_column')): ?>
+                            <div class="col-<?php echo $j ?>">
+                                <div>
+                                    <div class="box-title">
+                                        <h2><?php echo $this->escapeHtml($this->getObjectData($block, 'view_label')) ?></h2>
+                                    </div>
+                                    <div class="box-content">
+                                        <?php
+                                        $html = $this->getChildHtml($alias)
+                                        ?>
+                                        <?php
+                                        echo ($html ? $html : $this->__('No information available.'));
+                                        ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endfor; ?>
+            </div>
+        <?php endif; ?>
+    <?php endfor; ?>
+
+    <!-- table data block -->
+    <?php $table = $this->getChild('table') ?>
+    <?php if ($table): ?>
+        <div>
+            <h2 class="table-caption"><?php echo $this->escapeHtml($this->getObjectData($table, 'view_label')) ?></h2>
+            <?php echo $this->getChildHtml('table') ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="buttons-set">
+        <p class="back-link"><a href="<?php echo $this->getBackUrl() ?>"><small>&laquo; </small><?php echo $this->__('Back to Recurring Profiles') ?></a></p>
+    </div>
+</div>
+<script type="text/javascript">
+    function cancelviewstatus(current_id, change_id)
+    {
+        document.getElementById(current_id).style.display = 'none';
+        document.getElementById(change_id).style.display = 'block';
+    }
+
+    function cancel_action(message, url, cancelReason)
+    {
+        var reason = parseInt(document.getElementById('reason-subscribe').value);
+        var resontext = document.getElementById('reason-subscribe');
+        var resontextval = resontext.options[resontext.selectedIndex].innerHTML;
+
+        if (reason) {
+            if (confirm(message)) {
+                window.location.href = url + "?reason=" + resontextval;
+            }
+        } else {
+			alert(cancelReason);
+		}
+        return false;
+    }
+</script>

@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<config>
+    <modules>
+        <Novalnet_Payment>
+            <!-- declare module's version information for database updates -->
+            <version>10.0.0</version>
+        </Novalnet_Payment>
+    </modules>
+
+    <global>
+        <template>
+            <email>
+                <novalnet_callback_email_template module="novalnet_payment">
+                    <label>Novalnet Callback Email</label>
+                    <file>novalnet/novalnet_callback_email.html</file>
+                    <type>html</type>
+                </novalnet_callback_email_template>
+            </email>
+        </template>
+        <blocks>
+            <novalnet_payment>
+                <class>Novalnet_Payment_Block</class>
+            </novalnet_payment>
+            <adminhtml>
+                <rewrite>
+                    <sales_order_view>Novalnet_Payment_Block_Adminhtml_Sales_Order_View</sales_order_view>
+                    <sales_order_invoice_view>Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View</sales_order_invoice_view>
+                    <sales_order_totals>Novalnet_Payment_Block_Adminhtml_Sales_Order_Totals</sales_order_totals>
+                    <sales_order_invoice_totals>Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_Totals</sales_order_invoice_totals>
+                    <sales_order_view_tab_invoices>Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_Invoices</sales_order_view_tab_invoices>
+                    <sales_order_creditmemo_totals>Novalnet_Payment_Block_Adminhtml_Sales_Order_Creditmemo_Totals</sales_order_creditmemo_totals>
+                </rewrite>
+            </adminhtml>
+            <sales>
+                <rewrite>
+                    <order_totals>Novalnet_Payment_Block_Sales_Order_Totals</order_totals>
+                    <order_invoice_totals>Novalnet_Payment_Block_Sales_Order_Invoice_Totals</order_invoice_totals>
+                    <order_creditmemo_totals>Novalnet_Payment_Block_Sales_Order_Creditmemo_Totals</order_creditmemo_totals>
+                    <recurring_profile_view>Novalnet_Payment_Block_Sales_Recurring_Profile_View</recurring_profile_view>
+                    <adminhtml_recurring_profile_view>Novalnet_Payment_Block_Sales_Adminhtml_Recurring_Profile_View</adminhtml_recurring_profile_view>
+                </rewrite>
+            </sales>
+            <checkout>
+                <rewrite>
+                    <cart_item_renderer>Novalnet_Payment_Block_Cart_Item_Renderer</cart_item_renderer>
+                </rewrite>
+            </checkout>
+        </blocks>
+
+        <!-- declare model group for new module -->
+        <models>
+            <adminhtml>
+                <rewrite>
+                    <sales_order_create>Novalnet_Payment_Model_Adminhtml_Sales_Order_Create</sales_order_create>
+                </rewrite>
+            </adminhtml>
+            <sales>
+                <rewrite>
+                    <order_invoice>Novalnet_Payment_Model_Sales_Order_Invoice</order_invoice>
+                    <order_payment>Novalnet_Payment_Model_Sales_Order_Payment</order_payment>
+                    <order_pdf_invoice>Novalnet_Payment_Model_Sales_Order_Pdf_Invoice</order_pdf_invoice>
+                    <order_pdf_creditmemo>Novalnet_Payment_Model_Sales_Order_Pdf_Creditmemo</order_pdf_creditmemo>
+                    <recurring_profile>Novalnet_Payment_Model_Recurring_Profile</recurring_profile>
+                    <quote_address_total_nominal>Novalnet_Payment_Model_Quote_Address_Total_Nominal</quote_address_total_nominal>
+                </rewrite>
+            </sales>
+
+            <novalnet_payment>
+                <!-- base class name for the model group -->
+                <class>Novalnet_Payment_Model</class>
+                <resourceModel>novalnet_resource</resourceModel>
+            </novalnet_payment>
+            <novalnet_payment_abstract>
+                <class>Novalnet_Payment_Model</class>
+            </novalnet_payment_abstract>
+            <novalnet_resource>
+                <class>Novalnet_Payment_Model_Resource</class>
+                <entities>
+                    <transaction_status>
+                        <table>novalnet_payment_transaction_status</table>
+                    </transaction_status>
+                    <order_log>
+                        <table>novalnet_payment_order_log</table>
+                    </order_log>
+                    <callback>
+                        <table>novalnet_payment_callback</table>
+                    </callback>
+                    <separefill>
+                        <table>novalnet_payment_separefill</table>
+                    </separefill>
+                    <amountchanged>
+                        <table>novalnet_payment_amountchanged</table>
+                    </amountchanged>
+                    <recurring>
+                        <table>novalnet_payment_recurring</table>
+                    </recurring>
+                    <aff_account_detail>
+                        <table>novalnet_payment_aff_account_detail</table>
+                    </aff_account_detail>
+                    <aff_user_detail>
+                        <table>novalnet_payment_aff_user_detail</table>
+                    </aff_user_detail>
+                </entities>
+            </novalnet_resource>
+        </models>
+
+        <!-- convert Novalnet field values from quote to order, make it available in orderobject  -->
+        <fieldsets>
+            <sales_convert_quote_payment>
+                <nn_testorder>
+                    <to_order_payment>*</to_order_payment>
+                </nn_testorder>
+                <nn_comments>
+                    <to_order_payment>*</to_order_payment>
+                </nn_comments>
+                <id>
+                    <to_order_payment>nn_id</to_order_payment>
+                </id>
+            </sales_convert_quote_payment>
+            <sales_convert_order_payment>
+                <nn_testorder>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_testorder>
+                <nn_comments>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_comments>
+                <id>
+                    <to_quote_payment>nn_id</to_quote_payment>
+                </id>
+            </sales_convert_order_payment>
+        </fieldsets>
+
+        <resources>
+            <!-- resource identifier -->
+            <novalnet_setup>
+                <!-- this resource is a setup resource and used for upgrades -->
+                <setup>
+                    <!-- which module to look for install/upgrade files in -->
+                    <module>Novalnet_Payment</module>
+                </setup>
+                <!-- specify database connection for this resource -->
+                <connection>
+                    <!-- do not create new connection, use predefined core setup connection -->
+                    <use>core_setup</use>
+                </connection>
+                <novalnet_payment_write>
+                    <connection>
+                        <use>core_write</use>
+                    </connection>
+                </novalnet_payment_write>
+                <novalnet_payment_read>
+                    <connection>
+                        <use>core_read</use>
+                    </connection>
+                </novalnet_payment_read>
+            </novalnet_setup>
+        </resources>
+
+        <helpers>
+            <novalnet_payment>
+                <class>Novalnet_Payment_Helper</class>
+            </novalnet_payment>
+        </helpers>
+        <payment>
+            <groups>
+                <novalnet>Novalnet</novalnet>
+            </groups>
+        </payment>
+        <sales>
+            <order_creditmemo>
+                <totals>
+                    <novalnet_payment>
+                        <class>novalnet_payment/sales_creditmemo_total</class>
+                        <after>subtotal,discount,shipping</after>
+                        <before>tax,grand_total</before>
+                    </novalnet_payment>
+                    <novalnet_payment_tax>
+                        <class>novalnet_payment/sales_creditmemo_tax</class>
+                        <after>subtotal,discount,shipping,tax</after>
+                        <before>grand_total</before>
+                    </novalnet_payment_tax>
+                </totals>
+            </order_creditmemo>
+        </sales>
+        <events>
+            <core_block_abstract_prepare_layout_before>
+                <observers>
+                    <novalnet_payment_prepare_layout_before>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>prepareLayoutBefore</method>
+                    </novalnet_payment_prepare_layout_before>
+                </observers>
+            </core_block_abstract_prepare_layout_before>
+            <customer_logout>
+                <observers>
+                    <novalnet>
+                        <type>singleton</type>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>customerLogin</method>
+                    </novalnet>
+                </observers>
+            </customer_logout>
+            <sales_order_invoice_pay>
+                <observers>
+                    <novalnet_payment_order_observer_invoice_send_email>
+                        <type>singleton</type>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>sendInvoiceEmail</method>
+                    </novalnet_payment_order_observer_invoice_send_email>
+                </observers>
+            </sales_order_invoice_pay>
+            <sales_order_creditmemo_refund>
+                <observers>
+                    <novalnet_payment_order_observer_creditmemo_send_email>
+                        <type>singleton</type>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>sendCreditmemoEmail</method>
+                    </novalnet_payment_order_observer_creditmemo_send_email>
+                </observers>
+            </sales_order_creditmemo_refund>
+        </events>
+    </global>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <novalnet_payment>
+                    <file>novalnet/configuration.xml</file>
+                </novalnet_payment>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <novalnet_Payment>
+                    <files>
+                        <default>Novalnet_Payment.csv</default>
+                    </files>
+                </novalnet_Payment>
+            </modules>
+        </translate>
+    </adminhtml>
+
+    <frontend>
+        <routers>
+            <novalnet_payment>
+                <use>standard</use>
+                <args>
+                    <module>Novalnet_Payment</module>
+                    <frontName>novalnet_payment</frontName>
+                </args>
+            </novalnet_payment>
+        </routers>
+        <translate>
+            <modules>
+                <novalnet_Payment>
+                    <files>
+                        <default>Novalnet_Payment.csv</default>
+                    </files>
+                </novalnet_Payment>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <novalnet>
+                    <file>novalnet.xml</file>
+                </novalnet>
+            </updates>
+        </layout>
+    </frontend>
+
+    <admin>
+        <routers>
+            <novalnet_payment>
+                <use>admin</use>
+                <args>
+                    <module>Novalnet_Payment</module>
+                    <frontName>novalnet_payment</frontName>
+                </args>
+            </novalnet_payment>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <novalnet_payment after="Mage_Adminhtml">Novalnet_Payment_Adminhtml</novalnet_payment>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <default>
+        <novalnet_global>
+            <novalnet>
+            <gateway_timeout>240</gateway_timeout>
+            </novalnet>
+        </novalnet_global>
+        <!-- 'payment' configuration section (tab) -->
+        <payment>
+            <!-- 'module' configuration group (fieldset) -->
+            <novalnetInvoice translate="title" module="novalnet_payment">
+                <!-- by default this payment method is inactive -->
+                <active>0</active>
+                <!-- model to handle logic for this payment method -->
+                <model>novalnet_payment/payment_method_novalnetInvoice</model>
+                <!-- default title for payment checkout page and order view page -->
+                <title>Novalnet Kauf auf Rechnung</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetInvoice>
+            <novalnetPrepayment translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetPrepayment</model>
+                <title>Novalnet Vorauskasse</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetPrepayment>
+            <novalnetCc translate="title" module="novalnet_payment">
+                <cctypes>VI,MC</cctypes>
+                <active>0</active>
+                <cc_refill>0</cc_refill>
+                <cc_valid_year>25</cc_valid_year>
+                <model>novalnet_payment/payment_method_novalnetCc</model>
+                <title>Novalnet Kreditkarte</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetCc>
+            <novalnetSepa translate="title" module="novalnet_payment">
+                <active>0</active>
+                <sepa_refill>0</sepa_refill>
+                <model>novalnet_payment/payment_method_novalnetSepa</model>
+                <allowspecific>0</allowspecific>
+                <title>Novalnet Lastschrift SEPA</title>
+                <group>novalnet</group>
+            </novalnetSepa>
+            <novalnetBanktransfer translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetBanktransfer</model>
+                <title>Novalnet Sofortüberweisung</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetBanktransfer>
+            <novalnetPaypal translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetPaypal</model>
+                <title>Novalnet PayPal</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetPaypal>
+            <novalnetIdeal translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetIdeal</model>
+                <title>Novalnet iDEAL</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetIdeal>
+            <novalnetEps translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetEps</model>
+                <title>Novalnet Eps</title>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetEps>
+        </payment>
+    </default>
+</config>

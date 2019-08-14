@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the payment module of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script useful a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+-->
+<layout>
+    <adminhtml_sales_order_create_index>
+        <reference name="head">
+            <action method="addJs">
+                <script>novalnet/novalnetJquery.js</script>
+            </action>
+            <action method="addJs">
+                <script>novalnet/novalnetcc.js</script>
+            </action>
+            <action method="addJs">
+                <script>novalnet/novalnetsepa.js</script>
+            </action>
+        </reference>
+    </adminhtml_sales_order_create_index>
+
+    <adminhtml_sales_recurring_profile_view>
+        <reference name="sales.recurring.profile.view">
+            <block type="novalnet_payment/sales_adminhtml_recurring_profile_view" name="sales.recurring.profile.view" template="novalnet/widget/view/container.phtml">
+                <action method="setDestElementId">
+                    <value>sales_recurring_profile_view</value>
+                </action>
+            </block>
+        </reference>
+    </adminhtml_sales_recurring_profile_view>
+
+    <novalnet_payment_adminhtml_sales_order_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_sales_order" name="novalnet_payment_sales_order" />
+        </reference>
+    </novalnet_payment_adminhtml_sales_order_index>
+
+    <novalnet_payment_adminhtml_sales_recurring_profile_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_recurring_profile" name="novalnet_payment_adminhtml_recurring_profile" />
+        </reference>
+    </novalnet_payment_adminhtml_sales_recurring_profile_index>
+
+    <!--
+    Sales Order View
+    -->
+    <adminhtml_sales_order_view>
+        <reference name="sales_order_tabs">
+            <block type="novalnet_payment/adminhtml_sales_order_view_tab_transactionStatus"
+                   name="novalnet_payment_adminhtml_sales_order_view_tab_transactionStatus">
+            </block>
+            <action method="addTab">
+                <name>novalnet_payment_adminhtml_sales_order_view_tab_transactionStatus</name>
+                <block>novalnet_payment/adminhtml_sales_order_view_tab_transactionStatus</block>
+            </action>
+            <block type="novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview"
+                   name="novalnet_payment_adminhtml_sales_order_view_tab_transactionOverview">
+            </block>
+            <action method="addTab">
+                <name>novalnet_payment_adminhtml_sales_order_view_tab_transactionOverview</name>
+                <block>novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview</block>
+            </action>
+        </reference>
+        <reference name="order_tab_info">
+            <action method="setTemplate">
+                <template>novalnet/sales/order/view/tab/info.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_view>
+
+    <adminhtml_sales_order_creditmemo_new>
+        <reference name="order_info">
+            <action method="setTemplate">
+                <template>novalnet/sales/order/view/info.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_creditmemo_new>
+
+    <!--
+    Novalnet transaction
+    -->
+    <novalnet_payment_adminhtml_transaction_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transaction" name="novalnet_payment_transaction" />
+        </reference>
+    </novalnet_payment_adminhtml_transaction_index>
+
+    <!--
+    Novalnet transaction view
+    -->
+    <novalnet_payment_adminhtml_transaction_view>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transaction_view" name="novalnet_payment_transaction_view" template="novalnet/transaction/view/form.phtml">
+            </block>
+        </reference>
+    </novalnet_payment_adminhtml_transaction_view>
+
+    <!--
+    Novalnet transaction overview
+    -->
+    <novalnet_payment_adminhtml_transactionoverview_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactionoverview" name="novalnet_payment_transactionoverview" />
+        </reference>
+    </novalnet_payment_adminhtml_transactionoverview_index>
+
+    <!--
+    Novalnet transaction overview view form
+    -->
+    <novalnet_payment_adminhtml_transactionoverview_view>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactionoverview_view" name="novalnet_payment_transactionoverview_view" template="novalnet/transaction/overview/view/form.phtml"/>
+        </reference>
+    </novalnet_payment_adminhtml_transactionoverview_view>
+
+    <!-- Global Configuration -->
+
+    <novalnet_payment_adminhtml_configuration_wizard_page_index>
+        <update handle="novalnet_payment_adminhtml_configuration_wizard_page_view" />
+        <reference name="novalnet.config.wizard.page.view">
+            <block type="adminhtml/system_config_switcher"
+                   name="novalnet.config.wizard.page.switcher"
+                   before="-"
+                   template="novalnet/payment/configuration/store_switcher.phtml" />
+
+        </reference>
+    </novalnet_payment_adminhtml_configuration_wizard_page_index>
+
+    <novalnet_payment_adminhtml_configuration_wizard_page_view>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_configuration_wizard_page_view"
+                   name="novalnet.config.wizard.page.view"
+                   template="novalnet/payment/configuration/viewcontainer.phtml" />
+        </reference>
+    </novalnet_payment_adminhtml_configuration_wizard_page_view>
+
+    <novalnet_payment_adminhtml_configuration_wizard_page_generalglobal>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_configuration_wizard_page_edit"
+                   name="novalnet.config.wizard.page.edit" template="novalnet/payment/configuration/formcontainer.phtml">
+                <block type="novalnet_payment/adminhtml_configuration_wizard_config_form"
+                       name="form" >
+                </block>
+            </block>
+        </reference>
+    </novalnet_payment_adminhtml_configuration_wizard_page_generalglobal>
+
+    <novalnet_payment_adminhtml_configuration_wizard_page_save>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_configuration_wizard_page_save"
+                   name="novalnet.config.wizard.page.save" template="novalnet/payment/configuration/paymentcontainer.phtml">
+            <block type="novalnet_payment/adminhtml_configuration_wizard_config_payment_form"
+                   name="form" >
+            </block>
+            </block>
+        </reference>
+    </novalnet_payment_adminhtml_configuration_wizard_page_save>
+
+    <!--
+    Novalnet information index overview
+    -->
+    <novalnet_payment_adminhtml_information_module_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_information_module"
+                   name="novalnet_payment_information_module" />
+        </reference>
+    </novalnet_payment_adminhtml_information_module_index>
+
+    <!--
+    Novalnet merchant administration
+    -->
+    <novalnet_payment_adminhtml_information_novalnetmerchantadmin_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_information_novalnetmerchantadmin"
+                   name="novalnet_payment_information_novalnetmerchantadmin" />
+        </reference>
+    </novalnet_payment_adminhtml_information_novalnetmerchantadmin_index>
+</layout>
