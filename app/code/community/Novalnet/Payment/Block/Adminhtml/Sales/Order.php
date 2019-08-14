@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,12 +23,14 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Sales_Order extends Novalnet_Payment_Block_Adminhtml_Widget_Grid_Container {
+class Novalnet_Payment_Block_Adminhtml_Sales_Order extends Novalnet_Payment_Block_Adminhtml_Widget_Grid_Container
+{
 
     /**
      *
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         $this->_blockGroup = 'novalnet_payment';

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,14 +23,16 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends Mage_Adminhtml_Block_System_Config_Form {
+class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends Mage_Adminhtml_Block_System_Config_Form
+{
 
     /**
      * @var string
      */
-    protected $groupName = '';
+    protected $_groupName = '';
 
-    protected function _prepareLayout() {
+    protected function _prepareLayout()
+    {
         $return = parent::_prepareLayout();
         $this->initForm();
         return $return;
@@ -41,7 +42,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
      *
      * @return Mage_Adminhtml_Block_System_Config_Form
      */
-    public function initForm() {
+    public function initForm()
+    {
         $this->_initObjects();
         $form = $this->_initForm();
 
@@ -49,7 +51,7 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
                 $this->getSectionCode(), $this->getWebsiteCode(), $this->getStoreCode()
         );
 
-		$session = Mage::getSingleton('admin/session');
+        $session = Mage::getSingleton('admin/session');
 
         if (!$this->getWebsiteCode() && !$this->getStoreCode()) {
             $session->setNnStoreConfig(Mage::helper('novalnet_payment')->__('Standard'));
@@ -62,7 +64,7 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
             Mage::register('storeConfig', Mage::getModel('core/store')->load($this->getStoreCode())->getId());
             $session->setNnStoreConfig($storeConfig);
         }
-		
+
         $groups = $sections->groups;
         $groupName = $this->getGroupName();
         $group = $groups->$groupName;
@@ -77,7 +79,7 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
         $this->initFields($fieldset, $group, $sections);
 
         $fieldset->addField(
-            'page_code', 'hidden', array(
+                'page_code', 'hidden', array(
             'name' => 'page_code',
             'value' => $this->getPageCode()
                 )
@@ -90,54 +92,61 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     /**
      * @return Varien_Data_Form
      */
-    protected function _initForm() {
+    protected function _initForm()
+    {
         $form = new Varien_Data_Form(
-                        array(
-                            'id' => 'edit_form',
-                            'action' => $this->getSaveUrl(),
-                            'method' => 'post',
-                            'enctype' => 'multipart/form-data'
-                        )
+                array(
+            'id' => 'edit_form',
+            'action' => $this->getSaveUrl(),
+            'method' => 'post',
+            'enctype' => 'multipart/form-data'
+                )
         );
         return $form;
     }
 
-    protected function getSaveUrl() {
+    protected function getSaveUrl()
+    {
         return $this->getUrl('*/*/save', array('_current' => true));
     }
 
     /**
      * @return string
      */
-    public function getGroupName() {
+    public function getGroupName()
+    {
         return $this->getConfigPage('group_name');
     }
 
     /**
      * @return string
      */
-    public function getPageCode() {
+    public function getPageCode()
+    {
         return $this->getConfigPage('codes/page');
     }
 
     /**
      * @return string
      */
-    public function getSectionCode() {
+    public function getSectionCode()
+    {
         return $this->getConfigPage('codes/section');
     }
 
     /**
      * @return string
      */
-    public function getStoreCode() {
+    public function getStoreCode()
+    {
         return $this->getConfigPage('codes/store');
     }
 
     /**
      * @return string
      */
-    public function getWebsiteCode() {
+    public function getWebsiteCode()
+    {
         return $this->getConfigPage('codes/website');
     }
 
@@ -145,7 +154,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
      * @param string $path
      * @return mixed
      */
-    public function getConfigPage($path) {
+    public function getConfigPage($path)
+    {
         $config = $this->helperWizard()->getConfigPage();
         return $config->getData($path);
     }
@@ -153,7 +163,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
     /**
      * @return Novalnet_Payment_Helper_Wizard
      */
-    public function helperWizard() {
+    public function helperWizard()
+    {
         return Mage::helper('novalnet_payment');
     }
 

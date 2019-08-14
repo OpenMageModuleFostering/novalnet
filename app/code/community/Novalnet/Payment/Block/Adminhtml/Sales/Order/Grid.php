@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,14 +23,16 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_Block_Widget_Grid {
+class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_Block_Widget_Grid
+{
 
     var $novalnetPayments = array();
 
     /**
      *
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setId('novalnet_sales_order_grid');
         $this->setUseAjax(true);
@@ -58,23 +59,25 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
      *
      * @return string
      */
-    protected function _getCollectionClass() {
+    protected function _getCollectionClass()
+    {
         return 'sales/order_grid_collection';
     }
 
     /**
      * @return Mage_Adminhtml_Block_Widget_Grid
      */
-    protected function _prepareCollection() {
+    protected function _prepareCollection()
+    {
         $collection = Mage::getResourceModel($this->_getCollectionClass());
-		if (version_compare(Mage::helper('novalnet_payment')->getMagentoVersion(), '1.6.0.0', '>')) {
-			$collection->join(array('payment' => 'sales/order_payment'), 'main_table.entity_id = parent_id', 'method')
-		   ->getSelect()->where("`payment`.`method` like '%novalnet%'");  
-		}else{  
-			$flat_order_payment = $collection->getTable('sales/order_payment');
-			$collection->getSelect()->join(array('payment' => $flat_order_payment), 'main_table.entity_id = payment.parent_id', 'method')
-							->where("`payment`.`method` like '%novalnet%'");
-		}
+        if (version_compare(Mage::helper('novalnet_payment')->getMagentoVersion(), '1.6.0.0', '>')) {
+            $collection->join(array('payment' => 'sales/order_payment'), 'main_table.entity_id = parent_id', 'method')
+                    ->getSelect()->where("`payment`.`method` like '%novalnet%'");
+        } else {
+            $flatOrderPayment = $collection->getTable('sales/order_payment');
+            $collection->getSelect()->join(array('payment' => $flatOrderPayment), 'main_table.entity_id = payment.parent_id', 'method')
+                    ->where("`payment`.`method` like '%novalnet%'");
+        }
         //$collection->load(true); //debugging
         $this->setCollection($collection);
         return parent::_prepareCollection();
@@ -83,7 +86,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     /**
      * @return Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid
      */
-    public function _prepareColumns() {
+    public function _prepareColumns()
+    {
         $this->addColumn('real_order_id', array(
             'header' => Mage::helper('sales')->__('Order #'),
             'width' => '80px',
@@ -180,7 +184,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
     /**
      * @return Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid
      */
-    protected function _prepareMassaction() {
+    protected function _prepareMassaction()
+    {
         $this->setMassactionIdField('entity_id');
         $this->getMassactionBlock()->setFormFieldName('order_ids');
         $this->getMassactionBlock()->setUseSelectAll(false);
@@ -238,14 +243,16 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
      * @param $row
      * @return string
      */
-    public function getRowUrl($row) {
+    public function getRowUrl($row)
+    {
         return $this->getUrl('adminhtml/sales_order/view', array('order_id' => $row->getId()));
     }
 
     /**
      * @return string
      */
-    public function getGridUrl() {
+    public function getGridUrl()
+    {
         return $this->getUrl('*/*/grid', array('_current' => true));
     }
 

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View_Form extends Mage_Adminhtml_Block_Widget {
+class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View_Form extends Mage_Adminhtml_Block_Widget
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_headerText = Mage::helper('novalnet_payment')->__('Transaction Overview');
         parent::__construct();
     }

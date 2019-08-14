@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Sales_Sales extends Mage_Adminhtml_Block_Widget_Grid_Container {
+class Novalnet_Payment_Block_Adminhtml_Sales_Sales extends Mage_Adminhtml_Block_Widget_Grid_Container
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_controller = 'report_sales_sales';
         $this->_headerText = Mage::helper('reports')->__('Total Ordered Report');
         parent::__construct();
@@ -38,7 +39,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Sales extends Mage_Adminhtml_Block_
         ));
     }
 
-    public function getFilterUrl() {
+    public function getFilterUrl()
+    {
         $this->getRequest()->setParam('filter', null);
         return $this->getUrl('*/*/sales', array('_current' => true));
     }

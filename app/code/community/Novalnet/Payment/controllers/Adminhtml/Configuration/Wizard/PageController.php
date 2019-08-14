@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mage_Adminhtml_Controller_Action {
+class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mage_Adminhtml_Controller_Action
+{
 
-    protected function _initAction() {
+    protected function _initAction()
+    {
         $this->loadLayout();
         $this->setUsedModuleName('novalnet_payment');
         $this->_setActiveMenu('novalnet/configuration');
@@ -37,26 +38,31 @@ class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mag
         return $this;
     }
 
-    public function indexAction() {
+    public function indexAction()
+    {
         $this->initConfig('index');
 
         $this->_initAction();
         $this->renderLayout();
     }
 
-    protected function initConfig($actionName) {
+    protected function initConfig($actionName)
+    {
         return $this->helperWizard()->initConfig($actionName, $this->getRequest());
     }
 
-    public function helperWizard() {
+    public function helperWizard()
+    {
         return Mage::helper('novalnet_payment');
     }
 
-    public function generalGlobalAction() {
+    public function generalGlobalAction()
+    {
         $this->_editAction('generalGlobal');
     }
 
-    protected function _editAction($actionName) {
+    protected function _editAction($actionName)
+    {
         $this->initConfig($actionName);
 
         $configPage = Mage::registry('novalnet_wizard_config_page');
@@ -70,12 +76,14 @@ class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mag
         $this->renderLayout();
     }
 
-    public function _redirectByPageConfig() {
+    public function _redirectByPageConfig()
+    {
         $url = $this->helperWizard()->getNextPageUrlAsString();
         $this->_redirect($url, array('_current' => true));
     }
 
-    public function saveAction() {
+    public function saveAction()
+    {
         $pageCode = $this->getRequest()->getParam('page_code');
 
         $config = $this->initConfig($pageCode);

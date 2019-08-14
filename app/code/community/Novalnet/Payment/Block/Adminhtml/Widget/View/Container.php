@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -26,8 +25,10 @@
  */
 class Novalnet_Payment_Block_Adminhtml_Widget_View_Container extends Mage_Adminhtml_Block_Widget_View_Container
 {
+
     public function getHeaderCssClass()
     {
         return 'novalnet-adminhtml-head ' . parent::getHeaderCssClass();
     }
+
 }

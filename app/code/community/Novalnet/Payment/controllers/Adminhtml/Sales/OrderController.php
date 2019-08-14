@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -26,16 +25,18 @@
  */
 require_once 'Mage' . DS . 'Adminhtml' . DS . 'controllers' . DS . 'Sales' . DS . 'OrderController.php';
 
-class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sales_OrderController {
+class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sales_OrderController
+{
 
-    var $module_name = 'novalnet_payment';
+    var $moduleName = 'novalnet_payment';
 
     /**
      * @return Mage_Adminhtml_Sales_OrderController
      */
-    protected function _initAction() {
+    protected function _initAction()
+    {
         $this->loadLayout()
-                ->setUsedModuleName($this->module_name)
+                ->setUsedModuleName($this->moduleName)
                 ->_setActiveMenu('novalnet')
                 ->_addBreadcrumb($this->__('Novalnet'), $this->__('Orders'));
 
@@ -45,7 +46,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      *
      */
-    public function indexAction() {
+    public function indexAction()
+    {
         $this->_title($this->__('Novalnet'))->_title($this->__('Orders'));
 
         $this->_initAction()
@@ -55,7 +57,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      *
      */
-    public function transactionStatusGridAction() {
+    public function transactionStatusGridAction()
+    {
         $this->_initOrder();
         $this->getResponse()->setBody(
                 Mage::getBlockSingleton('novalnet_payment/adminhtml_sales_order_view_tab_transactionStatus')->toHtml()
@@ -65,7 +68,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      *
      */
-    public function transactionOverviewGridAction() {
+    public function transactionOverviewGridAction()
+    {
         $this->_initOrder();
         $this->getResponse()->setBody(
                 Mage::getBlockSingleton('novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview')->toHtml()
@@ -75,7 +79,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      *
      */
-    public function gridAction() {
+    public function gridAction()
+    {
         $this->getResponse()->setBody(
                 $this->getLayout()->createBlock('novalnet_payment/adminhtml_sales_order_grid')->toHtml()
         );
@@ -84,7 +89,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
     /**
      * Invoice update order
      */
-    public function invoiceupdateAction() {
+    public function invoiceupdateAction()
+    {
         $order = $this->_initOrder();
         if ($order) {
             try {
@@ -98,7 +104,8 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
         $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
     }
 
-    public function holdAction() {
+    public function holdAction()
+    {
         $order = $this->_initOrder();
         if ($order) {
             try {
@@ -117,47 +124,60 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
         }
     }
 
-    public function novalnetconfirmAction() {
-		$order = $this->_initOrder();
+    public function novalnetconfirmAction()
+    {
+        $order = $this->_initOrder();
         if ($order) {
             try {
-				$payment = $order->getPayment();
-				$paymentObj = $payment->getMethodInstance();
-				$getTid = $payment->getTransactionId();
-				$responseCodeApproved = Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED;
-				$request = new Varien_Object();
-				$storeId = $payment->getOrder()->getStoreId();
-				$customerId = $payment->getOrder()->getCustomerId();
-				$amount = Mage::helper('novalnet_payment')->getFormatedAmount($payment->getOrder()->getBaseGrandTotal());
-				$lastTranId = Mage::helper('novalnet_payment')->makeValidNumber($payment->getLastTransId());
-				$paymentObj->assignOrderBasicParams($request, $payment, $storeId);
-				$request->setTid($lastTranId)
-						->setStatus($responseCodeApproved)
-						->setEditStatus(true);
-				$loadTransStatus = Mage::helper('novalnet_payment')->loadTransactionStatus($lastTranId);
-				$transStatus = $loadTransStatus->getTransactionStatus();
-				if (!in_array(NULL, $request->toArray()) && !empty($transStatus) && $transStatus != $responseCodeApproved) {
-					$buildNovalnetParam = http_build_query($request->getData());
-					$response = Mage::helper('novalnet_payment/AssignData')->setRawCallRequest($buildNovalnetParam, Novalnet_Payment_Model_Config::PAYPORT_URL);
-					if ($response->getStatus() == $responseCodeApproved) {
-						$loadTransStatus->setTransactionStatus($responseCodeApproved)
-										->save();
-						$payment->setTransactionId($lastTranId);
-						$transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_AUTH, null, false);
-						$transaction->setIsClosed(true)
-									->save();
-					}
-					$paymentObj->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
-				}
-				if ($response->getStatus() != $responseCodeApproved) {
-					$this->_getSession()->addSuccess(
-                        $this->__('There was an error in refund request. Status Code : '. $response->getStatus())
-					);
-				} else {
-                $this->_getSession()->addSuccess(
-                        $this->__('The order has been updated.')
-                );
-			   }
+                $payment = $order->getPayment();
+                $paymentObj = $payment->getMethodInstance();
+                $paymentCode = $paymentObj->getCode();
+                $helper = Mage::helper('novalnet_payment');
+                $responseCodeApproved = Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED;
+                $request = new Varien_Object();
+                $storeId = $payment->getOrder()->getStoreId();
+                $customerId = $payment->getOrder()->getCustomerId();
+                $lastTranId = $helper->makeValidNumber($payment->getLastTransId());
+                $request = $this->_getVendorParams($request, $payment);
+                $request->setTid($lastTranId)
+                        ->setStatus($responseCodeApproved)
+                        ->setEditStatus(true);
+                $loadTransStatus = $helper->loadTransactionStatus($lastTranId);
+                $transStatus = $loadTransStatus->getTransactionStatus();
+                if (!in_array(NULL, $request->toArray()) && !empty($transStatus)
+                        && $transStatus != $responseCodeApproved) {
+                    $payportUrl = $helper->getPayportUrl('paygate');
+                    $buildNovalnetParam = http_build_query($request->getData());
+                    $response = $paymentObj->setRawCallRequest($buildNovalnetParam, $payportUrl);
+                    if ($response->getStatus() == $responseCodeApproved) {
+                        $magentoVersion = $helper->getMagentoVersion();
+                        $transMode = (version_compare($magentoVersion, '1.6', '<'))
+                                    ? false : true;
+                        $loadTransStatus->setTransactionStatus($responseCodeApproved)
+                                ->save();
+
+                        if ($paymentCode == Novalnet_Payment_Model_Config::NN_INVOICE) {
+                            if ($order->canInvoice()) {
+                                $this->saveInvoice($order, $lastTranId);
+                                $payment->setTransactionId($lastTranId)
+                                        ->setIsTransactionClosed($transMode);
+                                $transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
+                                $transaction->setParentTxnId(null)
+                                        ->save();
+                            }
+                        }
+                    }
+                    $paymentObj->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
+                }
+                if ($response->getStatus() != $responseCodeApproved) {
+                    $this->_getSession()->addSuccess(
+                            $this->__('There was an error in refund request. Status Code : ' . $response->getStatus())
+                    );
+                } else {
+                    $this->_getSession()->addSuccess(
+                            $this->__('The order has been updated.')
+                    );
+                }
             } catch (Mage_Core_Exception $e) {
                 $this->_getSession()->addError($e->getMessage());
             } catch (Exception $e) {
@@ -165,85 +185,40 @@ class Novalnet_Payment_Adminhtml_Sales_OrderController extends Mage_Adminhtml_Sa
             }
             $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
         }
-	}
+    }
 
-	public function sepasignedAction() {
-		 $sepa_date = $this->getRequest()->getParam('sepa_date');
-		 $order = $this->_initOrder();
+    protected function saveInvoice($order, $txnId)
+    {
+        $invoice = $order->prepareInvoice();
+        $invoice->setTransactionId($txnId);
+        $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE)
+                ->register();
+        $invoice->setState(Mage_Sales_Model_Order_Invoice::STATE_OPEN)
+                ->save();
+        Mage::getModel('core/resource_transaction')
+                ->addObject($invoice)
+                ->addObject($invoice->getOrder())
+                ->save();
+    }
 
-		 if ($order && $sepa_date) {
-            try {
-				$payment = $order->getPayment();
-				$paymentObj = $payment->getMethodInstance();
-				$lastTranId = Mage::helper('novalnet_payment')->makeValidNumber($payment->getLastTransId());
-				$lastTranId = trim($lastTranId);
-				$storeId = $payment->getOrder()->getStoreId();
-				$vendorId = Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('merchant_id', true, $storeId);
-				$authcode = Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('auth_code', true, $storeId);
-				$sepaMandateConfirm = Novalnet_Payment_Model_Config::SEPA_MANDATE_CONFIRMATION;
-				$data = unserialize($payment->getAdditionalData());
-				$requestData = new Varien_Object();
-				$request = '<?xml version="1.0" encoding="UTF-8"?>';
-				$request .= '<nnxml><info_request>';
-				$request .= '<vendor_id>' . trim($vendorId) . '</vendor_id>';
-				$request .= '<vendor_authcode>' . trim($authcode) . '</vendor_authcode>';
-				$request .= '<request_type>' . $sepaMandateConfirm . '</request_type>';
-				$request .= '<mandate_signature_date>' . $sepa_date . '</mandate_signature_date>';
-				$request .= '<order_no>' . $payment->getOrder()->getIncrementId() . '</order_no>';
-				$request .= '<customer_no>' . $data['NnNcNo'] . '</customer_no>';
-				$request .= '<tid>' . $lastTranId . '</tid>';
-				$request .= '</info_request></nnxml>';
+    /**
+     * Set the Order basic params
+     *
+     * @param string $payment
+     */
+    private function _getVendorParams($request, $payment = NULL)
+    {
+        //get the Basic Params Based on store
+        $getresponseData = NULL;
+        if ($payment) {
+            $getresponseData = unserialize($payment->getAdditionalData());
+        }
+        $request->setVendor($getresponseData['vendor'])
+                ->setAuthCode($getresponseData['auth_code'])
+                ->setProduct($getresponseData['product'])
+                ->setTariff($getresponseData['tariff'])
+                ->setKey($getresponseData['key']);
+        return $request;
+    }
 
-				if ($vendorId && $authcode) {
-					$response = $paymentObj->_setNovalnetRequestCall($request, Novalnet_Payment_Model_Config::INFO_REQUEST_URL, 'XML');
-					$requestData->setData($request);
-				} else {
-					$this->_getSession()->addError($this->__('Basic parameter not valid'));
-				}
-
-				$responseCodeApproved = Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED;
-				$loadTransStatus = Mage::helper('novalnet_payment')->loadTransactionStatus($lastTranId);
-
-				if ($response && $response->getStatus() == $responseCodeApproved) {
-					$data['NnSepaSigned'] = 0;
-					$data['NnSepaDueDate'] = $sepa_date;
-
-					$payment->setAdditionalData(serialize($data))
-                            ->save();
-
-					//authorize type closed
-					$loadTransStatus->setTransactionStatus($responseCodeApproved)
-										->save();
-                    $payment->setTransactionId($payment->getLastTransId());
-					$transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_AUTH, null, false);
-					$transaction->setIsClosed(true)
-									->save();
-
-					//order transaction closed
-					$order->setIsTransactionClosed(true)
-							->save();
-
-                    $payment->setTransactionId($lastTranId."-capture")
-							->setParentTransactionId($lastTranId)
-							->capture(null)
-                            ->setIsTransactionClosed(true)
-                            ->save();
-					//set order status to processing
-					$order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, true)
-						 ->save();
-					$this->_getSession()->addSuccess(
-						   $this->__('The order has been updated.')
-					);
-				} else {
-					 $this->_getSession()->addError($response->getStatusMessage());
-				}
-				$paymentObj->logNovalnetTransactionData($requestData, $response, $payment->getLastTransId(), $data['NnNcNo'], $storeId);
-			} catch (Mage_Core_Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            } catch (Exception $e) {
-                $this->_getSession()->addError($e->getMessage());
-            }
-            $this->_redirect('*/sales_order/view', array('order_id' => $order->getId()));
-         }
-	}
 }

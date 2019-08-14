@@ -23,7 +23,6 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-
 /** novalnet table */
 $tableCallback = $this->getTable('novalnet_payment/callback');
 
@@ -38,24 +37,37 @@ $installer->startSetup();
 #-- Create Table novalnet_order_callback
 #-----------------------------------------------------------------
 $installer->run("
-		CREATE TABLE IF NOT EXISTS `{$tableCallback}` (
-		  `id` int(11) UNSIGNED NOT NULL auto_increment,
-		  `order_id` VARCHAR(50) NOT NULL DEFAULT '',
-		  `callback_amount` int(11) UNSIGNED NOT NULL,
-		  `reference_tid` VARCHAR(50) NOT NULL,
-		  `callback_datetime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-		  `callback_tid` VARCHAR(50) NOT NULL,
-		  `callback_log` TEXT NOT NULL DEFAULT '',
-		  PRIMARY KEY  (`id`)
-		) ENGINE = INNODB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+        CREATE TABLE IF NOT EXISTS `{$tableCallback}` (
+          `id` int(11) UNSIGNED NOT NULL auto_increment,
+          `order_id` VARCHAR(50) NOT NULL DEFAULT '',
+          `callback_amount` int(11) UNSIGNED NOT NULL,
+          `reference_tid` VARCHAR(50) NOT NULL,
+          `callback_datetime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+          `callback_tid` VARCHAR(50) NOT NULL,
+          `callback_log` TEXT NOT NULL DEFAULT '',
+          PRIMARY KEY  (`id`)
+        ) ENGINE = INNODB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 ");
 
-$installer->run("
-		UPDATE `{$tableOrderPayment}` SET `method` = 'novalnetSofortueberweisung'
-			WHERE `method` = 'novalnetsofortueberweisung';
-		UPDATE `{$tableOrderPayment}` SET `method` = 'novalnetPaypal'
-			WHERE `method` = 'novalnetpaypal';
-		UPDATE `{$tableOrderPayment}` SET `method` = 'novalnetIdeal'
-			WHERE `method` = 'novalnetideal';
-	");
+$methodFields = array();
+$methodData =  array(
+        'sofortueberweisung' => 'novalnetSofortueberweisung',
+        'novalnetsofortueberweisung' => 'novalnetSofortueberweisung',
+        'novalnetpaypal' => 'novalnetPaypal',
+        'novalnetideal' => 'novalnetIdeal',
+        'novalnetCcpci' => 'novalnetCc',
+        'novalnet_secure' => 'novalnetCc',
+        'novalnetSecure' => 'novalnetCc',
+        'novalnetElvatpci' => 'novalnetSepa',
+        'novalnetElvdepci' => 'novalnetSepa'
+        );
+
+foreach ($methodData as $variableId => $value) {
+    $methodFields['method'] = $value;
+    $installer->getConnection()->update(
+                                    $tableOrderPayment,
+                                    $methodFields,
+                                    array('method = ?' => $variableId)
+                                    );
+}
 $installer->endSetup();

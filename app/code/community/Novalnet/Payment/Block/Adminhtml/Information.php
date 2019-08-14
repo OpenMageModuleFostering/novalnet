@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -26,9 +25,10 @@
  */
 class Novalnet_Payment_Block_Adminhtml_Information extends Mage_Adminhtml_Block_Template
 {
-	/**
-	 * Assign the template to load the novalnet magento module updates
-	 *
+
+    /**
+     * Assign the template to load the novalnet magento module updates
+     *
      */
     public function _construct()
     {
@@ -36,14 +36,15 @@ class Novalnet_Payment_Block_Adminhtml_Information extends Mage_Adminhtml_Block_
     }
 
     /**
-	 * Set the Novalnet Magento module path
-	 *
+     * Set the Novalnet Magento module path
+     *
      * @return string
      */
     public function getNovalnetUrl()
     {
-        $protocol = Mage::app()->getStore()->isCurrentlySecure() ? 'https' : 'http';		
+        $protocol = Mage::app()->getStore()->isCurrentlySecure() ? 'https' : 'http';
         $url = $this->escapeUrl($protocol . '://www.novalnet.de/modul/magento-payment-module');
         return $url;
     }
+
 }

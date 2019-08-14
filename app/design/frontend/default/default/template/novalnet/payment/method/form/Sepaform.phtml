@@ -27,65 +27,18 @@
 <?php
 $_code = Novalnet_Payment_Model_Config::NN_SEPA;
 ?>
-<script type="text/javascript">
-    function updateHiddenElements(elements) {
-
-		var sepa_owner=0;var sepa_accountno=0;var sepa_bankcode=0;var sepa_iban=0;var sepa_swiftbic=0; var sepa_hash=0; var sepa_country=0;
-		if(document.getElementById("novalnet_sepa_owner").value!= '')sepa_owner=1;
-		if(document.getElementById("novalnet_sepa_accountno").value!= '')sepa_accountno=1;
-		if(document.getElementById("novalnet_sepa_bankcode").value!= '')sepa_bankcode=1;
-		if(document.getElementById("novalnet_sepa_iban").value!= '')sepa_iban=1;
-		if(document.getElementById("novalnet_sepa_swiftbic").value!= '')sepa_swiftbic=1;
-		if(document.getElementById("nnsepa_hash").value!= '')sepa_hash=1;
-		if(document.getElementById("novalnet_sepa_country").value!= '') {
-			var country = document.getElementById("novalnet_sepa_country");
-			sepa_country = 1+'-'+country.options[country.selectedIndex].value;
-		}
-
-		var novalnet_sepa_field_validator = sepa_owner+','+sepa_accountno+','+sepa_bankcode+','+sepa_iban+','+sepa_swiftbic+','+sepa_hash+','+sepa_country;
-
-    for (var i=0; i<elements.length; i++) {
-        switch (elements[i].name) {
-            case 'novalnet_sepa_field_validator':
-                elements[i].value = novalnet_sepa_field_validator;
-                break;
-            case 'novalnet_sepa_owner':
-                elements[i].value = document.getElementById('novalnet_sepa_owner').value;
-                break;
-            case 'novalnet_sepa_pan_hash':
-                elements[i].value = document.getElementById('nnsepa_hash').value;
-                break;
-            case 'novalnet_sepa_unique_id':
-                elements[i].value = document.getElementById('nnsepa_unique_id').value;
-                break;
-			case 'novalnet_sepa_mandate_ref':
-                elements[i].value = document.getElementById('nnsepa_mandate_ref').value;
-                break;
-            case 'novalnet_sepa_mandate_date':
-                elements[i].value = document.getElementById('nnsepa_mandate_date').value;
-                break;
-            case 'novalnet_sepa_iban_confirmed':
-                elements[i].value = document.getElementById('nnsepa_iban_confirmed').value;
-                break;
-        }
-    }
-    return true;
-	}
-</script>
 <!--{{{ Payment Description -->
 <ul>
     <li style="margin: 0 0 8px;">
-		<?php if (Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('sepatypes') == 'DD_SEPA') {
-			echo $this->__('Your account will be debited upon delivery of goods.');
-		   } else {
-		    echo $this->__('Please note that your account will be debited after receiving the signed mandate from you.');
-		   }
-		 ?>
+        <?php echo $this->__('Your account will be debited upon delivery of goods.'); ?>
     </li>
     <li style="margin: 0 0 8px;">
         <?php echo Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('booking_reference') ?>
     </li>
-    <?php if (Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('live_mode', true) == 0): ?>
+    <?php
+    if (Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('live_mode', true)
+            == 0):
+        ?>
         <li style="margin: 0 0 8px;">
             <div style="font-weight:bold;color:red;font-size:12px;">
                 <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>

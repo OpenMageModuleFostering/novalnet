@@ -33,9 +33,11 @@ $helper = Mage::helper('novalnet_payment');
     <!--{{{ Payment Logo -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-            <?php $image = "paypal-small.png";
-            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image; ?>
-            <img style="height:32px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            <?php
+            $image = "paypal-small.png";
+            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+            ?>
+            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
         </a>
     </div>
     <!--}}} Payment Logo -->
@@ -43,20 +45,20 @@ $helper = Mage::helper('novalnet_payment');
     <div>
         <ul id="payment_form_<?php echo $_code ?>" style="display:none;">
             <li>
-            <?php echo $this->__('You will be redirected to Novalnet AG website when you place an order.') ?>
+                <?php echo $this->__('You will be redirected to Novalnet AG website when you place an order.') ?>
             </li>
-                <?php if ($this->getUserInfo()): ?>
+            <?php if ($this->getUserInfo()): ?>
                 <li>
-                <?php echo $this->getUserInfo() ?>
+                    <?php echo $this->getUserInfo() ?>
                 </li>
             <?php endif; ?>
-<?php if ($this->getLiveMode() == 0): ?>
+            <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
                 <li>
                     <div style="font-weight:bold;color:red;font-size:12px;">
-    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+                        <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
                     </div>
                 </li>
-<?php endif ?>
+            <?php endif ?>
         </ul>
     </div>
     <!--}}} Payment Description -->

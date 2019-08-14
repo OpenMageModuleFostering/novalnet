@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_Form {
+class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_Form
+{
 
-    protected function _construct() {
+    protected function _construct()
+    {
         parent::_construct();
         $this->setTemplate('novalnet/payment/method/form/Cc.phtml');
     }
@@ -36,7 +37,8 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
      *
      * @return bool
      */
-    public function isCallbackTypeCall() {
+    public function isCallbackTypeCall()
+    {
         return $this->getMethod()->isCallbackTypeCall();
         //return false;
     }
@@ -46,7 +48,8 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
      *
      * @return string
      */
-    public function getCallbackConfigData() {
+    public function getCallbackConfigData()
+    {
         return $this->getMethod()->_getConfigData('callback');
     }
 

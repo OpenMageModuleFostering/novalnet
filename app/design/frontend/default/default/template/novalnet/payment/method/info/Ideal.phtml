@@ -28,11 +28,12 @@
 $_info = $this->getInfo();
 if ($_info):
     ?>
-    <?php if ($this->getAdditionalData('NnTestOrder'))
-        echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!', $this->__('Testorder'), '!</div>'
+    <?php
+    if ($this->getAdditionalData('NnTestOrder'))
+            echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!', $this->__('Testorder'), '!</div>'
         ?>
     <?php echo $this->htmlEscape($this->getMethod()->getTitle()) ?><br />
-    <?php if ($_info->getLastTransId() != "") echo $this->__('TID: %s', $this->htmlEscape($_info->getLastTransId())) . '<br />' ?>
+    <?php if ($_info->getLastTransId() != "") echo $this->__('Novalnet Transaction ID: %s', $this->htmlEscape($_info->getLastTransId())) . '<br />' ?>
     <?php if ($this->getAdditionalData('NnComments')) { ?>
         <?php echo $this->getAdditionalData('NnComments') ?><br />
     <?php } ?>

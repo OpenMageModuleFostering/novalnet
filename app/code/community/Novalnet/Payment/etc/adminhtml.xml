@@ -26,34 +26,32 @@
                         </transactionOverivew>
                     </children>
                 </transaction>
-               <configuration module="novalnet_payment">
+                <configuration module="novalnet_payment">
                     <title>Configuration</title>
                     <sort_order>40</sort_order>
                     <children>
                         <general module="novalnet_payment">
                             <title>General</title>
-                            <sort_order>10</sort_order>
-                            <!--action>adminhtml/system_config/edit/section/payment_config/</action-->
+                            <sort_order>10</sort_order>                            
                             <action>adminhtml/system_config/edit/section/novalnet_global/</action>
                         </general>
                         <payment module="novalnet_payment">
                             <title>Payment Methods</title>
-                            <sort_order>20</sort_order>
-                            <!--action>adminhtml/system_config/edit/section/payment/</action-->
+                            <sort_order>20</sort_order>                            
                             <action>adminhtml/system_config/edit/section/novalnet_paymethods/</action>
                         </payment>
-					</children>
+                    </children>
                 </configuration>
-				<fraud_prevention module="novalnet_payment">
-					<title>Risk and Control</title>
-					<sort_order>30</sort_order>
-					<action>adminhtml/system_config/edit/section/fraud_prevent/</action>
-				</fraud_prevention>
-				<configuration_wizard module="novalnet_payment">
-					<title>Configuration-wizard</title>
-					<sort_order>50</sort_order>
-					<action>novalnet_payment/adminhtml_configuration_wizard_page</action>
-				</configuration_wizard>
+                <fraud_prevention module="novalnet_payment">
+                    <title>Risk and Control</title>
+                    <sort_order>30</sort_order>
+                    <action>adminhtml/system_config/edit/section/fraud_prevent/</action>
+                </fraud_prevention>
+                <configuration_wizard module="novalnet_payment">
+                    <title>Configuration-wizard</title>
+                    <sort_order>50</sort_order>
+                    <action>novalnet_payment/adminhtml_configuration_wizard_page</action>
+                </configuration_wizard>
                 <information module="novalnet_payment">
                     <title>Information</title>
                     <sort_order>60</sort_order>
@@ -62,7 +60,7 @@
             </children>
         </novalnet>
     </menu>
-	<acl>
+    <acl>
         <resources>
             <admin>
                 <children>
@@ -72,13 +70,13 @@
                                 <children>
                                     <novalnet_global>
                                         <title>General</title>
-                                        <sort_order>10</sort_order>										
+                                        <sort_order>10</sort_order>
                                     </novalnet_global>
                                     <novalnet_paymethods>
                                         <title>Payment</title>
                                         <sort_order>20</sort_order>
                                     </novalnet_paymethods>
-									<fraud_prevent>
+                                    <fraud_prevent>
                                         <title>Payment</title>
                                         <sort_order>20</sort_order>
                                     </fraud_prevent>
@@ -86,6 +84,56 @@
                             </config>
                         </children>
                     </system>
+                    <novalnet>
+                        <title>Novalnet</title>
+                        <sort_order>100</sort_order>
+                        <children>
+                            <sales_order>
+                                <title>Orders</title>
+                                <sort_order>10</sort_order>
+                            </sales_order>
+                            <transaction module="novalnet_payment">
+                                <title>Novalnet Transactions</title>
+                                <sort_order>20</sort_order>
+                                <children>
+                                    <transactionStatus module="novalnet_payment">
+                                        <title>Novalnet Transactions Overview</title>
+                                        <sort_order>10</sort_order>
+                                    </transactionStatus>
+                                    <transactionOverivew module="novalnet_payment">
+                                        <title>Novalnet Transactions Log</title>
+                                        <sort_order>20</sort_order>
+                                    </transactionOverivew>
+                                </children>
+                            </transaction>
+                            <configuration module="novalnet_payment">
+                                <title>Configuration</title>
+                                <sort_order>40</sort_order>
+                                <children>
+                                    <general module="novalnet_payment">
+                                        <title>General</title>
+                                        <sort_order>10</sort_order>
+                                    </general>
+                                    <payment module="novalnet_payment">
+                                        <title>Payment Methods</title>
+                                        <sort_order>20</sort_order>
+                                    </payment>
+                                </children>
+                            </configuration>
+                            <fraud_prevention module="novalnet_payment">
+                                <title>Risk and Control</title>
+                                <sort_order>30</sort_order>
+                            </fraud_prevention>
+                            <configuration_wizard module="novalnet_payment">
+                                <title>Configuration-wizard</title>
+                                <sort_order>50</sort_order>
+                            </configuration_wizard>
+                            <information module="novalnet_payment">
+                                <title>Information</title>
+                                <sort_order>60</sort_order>
+                            </information>
+                        </children>
+                    </novalnet>
                 </children>
             </admin>
         </resources>

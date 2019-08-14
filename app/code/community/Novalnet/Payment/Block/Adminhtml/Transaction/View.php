@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_Block_Widget_Form_Container {
+class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_Block_Widget_Form_Container
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_objectId = 'nntxn_id';
         $this->_mode = 'view';
         $this->_blockGroup = 'novalnet_payment';
@@ -46,20 +47,24 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_B
      *
      * @return Mage_Sales_Model_Order_Invoice
      */
-    public function getOrder() {
+    public function getOrder()
+    {
         return Mage::registry('current_order');
     }
 
-    public function getNovalnetTransactionStatus() {
+    public function getNovalnetTransactionStatus()
+    {
         return Mage::registry('novalnet_payment_transactionstatus');
     }
 
-    public function getCurrencyCode() {
+    public function getCurrencyCode()
+    {
         $order = Mage::getModel("sales/order")->loadByIncrementId(trim($this->getNovalnetTransactionStatus()->getOrderId()));
         return $order->getOrderCurrencyCode();
     }
 
-    public function getPaymentTitle() {
+    public function getPaymentTitle()
+    {
         $transactionStatus = $this->getNovalnetTransactionStatus();
         $title = Mage::helper("novalnet_payment")->getModel($transactionStatus->getPaymentName())->_getConfigData('title');
         return $title;
@@ -68,7 +73,8 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_B
     /**
      * @return string
      */
-    public function getHeaderText() {
+    public function getHeaderText()
+    {
         $transStatus = $this->getNovalnetTransactionStatus();
         $text = Mage::helper('novalnet_payment')->__(
                 'Order #%s | TID : %s ', $transStatus->getOrderId(), $transStatus->getTransactionNo()

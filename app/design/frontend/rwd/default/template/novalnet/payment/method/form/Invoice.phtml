@@ -1,0 +1,104 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodule of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Novalnet AG
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+?>
+<fieldset class="form-list">
+    <!-- PAYMENT LOGO -->
+    <div>
+        <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "kauf-auf-rechnung.png"; ?>
+            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+        </a>
+    </div>
+    <!-- PAYMENT LOGO -->
+    <ul id="payment_form_<?php echo $code ?>" style="display:none">
+        <!--{{{ PAYMENT DESCRIPTION  -->
+        <li>
+            <?php echo $this->__('The Bank details will be emailed to you soon after the completion of checkout process') ?>
+        </li>
+        <?php if ($this->getUserInfo()): ?>
+            <li>
+                <?php echo $this->getUserInfo() ?>
+            </li>
+        <?php endif ?>
+        <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
+            <li>
+                <div style="font-weight:bold;color:red;font-size:12px;">
+                    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+                </div>
+            </li>
+        <?php endif ?>
+        <!--}}} PAYMENT DESCRIPTION  -->
+        <!--{{{ CallbackType-->
+        <?php if ($this->isCallbackTypeCall()): ?>
+            <!--{{{ PIN by Callback-->
+            <?php if ($this->getCallbackConfigData() != 3): ?>
+                <li>
+                    <div class="input-box">
+                        <label style="float:none;" for="<?php echo $code ?>_callback_tel">
+                            <?php
+                            if ($this->getCallbackConfigData() == 2):
+                                ?>
+                                <?php echo $this->__('Mobile phone number'); ?>
+                            <?php else: ?>
+                                <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
+                            <?php endif; ?>
+                            <span class="required"></span></label><br/>
+                        <input type="text" value="" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" />
+                    </div>
+                </li>
+                <li>
+                    <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                        <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.') ?>
+                    </div>
+                    <div class="input-box">
+                        <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required"></span></label><br/>
+                        <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                        <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                        <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                    </div>
+                </li>
+                <!--}}} PIN by Callback-->
+                <!--{{{ Reply by Email-->
+            <?php elseif ($this->getCallbackConfigData() == 3): ?>
+                <li>
+                    <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                        <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.') ?>
+                    </div>
+                    <div class="input-box">
+                        <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required"></span></label><br/>
+                        <input type="text" value="" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" />
+                    </div>
+                </li>
+            <?php endif ?>
+            <!--}}} Reply by Email-->
+        <?php endif ?>
+        <!--}}} CallbackType-->
+    </ul>
+</fieldset>

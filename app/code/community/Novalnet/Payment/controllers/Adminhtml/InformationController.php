@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,12 +23,14 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Adminhtml_InformationController extends Mage_Adminhtml_Controller_Action {
+class Novalnet_Payment_Adminhtml_InformationController extends Mage_Adminhtml_Controller_Action
+{
 
     /**
      *
      */
-    public function indexAction() {
+    public function indexAction()
+    {
         $this->loadLayout();
         $this->setUsedModuleName('novalnet_payment');
         $this->_setActiveMenu('novalnet/information');

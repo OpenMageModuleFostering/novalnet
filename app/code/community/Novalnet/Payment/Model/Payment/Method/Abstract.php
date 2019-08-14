@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -13,9 +12,9 @@
  * obtain it through the world-wide-web, please send an email
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
- * Part of the Paymentmodule of Novalnet AG
+ * Part of the Payment module of Novalnet AG
  * https://www.novalnet.de
- * If you have found this script usefull a small
+ * If you have found this script useful a small
  * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
  *
@@ -24,10 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_Method_Abstract {
+class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_Method_Abstract
+{
 
     protected $_isGateway = false;
-    protected $_canAuthorize = true;
+    protected $_canAuthorize = false;
     protected $_canCapture = false;
     protected $_canCapturePartial = false;
     protected $_canRefund = true;
@@ -41,21 +41,21 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     protected $_mustTransimitInvoicingData = false;
     protected $_mustTransimitInvoicingItemTypes = false;
     protected $_canCancelInvoice = false;
-    protected $methodType = '';
-    protected $redirectUrl = '';
-
+    protected $_methodType = '';
+    protected $_redirectUrl = '';
     var $infoInstance;
-	var $_helper;
-	var $_dataHelper;
+    var $helper;
+    var $dataHelper;
 
     /**
      * Load Basic Params in constructor
      *
      * @return
      */
-    public function __construct() {
+    public function __construct()
+    {
         //Novalnet Basic parameters
-		$this->assignUtilities();
+        $this->assignUtilities();
         $this->_vendorId = $this->_getConfigData('merchant_id', true);
         $this->_authcode = $this->_getConfigData('auth_code', true);
         $this->_productId = $this->_getConfigData('product_id', true);
@@ -69,35 +69,24 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * @param Mage_Sales_Model_Quote
      * @return bool
      */
-    public function isAvailable($quote = null) {
+    public function isAvailable($quote = null)
+    {
         $getNnDisableTime = "getNnDisableTime" . ucfirst($this->_code); //Dynamic Getter based on payment methods
         $minOrderCount = $this->_getConfigData('orderscount');
         $userGroupId = $this->_getConfigData('user_group_excluded');
-        if ($this->_helper->checkOrdersCount($minOrderCount)) {
+
+        if ($this->helper->checkOrdersCount($minOrderCount)) {
             return false;
-        } else if (!$this->_helper->checkCustomerAccess($userGroupId)) {
+        } else if (!$this->helper->checkCustomerAccess($userGroupId)) {
             return false;
-        } else if (!empty($quote) && !$this->_helper->isModuleActive($quote->getGrandTotal())) {
+        } else if (!empty($quote) && !$this->helper->isModuleActive($quote->getGrandTotal())) {
             return false;
         } else if (time() < $this->_getMethodSession()->$getNnDisableTime()) {
             return false;
         }
-        return parent::isAvailable($quote);
-    }
+        $this->paymentRefillValidate();
 
-    /**
-     * Assign Form Data in quote instance
-     *
-     * @return  Mage_Payment_Model_Abstract Object
-     */
-    public function assignData($data) {
-        $infoInstance = $this->_getInfoInstance();
-        // unset form method session
-		if ($this->_code != $this->_getCheckout()->getNnPaymentCode()) {
-			$this->unsetFormMethodSession();
-		}
-        $this->_dataHelper->assignNovalnetData($this->_code, $data, $infoInstance);
-        return $this;
+        return parent::isAvailable($quote);
     }
 
     /**
@@ -105,130 +94,152 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return  Mage_Payment_Model_Abstract
      */
-    public function validate() {
+    public function validate()
+    {
         parent::validate();
         $infoInstance = $this->_getInfoInstance();
         if (!$this->_isPlaceOrder()) {
 
+            // validate the Novalnet basic params and billing informations
             $this->validateNovalnetParams();
             //customer_no verification
-            $this->_helper->customerNumberValidation();
-            $this->_dataHelper->validateNovalnetData($this->_code, $infoInstance);
+            $this->helper->customerNumberValidation();
+            // validate the form payment method values
+            $this->dataHelper->validateNovalnetData($this->_code, $infoInstance);
 
-            //telephone payment data is set
+            // unset the telephone payment data
             if ($this->_code != Novalnet_Payment_Model_Config::NN_TELEPHONE &&
                     $this->_getMethodSession(Novalnet_Payment_Model_Config::NN_TELEPHONE)->getNnPhoneTid()) {
-                $this->_unsetMethodSession(Novalnet_Payment_Model_Config::NN_TELEPHONE);
+                $this->unsetMethodSession(Novalnet_Payment_Model_Config::NN_TELEPHONE);
+            }
+
+            if ($this->_code == Novalnet_Payment_Model_Config::NN_TELEPHONE) {
+                $this->doNovalnetPhoneFirstCall();
             }
         }
-        $this->doNovalnetPhoneFirstCall();
-		$this->_initiateCallbackProcess($this->_code);
+
+        $callbackPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('fraudCheckPayment');
+        if (in_array($this->_code, $callbackPayment) || ($this->_code == 'novalnetCc'
+                && $this->_getConfigData('active_cc3d') != 1)) {
+            $this->_initiateCallbackProcess($this->_code);
+        }
+
+        if (!$this->isCallbackTypeCall() && $this->_isPlaceOrder()) {
+            $this->_sendRequestToNovalnet();
+        }
         return $this;
     }
 
     /**
-     * Authorize
+     * Payment form refill validation
      *
-     * @param   Varien_Object $orderPayment
-     * @param float $amount
-     * @return  Mage_Payment_Model_Abstract
      */
-    public function authorize(Varien_Object $payment, $amount) {
-		$methodSession = $this->_getMethodSession();
-        $redirectPayment = array(
-            Novalnet_Payment_Model_Config::NN_IDEAL,
-            Novalnet_Payment_Model_Config::NN_PAYPAL,
-            Novalnet_Payment_Model_Config::NN_SOFORT,
-            Novalnet_Payment_Model_Config::NN_CC3D,
-            Novalnet_Payment_Model_Config::NN_SAFETYPAY
-        );
-		if ($this->canAuthorize() && $this->_code && !in_array($this->_code, $redirectPayment)) {
-			switch ($this->_code) {
-				case Novalnet_Payment_Model_Config::NN_TELEPHONE:
-					$requestData = new Varien_Object();
-					$option = '<lang>' . strtoupper($this->_helper->getDefaultLanguage()) . '</lang>';
-					$result = $this->doNovalnetStatusCall($methodSession->getNnPhoneTid(),NULL, Novalnet_Payment_Model_Config::NOVALTEL_STATUS, $option, $requestData);
-					//$result = $result['result'];
-					if ($result) {
-						$result->setTid($this->_getMethodSession()->getNnPhoneTid());
-						$result->setStatus($result->getNovaltelStatus());
-						$result->setStatusDesc($result->getNovaltelStatusMessage());
+    public function paymentRefillValidate()
+    {
+        // set method session
+        $this->_getMethodSession();
+        $prevPaymentCode = $this->_getCheckout()->getNnPaymentCode();
+        // check the users (guest or login)
+        $customerSession = $this->helper->getCustomerSession();
+        $coreSession = $this->helper->getCoresession();
+        if (!$customerSession->isLoggedIn() && $coreSession->getGuestloginvalue()
+                == '') {
+            $coreSession->setGuestloginvalue('1');
+        } elseif ($coreSession->getGuestloginvalue() == '1' && $customerSession->isLoggedIn()) {
+            $coreSession->setGuestloginvalue('0');
+            $this->unsetMethodSession($prevPaymentCode);
+        }
 
-						//For Manual Testing
-						//$result->setStatus(100);
+        // unset form previous payment method session
+        $paymentCode = $this->_getCheckout()->getQuote()->getPayment()->getMethod();
+        if ($paymentCode && !preg_match("/novalnet/i", $paymentCode) && $prevPaymentCode && $paymentCode != $prevPaymentCode) {
+            $this->unsetMethodSession($prevPaymentCode);
+        }
+    }
 
-						$txnId = $methodSession->getNnPhoneTid();
-						/** @@ Update the transaction status and transaction overview **/
-						$this->logNovalnetTransactionData($requestData, $result, $txnId);
-						$this->_validateSecondCallResponse($result, $payment);
-					}
-					break;
-				default:
-					if($this->isCallbackTypeCall()) {
-						$result = $methodSession->getNnResponseData();
-					} else {
-						$storeId = $this->_helper->getMagentoStoreId();
-						$request = $this->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId);
-						$result  = $this->_postRequest($request);
-					}
-					$this->_validateNovalnetResponse($result, $payment, $request);
-					break;
-			}
-		}
+    /**
+     *  Assign Form Data in quote instance
+     *
+     * @return  Mage_Payment_Model_Abstract Object
+     */
+    public function assignData($data)
+    {
+        $infoInstance = $this->_getInfoInstance();
+        // unset form previous payment method session
+        $prevPaymentCode = $this->_getCheckout()->getNnPaymentCode();
+        if ($prevPaymentCode && $this->_code != $prevPaymentCode) {
+            $this->unsetMethodSession($prevPaymentCode);
+        }
+        $this->dataHelper->assignNovalnetData($this->_code, $data, $infoInstance);
         return $this;
+    }
+
+    /**
+     * Assign the Novalnet direct payment methods request
+     *
+     */
+    private function _sendRequestToNovalnet()
+    {
+        $redirectPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayments');
+        array_push($redirectPayment, Novalnet_Payment_Model_Config::NN_TELEPHONE);
+        if ($this->_code && !in_array($this->_code, $redirectPayment)) {
+
+            if ($this->_code == Novalnet_Payment_Model_Config::NN_CC && !$this->helper->checkIsAdmin()
+                    && $this->_getConfigData('active_cc3d') == 1) {
+                return false;
+            }
+
+            $storeId = $this->helper->getMagentoStoreId();
+            $request = $this->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId);
+            $methodSession = $this->_getMethodSession($this->_code);
+            $methodSession->setPaymentReqData($request);
+        }
     }
 
     /**
      * Capture
      *
-     * @param   Varien_Object $orderPayment
+     * @param   Varien_Object $payment
      * @param float $amount
      * @return  Mage_Payment_Model_Abstract
      */
-    public function capture(Varien_Object $payment, $amount) {
-        $redirectPayment = array(
-            Novalnet_Payment_Model_Config::NN_IDEAL,
-            Novalnet_Payment_Model_Config::NN_PAYPAL,
-            Novalnet_Payment_Model_Config::NN_SOFORT,
-            Novalnet_Payment_Model_Config::NN_SAFETYPAY,
-            Novalnet_Payment_Model_Config::NN_TELEPHONE
-        );
-
-        $getTid = $payment->getTransactionId();
+    public function capture(Varien_Object $payment, $amount)
+    {
+        $redirectPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayments');
+        array_push($redirectPayment, Novalnet_Payment_Model_Config::NN_TELEPHONE);
         $responseCodeApproved = Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED;
-        if ($this->canCapture() && $this->_code && !in_array($this->_code, $redirectPayment) && !is_null($getTid)) {
 
-            $request = new Varien_Object();
-            $storeId = $payment->getOrder()->getStoreId();
-            $customerId = $payment->getOrder()->getCustomerId();
-            $amount = $this->_helper->getFormatedAmount($payment->getOrder()->getBaseGrandTotal());
-            $lastTranId = $this->_helper->makeValidNumber($payment->getLastTransId());
-            $this->assignOrderBasicParams($request, $payment, $storeId);
-            $request->setTid($lastTranId)
-                    ->setStatus($responseCodeApproved)
-                    ->setEditStatus(true);
-
-            $loadTransStatus = $this->_helper->loadTransactionStatus($lastTranId);
+        if ($this->canCapture() && $this->_code && !in_array($this->_code, $redirectPayment)) {
+            $lastTranId = $this->helper->makeValidNumber($payment->getLastTransId());
+            $loadTransStatus = $this->helper->loadTransactionStatus($lastTranId);
             $transStatus = $loadTransStatus->getTransactionStatus();
-            if (!in_array(NULL, $request->toArray()) && !empty($transStatus) && $transStatus != $responseCodeApproved) {
 
-                $buildNovalnetParam = http_build_query($request->getData());
-                $response = $this->_dataHelper->setRawCallRequest($buildNovalnetParam, Novalnet_Payment_Model_Config::PAYPORT_URL);
+            if (!empty($transStatus) && $transStatus != $responseCodeApproved) {
+
+                //Send capture request to Payport
+                $response = $this->_performPayportRequest($payment, 'capture');
                 if ($response->getStatus() == $responseCodeApproved) {
                     $loadTransStatus->setTransactionStatus($responseCodeApproved)
-									->save();
+                            ->save();
 
-					$magentoVersion = $this->_getHelper()->getMagentoVersion();
-					// make capture transaction open for lower versions to make refund
-					if (version_compare($magentoVersion, '1.6', '<')) {
-						$payment->setIsTransactionClosed(false)
-								->save();
-					}
-
+                    $magentoVersion = $this->_getHelper()->getMagentoVersion();
+                    // make capture transaction open for lower versions to make refund
+                    if (version_compare($magentoVersion, '1.6', '<')) {
+                        $payment->setIsTransactionClosed(false)
+                                ->save();
+                    }
+                    if ($transStatus != $responseCodeApproved) {
+                        $transMode = (version_compare($magentoVersion, '1.6', '<'))
+                                    ? false : true;
+                        $payment->setTransactionId($lastTranId)
+                                ->setIsTransactionClosed($transMode);
+                        $transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
+                        $transaction->setParentTxnId(null)
+                                ->save();
+                    }
                 } else {
                     $this->showException('Error in you capture request');
                 }
-                $this->logNovalnetTransactionData($request, $response, $lastTranId, $customerId, $storeId);
             }
         }
         return $this;
@@ -240,19 +251,21 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * @param string $type
      * @return Mage_Novalnet_Model_Novalnet_Request
      */
-    public function buildRequest($type = Novalnet_Payment_Model_Config::POST_NORMAL, $storeId = NULL) {
+    public function buildRequest($type = Novalnet_Payment_Model_Config::POST_NORMAL,
+        $storeId = NULL
+    ) {
         $payCode = ucfirst($this->_code);
-        $helper = $this->_helper;
+        $helper = $this->helper;
         $callbackTelNo = "getNnCallbackTel" . $payCode;
         $callbackEmail = "getNnCallbackEmail" . $payCode;
-        $refernce1 = strip_tags($this->_getConfigData('reference_one'));
-        $refernce2 = strip_tags($this->_getConfigData('reference_two'));
+        $refernceOne = trim(strip_tags(trim($this->_getConfigData('reference_one'))));
+        $refernceTwo = trim(strip_tags(trim($this->_getConfigData('reference_two'))));
 
-        if ($type == Novalnet_Payment_Model_Config::POST_NORMAL
-                || $type == Novalnet_Payment_Model_Config::POST_CALLBACK) {
+        if ($type == Novalnet_Payment_Model_Config::POST_NORMAL || $type == Novalnet_Payment_Model_Config::POST_CALLBACK) {
             $request = new Varien_Object();
             $amount = $helper->getFormatedAmount($this->_getAmount());
             $billing = $this->_getInfoObject()->getBillingAddress();
+            $email = $billing->getEmail() ? $billing->getEmail() : $this->_getInfoObject()->getCustomerEmail();
             $this->assignNnAuthData($request, $storeId);
             $request->setTestMode((!$this->_getConfigData('live_mode')) ? 1 : 0)
                     ->setAmount($amount)
@@ -272,27 +285,31 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                     ->setFax($billing->getFax())
                     ->setRemoteIp($helper->getRealIpAddr())
                     ->setGender('u')
-                    ->setEmail($this->_getInfoObject()->getCustomerEmail())
+                    ->setEmail($email)
                     ->setOrderNo($this->_getOrderId())
                     ->setSystemUrl(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB))
-					->setSystemIp($_SERVER['SERVER_ADDR'])
-					->setSystemName('Magento')
-					->setSystemVersion($helper->getMagentoVersion().'-'.$helper->getNovalnetVersion())
-					->setInput1('order_id')
+                    ->setSystemIp($helper->getServerAddr())
+                    ->setSystemName('magento')
+                    ->setSystemVersion($helper->getMagentoVersion() . '-' . $helper->getNovalnetVersion())
+                    ->setInput1('order_id')
                     ->setInputval1($this->_getOrderId());
 
-            if ($this->_referrerId && $helper->checkIsNumeric($this->_referrerId)) {
-				$request->setReferrerId($this->_referrerId);
-			}
-			if ($refernce1) {
-				$request->setInput2('reference1')
-					->setInputval2($refernce1);
-			}
-			if ($refernce2) {
-				$request->setInput3('reference2')
-						->setInputval3($refernce2);
-			}
-
+            if ($this->_referrerId) {
+                $request->setReferrerId($this->_referrerId);
+            }
+            if ($refernceOne) {
+                $request->setInput2('reference1')
+                        ->setInputval2($refernceOne);
+            }
+            if ($refernceTwo) {
+                $request->setInput3('reference2')
+                        ->setInputval3($refernceTwo);
+            }
+            if ($helper->checkIsAdmin()) {
+                $adminUserId = Mage::getSingleton('admin/session')->getUser()->getUserId();
+                $request->setInput4('admin_user')
+                        ->setInputval4($adminUserId);
+            }
             $this->_setNovalnetParam($request, $this->_code);
         }
 
@@ -320,15 +337,17 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * @param string $type
      * @return Varien_Object
      */
-    protected function _postRequest($request) {
+    public function postRequest($request)
+    {
         $result = new Varien_Object();
-        $helper = $this->_helper;
+        $helper = $this->helper;
         $paymentKey = $helper->getPaymentId($this->_code);
+        $payportUrl = $helper->getPayportUrl('paygate');
         if ($this->_validateBasicParams() && $helper->checkIsNumeric($paymentKey)
-                && $paymentKey == $request->getKey() && $request->getAmount()
-				&& $helper->checkIsNumeric($request->getAmount())) {
-            $response = $this->_setNovalnetRequestCall($request->getData(), Novalnet_Payment_Model_Config::PAYPORT_URL);
-            $result->addData($helper->deformatNvp('&', $response->getBody()));
+                && $paymentKey == $request->getKey() && $request->getAmount() && $helper->checkIsNumeric($request->getAmount())) {
+            $response = $this->_setNovalnetRequestCall($request->getData(), $payportUrl);
+            parse_str($response->getBody(), $data);
+            $result->addData($data);
         } else {
             $this->showException($helper->__('Required parameter not valid') . '!', false);
         }
@@ -336,12 +355,35 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     }
 
     /**
+     * Do XML call request to server
+     *
+     * @param Varien_Object $requestData
+     * @param String $requestUrl
+     * @return Mage_Payment_Model_Abstract Object
+     */
+    public function setRawCallRequest($requestData, $requestUrl)
+    {
+        $httpClientConfig = array('maxredirects' => 0);
+        $client = new Varien_Http_Client($requestUrl, $httpClientConfig);
+        $client->setRawData($requestData)->setMethod(Varien_Http_Client::POST);
+        $response = $client->request();
+        if (!$response->isSuccessful()) {
+            Mage::throwException($this->_getHelper()->__('Gateway request error: %s', $response->getMessage()));
+        }
+        $result = new Varien_Object();
+        parse_str($response->getBody(), $data);
+        $result->addData($data);
+        return $result;
+    }
+
+    /**
      * Assign Novalnet Authentication Data
      *
      * @param Varien_Object $request
-     * @param Decimal $amount
+     * @param int $storeId
      */
-    public function assignNnAuthData(Varien_Object $request, $storeId = NULL) {
+    public function assignNnAuthData(Varien_Object $request, $storeId = NULL)
+    {
         //Reassign the Basic Params Based on store
         $this->_vendorId = $this->_getConfigData('merchant_id', true, $storeId);
         $this->_authcode = $this->_getConfigData('auth_code', true, $storeId);
@@ -351,95 +393,132 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                 ->setAuthCode($this->_authcode)
                 ->setProduct($this->_productId)
                 ->setTariff($this->_tariffId)
-                ->setKey($this->_helper->getPaymentId($this->_code));
+                ->setKey($this->helper->getPaymentId($this->_code));
     }
 
     /**
-     * Get the Order basic configuration for refund, void, and capture
+     * Set the Order basic configuration
      *
-     * @param string $request
      * @param string $payment
      */
-    public function assignOrderBasicParams(Varien_Object $request, $payment, $storeId = NULL)
+    public function assignVendorConfig($payment = NULL)
     {
-		//Reassign the Basic Params Based on store
-        $this->_vendorId = $this->_getConfigData('merchant_id', true, $storeId);
-        $this->_authcode = $this->_getConfigData('auth_code', true, $storeId);
-
-        $getresponseData = unserialize($payment->getAdditionalData());
-	$vendorId  = ($getresponseData['vendor']) ? $getresponseData['vendor'] : $this->_vendorId;
-        $authCode  = ($getresponseData['auth_code']) ? $getresponseData['auth_code'] : $this->_authcode;
-        $productId = ($getresponseData['product']) ? $getresponseData['product'] : $this->_productId;
-        $tariffId  = ($getresponseData['tariff']) ? $getresponseData['tariff'] : $this->_tariffId;
-        $key       = ($getresponseData['key']) ? $getresponseData['key'] : $this->_helper->getPaymentId($this->_code);
-        
-        $request->setVendor($vendorId)
-                ->setAuthCode($authCode)
-                ->setProduct($productId)
-                ->setTariff($tariffId)
-                ->setKey($key);    }
+        //Reassign the Basic Params Based on store
+        $getresponseData = NULL;
+        if ($payment) {
+            $getresponseData = unserialize($payment->getAdditionalData());
+        }
+        $this->_vendorId = ($getresponseData['vendor']) ? $getresponseData['vendor']
+                    : $this->_vendorId;
+        $this->_authcode = ($getresponseData['auth_code']) ? $getresponseData['auth_code']
+                    : $this->_authcode;
+        $this->_productId = ($getresponseData['product']) ? $getresponseData['product']
+                    : $this->_productId;
+        $this->_tariffId = ($getresponseData['tariff']) ? $getresponseData['tariff']
+                    : $this->_tariffId;
+    }
 
     /**
      * Refund amount
      *
-     * @param	Varien_Object $invoicePayment
-     * @param	float $amount
-     * @return	Mage_Payment_Model_Abstract
+     * @param   Varien_Object $payment
+     * @param   float $amount
+     * @return  Mage_Payment_Model_Abstract
      */
-        public function refund(Varien_Object $payment, $amount) {
-		$orderAmount = $this->_getAmount();		
+    public function refund(Varien_Object $payment, $amount)
+    {
         if (!$this->canRefund()) {
             $this->showException('Refund action is not available.');
         }
 
         if ($payment->getRefundTransactionId() && $amount > 0) {
-            $request = new Varien_Object();
-            $storeId = $payment->getOrder()->getStoreId();
-            $customerId = $payment->getOrder()->getCustomerId();
-            $refundAmount = $this->_helper->getFormatedAmount($amount);
-            $getTid = $this->_helper->makeValidNumber($payment->getRefundTransactionId());            
-            $this->assignOrderBasicParams($request, $payment, $storeId);
-            if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_ELVAT, Novalnet_Payment_Model_Config::NN_ELVDE))) {
-				$getTid = $this->_helper->makeValidNumber($payment->getLastTransId());
-			}
-            $request->setTid($getTid)
-                    ->setRefundRequest(true)
-                    ->setRefundParam($refundAmount);
+            $helper = $this->helper;
+            $refundAmount = $helper->getFormatedAmount($amount);
+            $getTid = $helper->makeValidNumber($payment->getRefundTransactionId());
+            $data = unserialize($payment->getAdditionalData());
+            if ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA) {
+                $getTid = $helper->makeValidNumber($payment->getLastTransId());
+                if (isset($data['NnSepaParentTid']) && $data['NnSepaParentTid']) {
+                    $getTid = $data['NnSepaParentTid'];
+                }
+            }
 
-            if (!in_array(NULL, $request->toArray())) {
+            if ($this->_code == Novalnet_Payment_Model_Config::NN_INVOICE) {
+                $this->_refundValidation($payment, $refundAmount);
+            }
+            //Send refund request to Payport
+            $response = $this->_performPayportRequest($payment, 'refund', $refundAmount, $getTid);
 
-                $buildNovalnetParam = http_build_query($request->getData());
-                $response = $this->_dataHelper->setRawCallRequest($buildNovalnetParam, Novalnet_Payment_Model_Config::PAYPORT_URL);
-                $this->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
-				if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
-                    $getTransactionStatus = $this->doNovalnetStatusCall($getTid, $storeId, Novalnet_Payment_Model_Config::TRANS_STATUS, NULL, NULL, $request);
-                    $loadTransaction = $this->_helper->loadTransactionStatus($getTid);
-                    $loadTransaction->setTransactionStatus($getTransactionStatus->getStatus())
-									->setAmount($this->_helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW'))
-									->save();
+            if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
+                $getTransactionStatus = $this->doNovalnetStatusCall($getTid, $payment, Novalnet_Payment_Model_Config::TRANS_STATUS);
+                $loadTransaction = $helper->loadTransactionStatus($getTid);
+                $loadTransaction->setTransactionStatus($getTransactionStatus->getStatus())
+                        ->setAmount($helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW'))
+                        ->save();
+                $data['fullRefund'] = ((string)$this->_getAmount() == (string)$amount) ? true : false;
+                $txnid = $response->getTid(); // response tid
+                $refundTid = !empty($txnid) ? $txnid : $payment->getLastTransId() . '-refund';
 
-                    $txnid = $response->getTid();
-                    $refund_tid = !empty($txnid) ? $txnid : $payment->getLastTransId() . '-refund';
-                    if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
-						$amountAfterRefund = ($this->_getAmount() -  $payment->getOrder()->getBaseTotalRefunded());
-						$loadTransaction->setAmount($amountAfterRefund)
-										->save();
-                    }
-                    $payment->setTransactionId($refund_tid)
-                            ->setLastTransId($refund_tid)
+                if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE,
+                            Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
+                    $amountAfterRefund = ($this->_getAmount() - $payment->getOrder()->getBaseTotalRefunded());
+                    $loadTransaction->setAmount($amountAfterRefund)
                             ->save();
+                    $data['NnTid'] = $data['NnTid'] . '-refund';
+                    $refundTid = $data['NnTid'];
+                }
 
-                    if ($txnid) { // Only log the novalnet transaction which contains TID
-                        $getTransactionStatus = $this->doNovalnetStatusCall($txnid, $storeId, Novalnet_Payment_Model_Config::TRANS_STATUS, NULL, NULL, $request);
-			$response->setStatus($getTransactionStatus->getStatus());
-			$amountAfterRefund = $this->_helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW');
-                        $this->logNovalnetStatusData($response, $refund_tid, $customerId, $storeId, $amountAfterRefund);
+                if ($refundTid) {
+                    $refAmount = Mage::helper('core')->currency($amount, true, false);
+                    if (!isset($data['refunded_tid'])) {
+                        $refundedTid = array('refunded_tid'=> array($refundTid => array('reftid' => $refundTid , 'refamount' => $refAmount , 'reqtid' => $getTid)));
+                        $data = array_merge($data, $refundedTid);
+                    } else {
+                        $data['refunded_tid'][$refundTid]['reftid'] = $refundTid;
+                        $data['refunded_tid'][$refundTid]['refamount'] = $refAmount;
+                        $data['refunded_tid'][$refundTid]['reqtid'] = $getTid;
                     }
+                }
+
+                // For SEPA payment after submitting to bank
+                if ($getTransactionStatus->getStatus() && $this->_code == Novalnet_Payment_Model_Config::NN_SEPA) {
+                    $data['NnSepaParentTid'] = $getTid;
+                    if ($getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS
+                        && $getTransactionStatus->getChildTidInfo()) {
+                        parse_str($getTransactionStatus->getChildTidInfo(), $resInfo);
+                        $data['NnSepaParentTid'] = $resInfo['tid1'];
+                    }
+                }
+
+                $magentoVersion = $this->_getHelper()->getMagentoVersion();
+                // make capture transaction open for lower versions to make refund
+                if (version_compare($magentoVersion, '1.6', '<')) {
+                    $order = $payment->getOrder();
+                    $canRefundMore = $order->canCreditmemo();
+
+                    $payment->setTransactionId($refundTid)
+                            ->setLastTransId($refundTid)
+                            ->setAdditionalData(serialize($data))
+                            ->setIsTransactionClosed(1) // refund initiated by merchant
+                            ->setShouldCloseParentTransaction(!$canRefundMore)
+                            ->save();
                 } else {
-                    $this->showException($response->getStatusDesc(), false);
-                }                
+                    $payment->setTransactionId($refundTid)
+                            ->setLastTransId($refundTid)
+                            ->setAdditionalData(serialize($data))
+                            ->save();
+                }
+
+                if ($txnid) { // Only log the novalnet transaction which contains TID
+                    if ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA) {
+                        $amount = ($this->_getAmount() - $payment->getOrder()->getBaseTotalRefunded());
+                    }
+                    $getTransactionStatus = $this->doNovalnetStatusCall($txnid, $payment, Novalnet_Payment_Model_Config::TRANS_STATUS);
+                    $response->setStatus($getTransactionStatus->getStatus());
+                    $helper->doTransactionStatusSave($response, $getTransactionStatus, $payment, $amount, $loadTransaction->getCustomerId);
+                }
             } else {
-                $this->showException('Error in you refund request');
+                $this->showException($response->getStatusDesc(), false);
             }
         } else {
             $this->showException('Error in you refund request');
@@ -448,67 +527,129 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     }
 
     /**
+     * refund validation for InvoicePayment
+     *
+     * @return  boolean
+     */
+    private function _refundValidation($payment, $refundAmount)
+    {
+        $orderId = $payment->getOrder()->getIncrementId();
+        $callbackTrans = $this->helper->loadCallbackValue($orderId);
+        $callbackValue = $callbackTrans && $callbackTrans->getCallbackAmount() != NULL
+                    ? $callbackTrans->getCallbackAmount() : '';
+        $currency = Mage::app()->getLocale()->currency($this->_getInfoObject()->getBaseCurrencyCode())->getSymbol();
+        if ($callbackValue < (string) $refundAmount) {
+            $this->showException('Maximum amount available to refund is ' . $currency . $this->helper->getFormatedAmount($callbackValue, 'RAW'));
+        }
+        $refundedAmount = $this->helper->getFormatedAmount($payment->getAmountRefunded());
+        $totalrefundAmount = $refundedAmount + $refundAmount;
+        $availAmount = $callbackValue - $refundedAmount;
+        if ($payment->getAmountRefunded() && $callbackValue < (string) $totalrefundAmount) {
+            $this->showException('Maximum amount available to refund is ' . $currency . $this->helper->getFormatedAmount($availAmount, 'RAW'));
+        }
+        return true;
+    }
+
+    /**
+     * Perform Novalnet request for Void, Capture, Refund
+     *
+     * @param   Varien_Object $payment
+     * @return  $response
+     */
+    private function _performPayportRequest($payment, $requestType,
+        $refundAmount = NULL, $refundTid = NULL
+    ) {
+        $request = new Varien_Object();
+        $helper = $this->helper;
+        $storeId = $helper->getMagentoStoreId();
+        $customerId = $payment->getOrder()->getCustomerId();
+        $getTid = ($requestType == 'refund') ? $refundTid : $payment->getLastTransId();
+        $this->assignVendorConfig($payment);
+        $getresponseData = unserialize($payment->getAdditionalData());
+        $key = ($getresponseData['key']) ? $getresponseData['key'] : $helper->getPaymentId($this->_code);
+        $request->setVendor($this->_vendorId)
+                ->setAuthCode($this->_authcode)
+                ->setProduct($this->_productId)
+                ->setTariff($this->_tariffId)
+                ->setKey($key)
+                ->setTid($helper->makeValidNumber($getTid));
+        if ($requestType == 'void' || $requestType == 'capture') {
+            $request->setEditStatus(true);
+            $setStatus = ($requestType == 'capture') ? Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
+                        : Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS;
+            $request->setStatus($setStatus);
+        } else {
+            $request->setRefundRequest(true)
+                    ->setRefundParam($refundAmount);
+        }
+        if (!in_array(NULL, $request->toArray())) {
+            $buildNovalnetParam = http_build_query($request->getData());
+            $payportUrl = $helper->getPayportUrl('paygate');
+            $response = $this->setRawCallRequest($buildNovalnetParam, $payportUrl);
+            $this->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
+        } else {
+            $this->showException('Error in processing the transactions request');
+        }
+        return $response;
+    }
+
+    /**
      * Void payment
      *
-     * @param   Varien_Object $invoicePayment
+     * @param   Varien_Object $payment
      * @return  Mage_Payment_Model_Abstract
      */
-    public function void(Varien_Object $payment) {
+    public function void(Varien_Object $payment)
+    {
         if (!$this->canVoid($payment)) {
             $this->showException('Void action is not available.');
         }
 
-        $request = new Varien_Object();
-        $storeId = $payment->getOrder()->getStoreId();
-        $customerId = $payment->getOrder()->getCustomerId();
-        $getTid = $this->_helper->makeValidNumber($payment->getLastTransId());
-        $this->assignOrderBasicParams($request, $payment, $storeId);
-        $request->setTid($getTid)
-                ->setStatus(Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS)
-                ->setEditStatus(true);
+        //Send void request to Payport
+        $response = $this->_performPayportRequest($payment, 'void');
 
-        if (!in_array(NULL, $request->toArray())) {
+        if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
 
-            $buildNovalnetParam = http_build_query($request->getData());
-            $response = $this->_dataHelper->setRawCallRequest($buildNovalnetParam, Novalnet_Payment_Model_Config::PAYPORT_URL);
-            $this->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
-            if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
-
-                $txnid = $response->getTid();
-                $void_tid = !empty($txnid) ? $txnid : $payment->getLastTransId() . '-void';
-
-                if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
-                    $bank_void_tid = !empty($txnid) ? $txnid : $payment->getLastTransId();
-                    $data = unserialize($payment->getAdditionalData());
-					//$data['NnNoteAmount'] = $this->_dataHelper->getBankDetailsAmount($amountAfterRefund);
-                    $data['NnNoteTID'] = $this->_dataHelper->getBankDetailsTID($bank_void_tid);
-                    $payment->setAdditionalData(serialize($data));
-                }
-
-                $payment->setTransactionId($void_tid)
-                        ->setLastTransId($void_tid)
-                        ->save();
-                $getTransactionStatus = $this->doNovalnetStatusCall($getTid, $storeId, Novalnet_Payment_Model_Config::TRANS_STATUS, NULL, NULL, $request);
-                $loadTransaction = $this->_helper->loadTransactionStatus($getTid);
-                $loadTransaction->setTransactionStatus($getTransactionStatus->getStatus())
-								->setAmount($getTransactionStatus->getAmount()) // void amount is zero so set without formating
-								->save();
-            } else {
-                $this->showException('Error in you void request');
+            $txnid = $response->getTid();
+            $voidTid = !empty($txnid) ? $txnid : $payment->getLastTransId() . '-void';
+            $invoicePayment = (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE,
+                        Novalnet_Payment_Model_Config::NN_PREPAYMENT)));
+            $data = unserialize($payment->getAdditionalData());
+            $data['voidTid'] = $voidTid;
+            if ($invoicePayment) {
+                $bankVoidTid = !empty($txnid) ? $txnid : $payment->getLastTransId();
+                $data['NnNoteTID'] = $this->dataHelper->getBankDetailsTID($bankVoidTid);
             }
+
+            $payment->setTransactionId($voidTid)
+                    ->setLastTransId($voidTid)
+                    ->setAdditionalData(serialize($data))
+                    ->save();
+            $getTid = $this->helper->makeValidNumber($payment->getLastTransId());
+            $getTransactionStatus = $this->doNovalnetStatusCall($getTid, $payment, Novalnet_Payment_Model_Config::TRANS_STATUS);
+            $transAmount = $getTransactionStatus->getAmount();
+            if ($invoicePayment) {
+                $transAmount = $this->helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW');
+            }
+            $loadTransaction = $this->helper->loadTransactionStatus($getTid);
+            $loadTransaction->setTransactionStatus($getTransactionStatus->getStatus())
+                    ->setAmount($transAmount)
+                    ->save();
         } else {
             $this->showException('Error in you void request');
         }
         return $this;
     }
+
     /**
      * Get Method Session
      *
      * @return  Checkout session
      */
-    private function _getMethodSession($paymentCode = NULL) {
+    private function _getMethodSession($paymentCode = NULL)
+    {
         $paymentCode = (!empty($paymentCode)) ? $paymentCode : $this->getCode();
-        $checkoutSession = $this->_helper->_getCheckoutSession();
+        $checkoutSession = $this->_getCheckout();
         if (!$checkoutSession->hasData($paymentCode)) {
             $checkoutSession->setData($paymentCode, new Varien_Object());
         }
@@ -518,11 +659,16 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     /**
      * Unset method session
      *
-     *  @return  method session
+     * @return  method session
      */
-    private function _unsetMethodSession($paymentCode = NULL) {
+    public function unsetMethodSession($paymentCode = NULL)
+    {
         $paymentCode = (!empty($paymentCode)) ? $paymentCode : $this->getCode();
-        $this->_helper->_getCheckoutSession()->unsetData($paymentCode);
+        $checkoutSession = $this->_getCheckout();
+        $checkoutSession->unsetData($paymentCode);
+        if ($checkoutSession->getNnPaymentCode()) {
+            $checkoutSession->unsNnPaymentCode();
+        }
         return $this;
     }
 
@@ -531,18 +677,19 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return mixed
      */
-    public function _getConfigData($field, $globalMode = false, $store_id = NULL) {
-        $storeId = is_null($store_id) ? $this->_helper->getMagentoStoreId() : $store_id;
-        $path = $this->_helper->getNovalnetGlobalPath() . $field;
+    public function _getConfigData($field, $globalMode = false, $storeId = NULL)
+    {
+        $storeId = is_null($storeId) ? $this->helper->getMagentoStoreId() : $storeId;
+        $path = $this->helper->getNovalnetGlobalPath() . $field;
         if ($field == 'live_mode') {
-            $getTestmodePaymentMethod = Mage::getStoreConfig($path, $storeId);
-            if (!preg_match('/' . $this->_code . '/i', $getTestmodePaymentMethod)) {
+            $getTestmodePayments = Mage::getStoreConfig($path, $storeId);
+            if (!preg_match('/' . $this->_code . '/i', $getTestmodePayments)) {
                 return false;
             }
             return true;
         } elseif (!is_null($field)) {
             return ($globalMode == false) ? trim($this->getConfigData($field, $storeId))
-						: trim(Mage::getStoreConfig($path, $storeId));
+                        : trim(Mage::getStoreConfig($path, $storeId));
         }
         return null;
     }
@@ -553,27 +700,29 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * @param array $response
      * @return mixed
      */
-    public function doNovalnetPostbackCall($response) {
+    public function doNovalnetPostbackCall($response)
+    {
         //Required Parameters to be passed to the Server
         $request = $result = array();
-
-        $this->_manualCheckValidate();
-        $paymentKey = $this->_helper->getPaymentId($this->_code);
-        if ($this->_validateBasicParams() && $this->_helper->checkIsNumeric($paymentKey)) {
-            $request['vendor'] = $this->_vendorId;
-            $request['auth_code'] = $this->_authcode;
-            $request['product'] = $this->_productId;
-            $request['tariff'] = $this->_tariffId;
-            $request['key'] = $paymentKey;
-            $request['tid'] = $response->getTid();
-            $request['status'] = Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED;
-            $request['order_no'] = $this->_getOrderId();
-
+        $helper = $this->helper;
+        $paymentKey = $helper->getPaymentId($this->_code);
+        $payportUrl = $helper->getPayportUrl('paygate');
+        if ($this->_validateBasicParams() && $this->helper->checkIsNumeric($paymentKey)) {
+            $request = array(
+                'vendor' => $this->_vendorId,
+                'auth_code' => $this->_authcode,
+                'product' => $this->_productId,
+                'tariff' => $this->_tariffId,
+                'key' => $paymentKey,
+                'tid' => $response->getTid(),
+                'status' => Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED,
+                'order_no' => $this->_getOrderId()
+            );
             if ($request['key'] == 27) {
                 $request['invoice_ref'] = 'BNR-' . $request['product'] . '-' . $request['order_no'];
             }
             $result = new Varien_Object();
-            $response = $this->_setNovalnetRequestCall($request, Novalnet_Payment_Model_Config::PAYPORT_URL);
+            $response = $this->_setNovalnetRequestCall($request, $payportUrl);
             $result = $response->getRawBody();
         }
         return $result;
@@ -582,14 +731,15 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     /**
      * Check the transaction status using API
      *
-     * @param array  $request_data
-     * @param string $request_url
+     * @param array  $requestData
+     * @param string $requestUrl
      * @param string $type
      *
      * @return mixed
      */
-    public function _setNovalnetRequestCall($request_data, $request_url, $type = "") {
-        if ($request_url == "") {
+    private function _setNovalnetRequestCall($requestData, $requestUrl, $type = "")
+    {
+        if ($requestUrl == "") {
             $this->showException('Server Request URL is Empty');
             return;
         }
@@ -597,17 +747,17 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
         if (((int) $this->_getConfigData('gateway_timeout')) > 0) {
             $httpClientConfig['timeout'] = (int) $this->_getConfigData('gateway_timeout');
         }
-        $client = new Varien_Http_Client($request_url, $httpClientConfig);
+        $client = new Varien_Http_Client($requestUrl, $httpClientConfig);
 
         if ($type == 'XML') {
-            $client->setUri($request_url);
-            $client->setRawData($request_data)->setMethod(Varien_Http_Client::POST);
+            $client->setUri($requestUrl);
+            $client->setRawData($requestData)->setMethod(Varien_Http_Client::POST);
         } else {
-            $client->setParameterPost($request_data)->setMethod(Varien_Http_Client::POST);
+            $client->setParameterPost($requestData)->setMethod(Varien_Http_Client::POST);
         }
         $response = $client->request();
         if (!$response->isSuccessful()) {
-            $this->showException($this->_helper->__('Gateway request error: %s', $response->getMessage()), false);
+            $this->showException($this->helper->__('Gateway request error: %s', $response->getMessage()), false);
         }
         if ($type == 'XML') {
             $result = new Varien_Simplexml_Element($response->getRawBody());
@@ -624,33 +774,19 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return object
      */
-    private function _setNovalnetParam(Varien_Object $request, $paymentCode) {
-        $infoInstance = $this->getInfoInstance();
-        $helper = $this->_helper;
-		$dataHelper = $this->_dataHelper;
-        $getPaymentData = $this->_getNnPaymentData();
+    private function _setNovalnetParam(Varien_Object $request, $paymentCode)
+    {
+        $helper = $this->helper;
+        $dataHelper = $this->dataHelper;
         if ($paymentCode) {
+            $methodSession = $this->_getCheckout()->getData($paymentCode);
             switch ($paymentCode) {
-                case Novalnet_Payment_Model_Config::NN_ELVDE:
-                    $request->setBankAccountHolder($getPaymentData->getNnAccountHolder())
-                            ->setBankAccount($getPaymentData->getNnAccountNumber())
-                            ->setBankCode($getPaymentData->getNnBankSortingCode())
-							->setAcdc( ($this->_getConfigData('acdc_check') ? $this->_getConfigData('acdc_check') : 0) );
-                    $infoInstance->setNnAccountNumber($helper->doMaskPaymentData($getPaymentData->getNnAccountNumber()))
-                            ->setNnBankSortingCode($helper->doMaskPaymentData($getPaymentData->getNnBankSortingCode()));
-                    break;
-                case Novalnet_Payment_Model_Config::NN_ELVAT:
-                    $request->setBankAccountHolder($getPaymentData->getNnAccountHolder())
-                            ->setBankAccount($getPaymentData->getNnAccountNumber())
-                            ->setBankCode($getPaymentData->getNnBankSortingCode());
-                    $infoInstance->setNnAccountNumber($helper->doMaskPaymentData($getPaymentData->getNnAccountNumber()))
-                            ->setNnBankSortingCode($helper->doMaskPaymentData($getPaymentData->getNnBankSortingCode()));
-                    break;
                 case Novalnet_Payment_Model_Config::NN_INVOICE:
                     $paymentDuration = trim($this->_getConfigData('payment_duration'));
                     $dueDate = $helper->setDueDate($paymentDuration);
-                    if ($dueDate)
+                    if ($dueDate) {
                         $request->setDueDate($dueDate);
+                    }
                     $request->setInvoiceType(Novalnet_Payment_Model_Config::INVOICE_PAYMENT_METHOD)
                             ->setInvoiceRef('BNR-' . $request->getProduct() . '-' . $this->_getOrderId());
                     break;
@@ -661,7 +797,6 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                 case Novalnet_Payment_Model_Config::NN_SOFORT:
                 case Novalnet_Payment_Model_Config::NN_PAYPAL:
                 case Novalnet_Payment_Model_Config::NN_IDEAL:
-                case Novalnet_Payment_Model_Config::NN_SAFETYPAY:
                     $this->_password = $this->_getConfigData('password', true);
                     $request->setUniqid(uniqid())
                             ->setCountryCode($request->getCountry())
@@ -673,57 +808,44 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                                 ->setApiPw($helper->getEncodedParam($this->_getConfigData('api_password', true), $this->_password));
                     }
 
-                    $this->_dataHelper->assignNovalnetReturnData($request, $this->_code);
-                    $this->_dataHelper->importNovalnetEncodeData($request, $this->_password);
+                    $this->dataHelper->assignNovalnetReturnData($request, $this->_code);
+                    $this->dataHelper->importNovalnetEncodeData($request, $this->_password);
                     break;
                 case Novalnet_Payment_Model_Config::NN_CC:
-                    $request->setCcHolder($dataHelper->novalnetCardDetails('novalnet_cc_owner'))
+                    $request->setCcHolder($methodSession->getNnCcOwner())
                             ->setCcNo()
-                            ->setCcExpMonth($dataHelper->novalnetCardDetails('novalnet_cc_exp_month'))
-                            ->setCcExpYear($dataHelper->novalnetCardDetails('novalnet_cc_exp_year'))
-                            ->setCcCvc2($dataHelper->novalnetCardDetails('novalnet_cc_cid'))
-                            ->setCcType($dataHelper->novalnetCardDetails('novalnet_cc_type'))
-                            ->setPanHash($dataHelper->novalnetCardDetails('novalnet_cc_pan_hash'))
-                            ->setUniqueId($dataHelper->novalnetCardDetails('novalnet_cc_unique_id'));
+                            ->setCcExpMonth($methodSession->getNnCcExpMonth())
+                            ->setCcExpYear($methodSession->getNnCcExpYear())
+                            ->setCcCvc2($methodSession->getNnCcCvc())
+                            ->setCcType($methodSession->getNnCcType())
+                            ->setPanHash($methodSession->getCcPanHash())
+                            ->setUniqueId($methodSession->getCcUniqueId());
+                    if ($this->_code == Novalnet_Payment_Model_Config::NN_CC && !$helper->checkIsAdmin()
+                            && $this->_getConfigData('active_cc3d') == 1) {
+                        $this->_password = $this->_getConfigData('password', true);
+                        $amount = $helper->getFormatedAmount($this->_getAmount());
+                        $request->setCountryCode($request->getCountry())
+                                ->setSession(session_id())
+                                ->setencodedAmount($helper->getEncodedParam($amount, $this->_password));
+                        $dataHelper->assignNovalnetReturnData($request, $this->_code);
+                        $request->unsUserVariable_0(); // Unset uservariable as CC3D doesnot requires it
+                    }
                     break;
                 case Novalnet_Payment_Model_Config::NN_SEPA:
-                    $request->setBankAccountHolder($dataHelper->novalnetCardDetails('novalnet_sepa_owner'))
-							->setBankAccount()
-							->setBankCode()
-							->setBic()
-							->setIban()
-							->setSepaHash($dataHelper->novalnetCardDetails('novalnet_sepa_pan_hash'))
-							->setSepaUniqueId($dataHelper->novalnetCardDetails('novalnet_sepa_unique_id'))
-							->setIbanBicConfirmed($dataHelper->novalnetCardDetails('novalnet_sepa_iban_confirmed'));
-					if ($this->_getConfigData('sepatypes') == 'DD_SEPA_SIGNED') {
-						$request->setMandatePresent(0);
-						$this->_getCheckout()->unsNnMandatePresent();
-						$mandate_ref = $dataHelper->novalnetCardDetails('novalnet_sepa_mandate_ref');
-						$mandate_signature_date = $dataHelper->novalnetCardDetails('novalnet_sepa_mandate_date');
-						if ($mandate_ref && $mandate_signature_date) {
-							$request->setMandatePresent(1)
-									->setMandateRef($mandate_ref)
-									->setMandateSignatureDate($mandate_signature_date);
-							$this->_getCheckout()->setNnMandatePresent(1);
-						}
-					} else {
-						$paymentDuration = trim($this->_getConfigData('sepa_due_date'));
-						$dueDate = (!$paymentDuration) ? date('Y-m-d', strtotime('+7 days')) : date('Y-m-d', strtotime('+' . $paymentDuration . ' days'));
-						$request->setSepaDueDate($dueDate);
-					}
+                    $request->setBankAccountHolder($methodSession->getSepaHolder())
+                            ->setBankAccount()
+                            ->setBankCode()
+                            ->setBic()
+                            ->setIban()
+                            ->setSepaHash($methodSession->getSepaHash())
+                            ->setSepaUniqueId($methodSession->getSepaUniqueId())
+                            ->setIbanBicConfirmed($methodSession->getIbanConfirmed());
 
-                    break;
-                case Novalnet_Payment_Model_Config::NN_CC3D:
-                    $payment = $infoInstance->getOrder()->getPayment();
-                    $request->setCountryCode($request->getCountry())
-                            ->setSession(session_id())
-							->setCcHolder(Mage::helper('core')->decrypt($this->_helper->_getCheckoutSession()->getNnCcOwner()))
-							->setCcNo(Mage::helper('core')->decrypt($this->_helper->_getCheckoutSession()->getNnCcNumber()))
-							->setCcExpMonth(Mage::helper('core')->decrypt($this->_helper->_getCheckoutSession()->getNnCcExpMonth()))
-							->setCcExpYear(Mage::helper('core')->decrypt($this->_helper->_getCheckoutSession()->getNnCcExpYear()))
-							->setCcCvc2(Mage::helper('core')->decrypt($this->_helper->_getCheckoutSession()->getNnCcCvc()));
-                    $dataHelper->assignNovalnetReturnData($request, $this->_code);
-                    $request->unsUserVariable_0(); // Unset uservariable as CC3D doesnot requires it
+                    $paymentDuration = trim($this->_getConfigData('sepa_due_date'));
+                    $dueDate = (!$paymentDuration) ? date('Y-m-d', strtotime('+7 days'))
+                                : date('Y-m-d', strtotime('+' . $paymentDuration . ' days'));
+                    $request->setSepaDueDate($dueDate);
+
                     break;
             }
         }
@@ -733,195 +855,191 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     /**
      * Validate the novalnet response
      *
-     * @param object $response
      * @param object $payment
-     * @param string $request
      *
      * @return mixed
      */
-    private function _validateNovalnetResponse($response, $payment, $request = NULL) {
-        $result = $response;
+    public function validateNovalnetResponse($payment, $result = NULL)
+    {
+        $order = $payment->getOrder();
+        $request = $this->_getMethodSession()->getPaymentReqData();
+        $orderId = isset($result) && $result->getOrderNo() ? $result->getOrderNo()
+                    : $order->getIncrementId();
+
         switch ($result->getStatus()) {
             case Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED:
-                //set Novalnet Mode
-                $ResponseTestMode = $result->getTestMode();
-                $txnId = $result->getTid();
-                $txnId = trim($txnId);
-                $shopMode = $this->_getConfigData('live_mode');
-
-                $testMode = (((isset($ResponseTestMode) && $ResponseTestMode == 1) || (isset($shopMode) && $shopMode == 0)) ? 1 : 0 );
-                $data = array('NnTestOrder' => $testMode,
-							  'vendor' 	=> $this->_vendorId,
-							  'auth_code'   => $this->_authcode,
-							  'product'     => $this->_productId,
-							  'tariff'      => $this->_tariffId,
-							  'key'         => $this->_helper->getPaymentId($this->_code)
-						   );
-				if ($this->_getConfigData('sepatypes') == 'DD_SEPA_SIGNED' && !$this->_getCheckout()->getNnMandatePresent()) {
-					$sepaMandateUrl = $this->sepaMandateUrl($result);
-					$data['NnSepaSigned'] = 1;
-					$data['NnSepaMandateUrl'] = $sepaMandateUrl;
-					$data['NnNcNo'] = $result->getNcNo();
-				}
-                if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
-                    $data['NnNote'] = $this->_dataHelper->getNote($response, $this->_getConfigData('payment_duration'));
-                    $data['NnNoteAmount'] = $this->_dataHelper->getBankDetailsAmount($response->getAmount());
-                    $data['NnNoteTID'] = $this->_dataHelper->getBankDetailsTID($txnId);
-                    $data['NnNoteTransfer'] = $this->_dataHelper->getBankDetailsTransfer($response);
-                }
-
-                /** @@ Update the transaction status and transaction overview **/
-                $getTransactionStatus = $this->doNovalnetStatusCall($txnId);
-				$result->setStatus($getTransactionStatus->getStatus());
-				$this->logNovalnetStatusData($result, $txnId);
+                $txnId = trim($result->getTid());
+                $data = $this->_setPaymentAddtionaldata($result);
+                /** @@ Update the transaction status and transaction overview * */
                 $payment->setStatus(self::STATUS_APPROVED)
-                        ->setIsTransactionClosed(false)  // set transaction opend to make payment void
                         ->setAdditionalData(serialize($data))
                         ->save();
+                $order->setPayment($payment);
+                $order->save();
 
-				$magentoVersion = $this->_getHelper()->getMagentoVersion();
-				$captureMode = (version_compare($magentoVersion, '1.6', '<')) ? false : true;
+                $getTransactionStatus = $this->doNovalnetStatusCall($txnId, $payment);
+                $result->setStatus($getTransactionStatus->getStatus());
+                $this->helper->doTransactionStatusSave($result, $getTransactionStatus, $payment);
+                // check magento version
+                $magentoVersion = $this->_getHelper()->getMagentoVersion();
+                $captureMode = (version_compare($magentoVersion, '1.6', '<')) ? false
+                            : true;
+                $responseCodeApproved = ($getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED);
 
                 // Capture the payment only if status is 100
-                if (($getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED &&
-				!in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT))) || ($getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED && ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA && $this->_getCheckout()->getNnMandatePresent()))) {
-					$payment->setTransactionId("$txnId-capture") // Add capture text to make the new transaction
-							->setParentTransactionId($txnId)
-							->setIsTransactionClosed($captureMode) // Close the transaction
-							->capture(null)
-							->setIsTransactionClosed(true)
-							->save();
-				} elseif ((in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_PREPAYMENT)) && $getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) || (($this->_code == Novalnet_Payment_Model_Config::NN_SEPA && !$this->_getCheckout()->getNnMandatePresent()) && $getTransactionStatus->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED)) {
-					$payment->setIsTransactionClosed(true);
-				}
-				$this->unsetFormMethodSession();
+                if ($order->canInvoice() && $responseCodeApproved && $this->_code
+                        != Novalnet_Payment_Model_Config::NN_PREPAYMENT) {
+                    $payment->setTransactionId($txnId) // Add capture text to make the new transaction
+                            ->setIsTransactionClosed($captureMode) // Close the transaction
+                            ->capture(null)
+                            ->save();
+                    $orderStatus = $this->_getConfigData('order_status')
+                                   ? $this->_getConfigData('order_status') : Mage_Sales_Model_Order::STATE_PROCESSING; // If after status is empty set default status
+                    $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $orderStatus, $this->helper->__('Payment was successful.'), true);
+                }
                 $payment->setTransactionId($txnId)
                         ->setLastTransId($txnId)
                         ->setParentTransactionId(null)
                         ->save();
+                $order->setPayment($payment);
+                $order->save();
 
                 $this->doNovalnetPostbackCall($result); //Second Call
-				if(!$this->isCallbackTypeCall()) {
-					$this->logNovalnetTransactionData($request, $result, $txnId, $this->_helper->getCustomerId(), $this->_helper->getMagentoStoreId());
-				}
-                $statusText = ($result->getStatusText()) ? $result->getStatusText() : $this->_helper->__('successful');
-                Mage::getSingleton('core/session')->addSuccess($statusText);
-                return $this;
-            default:
-                $error = ($result->getStatusDesc()) ? $this->_helper->htmlEscape($result->getStatusDesc()) : $this->_helper->__('Error in capturing the payment');
-				if(!$this->isCallbackTypeCall()) {
-					 $this->logNovalnetTransactionData($request, $result, $result->getTid(), $this->_helper->getCustomerId(), $this->_helper->getMagentoStoreId());
-				}
-                if ($error !== false) {
-                    $this->showException($error, false);
+                if (!$this->isCallbackTypeCall()) {
+                    $this->logNovalnetTransactionData($request, $result, $txnId, $this->helper->getCustomerId(), $this->helper->getMagentoStoreId());
                 }
-				break;
+                $statusText = ($result->getStatusText()) ? $result->getStatusText()
+                            : $this->helper->__('successful');
+                Mage::getSingleton('core/session')->addSuccess($statusText);
+                $error = false;
+                break;
+            default:
+                $error = ($result->getStatusDesc()) ? $this->helper->htmlEscape($result->getStatusDesc())
+                            : $this->helper->__('Error in capturing the payment');
+                if (!$this->isCallbackTypeCall()) {
+                    $this->logNovalnetTransactionData($request, $result, $result->getTid(), $this->helper->getCustomerId(), $this->helper->getMagentoStoreId());
+                }
+                if ($error !== false) {
+                    $this->saveCancelledOrder($result, $payment);
+                    Mage::getSingleton('core/session')->addError($error);
+                }
+                break;
         }
+        return $error;
     }
 
-	/**
-     * Unset Form method session
+    /**
+     * payment method cancellation process
      *
      */
-    public function unsetFormMethodSession() {
-	    $this->_getCheckout()->unsNnCcNumber()
-				 ->unsNnCcType()
-				 ->unsNnCcCvc()
-				 ->unsNnCcOwner()
-				 ->unsNnCcExpMonth()				 
-				 ->unsNnCcExpYear()
-				 ->unsNnPaymentCode();
-	    $this->_getCheckout()->unsNnMandatePresent()
-				 ->unsSepaFieldValidator()
-				 ->unsSepaMandateRef()
-				 ->unsSepaMandateDate()
-				 ->unsSepaHash()
-				 ->unsCcPanHash()
-				 ->unsCcFieldValidator();
-	    $this->_getCheckout()->unsElvDeAccountHolder()
-				 ->unsElvDeAccountNumber()
-				 ->unsElvDeBankSortingCode()
-				 ->unsElvAtAccountHolder()
-				 ->unsElvAtAccountNumber()
-				 ->unsElvAtBankSortingCode();
-	    $this->_getCheckout()->unsNnCallbackTelNovalnetElvgerman()
-				 ->unsNnCallbackEmailNovalnetElvgerman()
-				 ->unsNnCallbackTelNovalnetElvaustria()
-				 ->unsNnCallbackEmailNovalnetElvaustria()
-				 ->unsNnCallbackTelNovalnetCc()
-				 ->unsNnCallbackEmailNovalnetCc();
-	}
+    public function saveCancelledOrder($result, $payment)
+    {
+        $order = $payment->getOrder();
 
-	public function sepaMandateUrl($response) {
-		$mandate_refer = $response->getMandateRef();
-		$mandate_url = $response->getMandateUrl();
-		$tid = trim($response->getTid());
-		$mandate_ref  = (isset($mandate_refer) && trim($mandate_refer) !='') ? ('&mandate_ref=' . $mandate_refer) : ('&mandate_ref=NN' . $this->_vendorId. '-' . $tid);
-		$param = '?vendor_id='. $this->_vendorId . '&tid=' . $tid . $mandate_ref;
-		 if ($mandate_url && trim($mandate_url) !='' ) {
-		  if (strpos($mandate_url, "?") !== false) {
-			$url          = explode('?', $mandate_url);
-			$comment      = $url[0].$param;
-		  }
-		}
-		else {
-		  $url = 'https://payport.novalnet.de/sepa/mandate_pdf_generate.jsp';
-		  $comment = $url.$param;
-		}
+        $statusMessage = $result->getStatusMessage() ?  $result->getStatusMessage() : ($result->getStatusDesc() ?  $result->getStatusDesc()
+                        : ($result->getStatusText() ?  $result->getStatusText() : $this->helper->__('Payment was not successfull')));
 
-		return $comment;
-	}
+        $paystatus = "<b><font color='red'>" . $this->helper->__('Payment Failed') . "</font> - " . $statusMessage . "</b>";
+        $data = unserialize($payment->getAdditionalData());
+        //set Novalnet Mode
+        $authorizeKey = $this->_getConfigData('password', true);
+        $serverResponse = ($result->getTestMode() && is_numeric($result->getTestMode()))
+                    ? $result->getTestMode()
+                    : $this->helper->getDecodedParam($result->getTestMode(), $authorizeKey);
+        $shopMode = $this->_getConfigData('live_mode', true);
+        $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
+                && $shopMode == 0)) ? 1 : 0 );
+        $data['NnTestOrder'] = $testMode;
+        $data['NnComments'] = $paystatus;
+        $payment->setLastTransId($result->getTid())
+                ->setAdditionalData(serialize($data))
+                ->save();
+        $order->registerCancellation($statusMessage)
+                ->save();
+    }
+
+    /**
+     * Set Payment method additional informations
+     *
+     * @return array
+     */
+    private function _setPaymentAddtionaldata($result)
+    {
+        $txnId = trim($result->getTid());
+        $request = $this->_getMethodSession()->getPaymentReqData();
+        //set Novalnet Mode
+        $responseTestMode = $result->getTestMode();
+        $shopMode = $this->_getConfigData('live_mode');
+        $testMode = (((isset($responseTestMode) && $responseTestMode == 1) || (isset($shopMode)
+                && $shopMode == 0)) ? 1 : 0 );
+        $data = array('NnTestOrder' => $testMode,
+            'NnTid' => $txnId,
+            'vendor' => ($request->getVendor()) ? $request->getVendor() : $this->_vendorId,
+            'auth_code' => ($request->getAuthCode()) ? $request->getAuthCode() : $this->_authcode,
+            'product' => ($request->getProduct()) ? $request->getProduct() : $this->_productId,
+            'tariff' => ($request->getTariff()) ? $request->getTariff() : $this->_tariffId,
+            'key' => ($request->getKey()) ? $request->getKey() : $this->helper->getPaymentId($this->_code),
+        );
+        if (in_array($this->_code, array(Novalnet_Payment_Model_Config::NN_INVOICE,
+                    Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
+            $data['NnNote'] = $this->dataHelper->getNote($result);
+            $data['NnNoteAmount'] = $this->dataHelper->getBankDetailsAmount($result->getAmount());
+            $data['NnNoteTID'] = $this->dataHelper->getBankDetailsTID($txnId);
+        }
+        return $data;
+    }
+
     /**
      * Make telephone payment first call and display the messages
      *
-     * @return
      */
-    public function doNovalnetPhoneFirstCall() {
-		$methodSession = $this->_getMethodSession();
-		$helper = $this->_helper;
-		$phoneTid = $methodSession->getNnPhoneTid();
-        if ($this->_isPlaceOrder() && ($this->_code == Novalnet_Payment_Model_Config::NN_TELEPHONE)) {
+    public function doNovalnetPhoneFirstCall()
+    {
+        $methodSession = $this->_getMethodSession();
+        $helper = $this->helper;
+        $phoneTid = $methodSession->getNnPhoneTid();
+        if ($this->_code == Novalnet_Payment_Model_Config::NN_TELEPHONE) {
             if (!$this->checkAmountAllowed()) {
                 return false;
             }
-			if ($phoneTid) {
-			   $this->_validateSession();
-			}
-			$methodSession = $this->_getMethodSession();	// Reaasign method session after values unset
-			if (!$phoneTid) {
-				//invoke first call
-				$storeId = $helper->getMagentoStoreId();
-				$request = $this->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId);
-				$result = $this->_postRequest($request);
-				$methodSession->setOrderAmount($request->getAmount())
-							  ->setNnTelOrderNo($request->getOrderNo());
+            if ($phoneTid) {
+                $this->_validateSession();
+            }
+            $methodSession = $this->_getMethodSession();    // Reassign method session after values unset
+            if (!$phoneTid) {
+                //invoke first call
+                $storeId = $helper->getMagentoStoreId();
+                $request = $this->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId);
+                $result = $this->postRequest($request);
+                $methodSession->setOrderAmount($request->getAmount())
+                        ->setNnTelOrderNo($request->getOrderNo());
 
-				if (!$result) {
-					$this->showException('Params (aryResponse) missing');
-				}
+                if (!$result) {
+                    $this->showException('Params (aryResponse) missing');
+                }
 
-				if ($result->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
-					// Passing the Error Response from Novalnet's paygate to payment error
-					$this->logNovalnetTransactionData($request, $result, $result->getTid(), $helper->getCustomerId(), $helper->getMagentoStoreId());
-					$methodSession->setNnPhoneTid($result->getTid());
-					$methodSession->setNnPhoneNo($result->getNovaltelNumber());
-					$methodSession->setNnPhoneStatusText($result->getStatusDesc());
-					$this->_getCheckout()->setNnTelTestOrder($result->getTestMode());
-					$text = $helper->__('Following steps are required to complete your payment') . ':' . "\n\n";
-					$text .= $helper->__('Step') . ' 1: ';
-					$text .= $helper->__('Please call the telephone number displayed') . ': ' . preg_replace('/(\d{4})(\d{4})(\d{4})(\d{4})/', "$1 $2 $3 $4", $methodSession->getNnPhoneNo()) . ".\n";
-					$text .= '* ' . $helper->__('This call will cost') . ' ' . str_replace('.', ',', $result->getAmount()) . " " . Mage::app()->getLocale()->currency($result->getCurrency())->getSymbol() . ' (' . $helper->__('inclusive tax') . ') ';
-					$text .= $helper->__('and it is possible only for German landline connection') . '!*' . "\n\n";
-					$text .= $helper->__('Step') . ' 2: ';
-					$text .= $helper->__('Please wait for the beep and then hang up the listeners') . '.' . "\n";
-					$text .= $helper->__('After your successful call, please proceed with the payment') . '.' . "\n";
+                if ($result->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
+                    // Passing the Error Response from Novalnet's paygate to payment error
+                    $this->logNovalnetTransactionData($request, $result, $result->getTid(), $helper->getCustomerId(), $helper->getMagentoStoreId());
+                    $methodSession->setNnPhoneTid($result->getTid());
+                    $methodSession->setNnPhoneNo($result->getNovaltelNumber());
+                    $methodSession->setNnPhoneStatusText($result->getStatusDesc());
+                    $this->_getCheckout()->setNnTelTestOrder($result->getTestMode());
+                    $text = $helper->__('Following steps are required to complete your payment') . ':' . "\n\n";
+                    $text .= $helper->__('Step') . ' 1: ';
+                    $text .= $helper->__('Please call the telephone number displayed') . ': ' . preg_replace('/(\d{4})(\d{4})(\d{4})(\d{4})/', "$1 $2 $3 $4", $methodSession->getNnPhoneNo()) . ".\n";
+                    $text .= '* ' . $helper->__('This call will cost') . ' ' . str_replace('.', ',', $result->getAmount()) . " " . Mage::app()->getLocale()->currency($result->getCurrency())->getSymbol() . ' (' . $helper->__('including VAT') . ') ';
+                    $text .= $helper->__('and it is possible only for German landline connection') . '!*' . "\n\n";
+                    $text .= $helper->__('Step') . ' 2: ';
+                    $text .= $helper->__('Please wait for the beep and then hang up the listeners') . '.' . "\n";
+                    $text .= $helper->__('After your successful call, please proceed with the payment') . '.' . "\n";
 
-					$this->text = $text;
-					$this->showException($text, false); #show note for client to call...
-				}else{
-					$this->showException($result->getStatusDesc(), false);
-				}
-			}
+                    $this->text = $text;
+                    $this->showException($text, false); #show note for client to call...
+                } else {
+                    $this->showException($result->getStatusDesc(), false);
+                }
+            }
         }
     }
 
@@ -933,35 +1051,41 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return mixed
      */
-    private function _validateSecondCallResponse($result, $payment) {
+    public function validateSecondCallResponse($result, $payment, $paymentCode)
+    {
         $status = $result->getStatus();
         switch ($status) {
             case Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED:
                 $serverResponse = $this->_getCheckout()->getNnTelTestOrder();
                 $shopMode = $this->_getConfigData('live_mode');
-                $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode) && $shopMode == 0)) ? 1 : 0 );
+                $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
+                        && $shopMode == 0)) ? 1 : 0 );
                 $data = array('NnTestOrder' => $testMode);
 
                 $payment->setStatus(self::STATUS_APPROVED)
-						->setTransactionId($result->getTid())
+                        ->setTransactionId($result->getTid())
                         ->setLastTransId($result->getTid())
                         ->setAdditionalData(serialize($data))
                         ->save();
                 $this->doNovalnetPostbackCall($result);
                 $getTransactionStatus = $this->doNovalnetStatusCall($result->getTid());
                 $result->setStatus($getTransactionStatus->getStatus());  // Combine Transaction status in result object
-                $this->logNovalnetStatusData($result, $result->getTid());
-                $statusText = ($result->getStatusText()) ? $result->getStatusText() : $this->_helper->__('successful');
+                $this->helper->doTransactionStatusSave($result, $getTransactionStatus, $payment);
+                $statusText = ($result->getStatusText()) ? $result->getStatusText()
+                            : $this->helper->__('successful');
                 Mage::getSingleton('core/session')->addSuccess($statusText);
-                $this->_unsetMethodSession();
-                return $this;
+                $error = false;
                 break;
             default:
-                $error = ($result->getStatusDesc()) ? $this->_helper->htmlEscape($result->getStatusDesc()) : $this->_helper->__('Error in capturing the payment');
+                $error = ($result->getStatusDesc()) ? $this->helper->htmlEscape($result->getStatusDesc())
+                            : $this->helper->__('Error in capturing the payment');
                 if ($error !== false) {
-                    $this->showException($error, false);
+                    $this->saveCancelledOrder($result, $payment);
+                    Mage::getSingleton('core/session')->addError($error);
                 }
+                break;
         }
+        return $error;
     }
 
     /**
@@ -974,27 +1098,35 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return mixed
      */
-    public function doNovalnetStatusCall($tid, $storeId = NULL, $reqType = Novalnet_Payment_Model_Config::TRANS_STATUS, $extraOption = NULL, $requestData=NULL, $params = NULL) {
-        $requestType = ($reqType == Novalnet_Payment_Model_Config::TRANS_STATUS) ? Novalnet_Payment_Model_Config::TRANS_STATUS : $reqType;
-        $this->_manualCheckValidate($storeId);
-	
-	$VendorId = (isset($params) && $params->getVendor()) ? $params->getVendor() : $this->_vendorId;
-        $AuthCode = (isset($params) && $params->getAuthCode()) ? $params->getAuthCode() : $this->_authcode;
-        $ProductId = (isset($params) && $params->getProduct()) ? $params->getProduct() : $this->_productId;
+    public function doNovalnetStatusCall($tid, $payment = NULL, $reqType = Novalnet_Payment_Model_Config::TRANS_STATUS,
+        $extraOption = NULL, $requestData = NULL
+    ) {
+
+        $requestType = ($reqType == Novalnet_Payment_Model_Config::TRANS_STATUS)
+                    ? Novalnet_Payment_Model_Config::TRANS_STATUS : $reqType;
+        if ($payment != NULL) {
+            $this->assignVendorConfig($payment);
+        } else {
+            $this->_manualCheckValidate();
+        }
 
         $request = '<?xml version="1.0" encoding="UTF-8"?>';
         $request .= '<nnxml><info_request>';
-        $request .= '<vendor_id>' . $VendorId . '</vendor_id>';
-        $request .= '<vendor_authcode>' . $AuthCode . '</vendor_authcode>';
+        $request .= '<vendor_id>' . $this->_vendorId . '</vendor_id>';
+        $request .= '<vendor_authcode>' . $this->_authcode . '</vendor_authcode>';
         $request .= '<request_type>' . $requestType . '</request_type>';
-		$request .= '<product_id>' . $ProductId . '</product_id>';
+        $request .= '<product_id>' . $this->_productId . '</product_id>';
         $request .= '<tid>' . $tid . '</tid>' . $extraOption;
         $request .= '</info_request></nnxml>';
 
-        if ($this->_validateBasicParams()) {
-            $result = $this->_setNovalnetRequestCall($request, Novalnet_Payment_Model_Config::INFO_REQUEST_URL, 'XML');
-            if($requestType == 'NOVALTEL_STATUS') { $requestData->setData($request); }
-			return $result;
+        if ($this->_vendorId && $this->_authcode && $this->_productId) {
+            $infoRequestUrl = $this->helper->getPayportUrl('infoport');
+            $result = $this->_setNovalnetRequestCall($request, $infoRequestUrl, 'XML');
+
+            if ($requestType == 'NOVALTEL_STATUS') {
+                $requestData->setData($request);
+            }
+            return $result;
         }
     }
 
@@ -1003,12 +1135,13 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return void
      */
-    private function _validateSession() {
+    private function _validateSession()
+    {
         $methodSession = $this->_getMethodSession();
         if ($methodSession->hasNnPhoneTid()) {
-            if ($methodSession->getOrderAmount() != $this->_helper->getFormatedAmount($this->_getAmount())) {
-                $this->_unsetMethodSession();
-                $this->showException('You have changed the order amount after receiving telephone number');
+            if ($methodSession->getOrderAmount() != $this->helper->getFormatedAmount($this->_getAmount())) {
+                $this->unsetMethodSession();
+                $this->showException($this->helper->__('You have changed the order amount after receiving telephone number'));
             }
         }
     }
@@ -1018,11 +1151,12 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return Mage_Sales_Model_Order
      */
-    protected function _getCheckout() {
-        if (Mage::app()->getStore()->isAdmin()) {
-            return $this->_helper->_getAdminCheckoutSession();
+    protected function _getCheckout()
+    {
+        if ($this->helper->checkIsAdmin()) {
+            return $this->helper->_getAdminCheckoutSession();
         } else {
-            return $this->_helper->_getCheckoutSession();
+            return $this->helper->_getCheckoutSession();
         }
     }
 
@@ -1032,12 +1166,14 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-    public function checkAmountAllowed() {
-        $amount = $this->_helper->getFormatedAmount($this->_getAmount());
-        if ($amount >= Novalnet_Payment_Model_Config::PHONE_PAYMENT_AMOUNT_MIN and $amount <= Novalnet_Payment_Model_Config::PHONE_PAYMENT_AMOUNT_MAX) {
+    public function checkAmountAllowed()
+    {
+        $amount = $this->helper->getFormatedAmount($this->_getAmount());
+        if ($amount >= Novalnet_Payment_Model_Config::PHONE_PAYMENT_AMOUNT_MIN and $amount
+                <= Novalnet_Payment_Model_Config::PHONE_PAYMENT_AMOUNT_MAX) {
             return true;
         }
-        $this->showException($this->_helper->__('Amounts below 0,99 Euros and above 10,00 Euros cannot be processed and are not accepted') . '!', false);
+        $this->showException($this->helper->__('Amounts below 0,99 Euros and above 10,00 Euros cannot be processed and are not accepted') . '!', false);
         return false;
     }
 
@@ -1046,54 +1182,57 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return Varien_Object
      */
-    public function getNovalnetIframe() {
-
-		$amount =  ($this->_helper->checkIsAdmin()) ? $this->_helper->_getAdminCheckoutSession()->getQuote()->getBaseGrandTotal() : $this->_helper->_getCheckoutSession()->getQuote()->getBaseGrandTotal();
-		$storeId = $this->_helper->getMagentoStoreId();
-		$this->_manualCheckValidate($storeId, $amount);
-		$url = Novalnet_Payment_Model_Config::CC_URL;
-		$billing = $this->_getCheckout()->getQuote()->getBillingAddress();
-		$sepaError = $this->_getConfigData('sepa_error');
-		$ccError = $this->_getConfigData('cc_error');
-
+    public function getNovalnetIframe()
+    {
+        $helper = $this->helper;
+        $amount = ($helper->checkIsAdmin()) ? $helper->_getAdminCheckoutSession()->getQuote()->getBaseGrandTotal()
+                    : $helper->_getCheckoutSession()->getQuote()->getBaseGrandTotal();
+        $storeId = $helper->getMagentoStoreId();
+        $methodSession = $this->_getMethodSession($this->_code);
+        $this->_manualCheckValidate($storeId, $amount);
         //Required Parameters to be passed to the Server
         $request = array();
 
-		if ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA) {
-			 $request['lang'] = strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2));
-			 $request['vendor_id'] = $this->_vendorId;
-			 $request['product_id'] = $this->_productId;
-			 $request['payment_id'] = $this->_helper->getPaymentId($this->_code);
-			 $request['country']  	 = $billing->getCountryId();
-			 $request['authcode']      = $this->_authcode;
-
-			 $request['panhash'] = $sepaError ? $this->_getCheckout()->getSepaHash() : '';
-			 $request['fldVdr'] = $this->_getCheckout()->getSepaFieldValidator();
-			 $request['mandate_ref'] = $this->_getCheckout()->getSepaMandateRef();
-			 $request['mandate_date'] = $this->_getCheckout()->getSepaMandateDate();
-			 $request['name'] = utf8_decode($billing->getFirstname()).' '.utf8_decode($billing->getLastname());
-			 $request['comp'] = utf8_decode($billing->getCompany());
-			 $request['address'] = utf8_decode(implode(',', $billing->getStreet()));
-			 $request['zip'] = $billing->getPostcode();
-			 $request['city'] = utf8_decode($billing->getCity());
-			 $request['email'] = $this->_getCheckout()->getQuote()->getCustomerEmail();
-
-			 $url = Novalnet_Payment_Model_Config::SEPA_URL;
-		} else {
-			$request['nn_lang_nn'] = strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2));
-			$request['nn_vendor_id_nn'] = $this->_vendorId;
-			$request['nn_authcode_nn']      = $this->_authcode;
-			$request['nn_product_id_nn'] = $this->_productId;
-			$request['nn_payment_id_nn'] = $this->_helper->getPaymentId($this->_code);
-			$request['nn_hash'] = $ccError ? $this->_getCheckout()->getCcPanHash() : '';
-			$request['fldVdr'] = $this->_getCheckout()->getCcFieldValidator();
-		}
-
-        if ($this->_vendorId && $this->_productId) {
-            $result = $this->_setNovalnetRequestCall($request, $url);
-            $result = $result->getRawBody();
+        if ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA) {
+            $billing = $this->_getCheckout()->getQuote()->getBillingAddress();
+            $sepaRefill = $this->_getConfigData('sepa_refill');
+            $url = $helper->getPayportUrl('sepa');
+            $request = array(
+                'lang' => strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2)),
+                'vendor_id' => $this->_vendorId,
+                'product_id' => $this->_productId,
+                'payment_id' => $helper->getPaymentId($this->_code),
+                'country' => $billing->getCountryId(),
+                'authcode' => $this->_authcode,
+                'panhash' => $sepaRefill ? $methodSession->getSepaHash() : '',
+                'fldVdr' => ($sepaRefill && $methodSession->getSepaHash() && $methodSession->getSepaFieldValidator())
+                            ? $methodSession->getSepaFieldValidator() : '',
+                'name' => utf8_decode($billing->getFirstname()) . ' ' . utf8_decode($billing->getLastname()),
+                'comp' => utf8_decode($billing->getCompany()),
+                'address' => utf8_decode(implode(',', $billing->getStreet())),
+                'zip' => $billing->getPostcode(),
+                'city' => utf8_decode($billing->getCity()),
+                'email' => $this->_getCheckout()->getQuote()->getCustomerEmail()
+            );
         } else {
-            $result = $this->_helper->__('Basic parameter not valid');
+            $ccRefill = $this->_getConfigData('cc_refill');
+            $url = $helper->getPayportUrl('cc');
+            $request = array(
+                'nn_lang_nn' => strtoupper(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2)),
+                'nn_vendor_id_nn' => $this->_vendorId,
+                'nn_authcode_nn' => $this->_authcode,
+                'nn_product_id_nn' => $this->_productId,
+                'nn_payment_id_nn' => $helper->getPaymentId($this->_code),
+                'nn_hash' => $ccRefill ? $methodSession->getCcPanHash() : '',
+                'fldVdr' => ($ccRefill && $methodSession->getCcPanHash() && $methodSession->getCcFieldValidator())
+                            ? $methodSession->getCcFieldValidator() : '',
+            );
+        }
+        if ($this->_vendorId && $this->_productId) {
+            $response = $this->_setNovalnetRequestCall($request, $url);
+            $result = $response->getRawBody();
+        } else {
+            $result = $helper->__('Basic parameter not valid');
         }
         return $result;
     }
@@ -1103,43 +1242,48 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-    public function validateNovalnetParams() {
-        $billing = $this->_getInfoObject()->getBillingAddress();
-		$helper = $this->_helper;
-		$sepaDueDate = $this->_getConfigData('sepa_due_date');
-
+    public function validateNovalnetParams()
+    {
+        $infoObjBilling = $this->_getInfoObject()->getBillingAddress();
+        $quoteBilling = $this->_getCheckout()->getQuote()->getBillingAddress();
+        $cusEmail = ($quoteBilling->getEmail()) ? $quoteBilling->getEmail() : $this->_getInfoObject()->getCustomerEmail();
+        $cusFirstname = ($quoteBilling->getFirstname()) ? $quoteBilling->getFirstname()
+                    : $infoObjBilling->getFirstname();
+        $cusLastname = ($quoteBilling->getLastname()) ? $quoteBilling->getLastname()
+                    : $infoObjBilling->getLastname();
+        $manualCheckAmt = (int) $this->_getConfigData('manual_checking_amount');
+        $helper = $this->helper;
         if (!$this->_validateBasicParams()) {
-            $this->showException($this->_helper->__('Basic parameter not valid') . '!', false);
+            $this->showException($helper->__('Basic parameter not valid') . '!', false);
             return false;
-		} elseif ($this->_referrerId && !$helper->checkIsNumeric($this->_referrerId)) {
-		   $this->showException($this->_helper->__('Referrer ID is not valid') . '!', false);
-                   return false;
-                } elseif ($this->_code == Novalnet_Payment_Model_Config::NN_SEPA && $this->_getConfigData('sepatypes') == 'DD_SEPA' && $sepaDueDate && ($sepaDueDate < 7 || !$helper->checkIsNumeric($sepaDueDate))) {
-			$this->showException($this->_helper->__('SEPA Due date is not valid') . '!', false);
-			return false;
-		} elseif ((int)$this->_getConfigData('manual_checking_amount') && (!$this->_helper->checkIsNumeric($this->_getConfigData('manual_checking_amount')) || !$this->_helper->checkIsNumeric($this->_getConfigData('second_product_id')) || !$this->_helper->checkIsNumeric($this->_getConfigData('second_tariff_id')))) {
-            $this->showException($this->_helper->__('Manual limit amount / Product-ID2 / Tariff-ID2 is not valid') . '!', false);
+        } elseif ($manualCheckAmt && (!$helper->checkIsNumeric($manualCheckAmt) || !$helper->checkIsNumeric($this->_getConfigData('second_product_id'))
+                || !$helper->checkIsNumeric($this->_getConfigData('second_tariff_id')))) {
+            $this->showException($helper->__('Manual limit amount / Product-ID2 / Tariff-ID2 is not valid') . '!', false);
             return false;
-        } elseif (!$this->_helper->validateEmail($this->_getInfoObject()->getCustomerEmail()) || !$billing->getFirstname() || !$billing->getLastname()) {
-            $this->showException($this->_helper->__('Customer name/email fields are not valid') . '!', false);
+        } elseif (!$helper->validateEmail($cusEmail) || !$cusFirstname || !$cusLastname) {
+            $this->showException($helper->__('Customer name/email fields are not valid') . '!', false);
             return false;
         }
         return true;
     }
 
     /**
-     * validate manual checklimit and reassign product id and tariff id
+     * validate manual check-limit and reassign product id and tariff id
      *
      * @param integer $storeId
      * @param float $amount
      */
-
-	private function _manualCheckValidate($storeId = NULL, $amount=NULL) {
-        $amount = $this->_helper->getFormatedAmount(($amount) ? $amount : $this->_getAmount());
-        $storeId = is_null($storeId) ? $this->_helper->getMagentoStoreId() : $storeId;
+    private function _manualCheckValidate($storeId = NULL, $amount = NULL)
+    {
+        $amount = $this->helper->getFormatedAmount(($amount) ? $amount : $this->_getAmount());
+        $storeId = is_null($storeId) ? $this->helper->getMagentoStoreId() : $storeId;
         $manualCheckAmt = (int) $this->_getConfigData('manual_checking_amount', false, $storeId);
-        $this->_productId = (strlen(trim($this->_getConfigData('second_product_id', false, $storeId))) && $manualCheckAmt && $manualCheckAmt <= $amount) ? trim($this->_getConfigData('second_product_id', false, $storeId)) : trim($this->_getConfigData('product_id', true, $storeId));
-        $this->_tariffId = (strlen(trim($this->_getConfigData('second_tariff_id', false, $storeId))) && $manualCheckAmt && $manualCheckAmt <= $amount) ? trim($this->_getConfigData('second_tariff_id', false, $storeId)) : trim($this->_getConfigData('tariff_id', true, $storeId));
+        $this->_productId = (strlen(trim($this->_getConfigData('second_product_id', false, $storeId)))
+                && $manualCheckAmt && $manualCheckAmt <= $amount) ? trim($this->_getConfigData('second_product_id', false, $storeId))
+                    : trim($this->_getConfigData('product_id', true, $storeId));
+        $this->_tariffId = (strlen(trim($this->_getConfigData('second_tariff_id', false, $storeId)))
+                && $manualCheckAmt && $manualCheckAmt <= $amount) ? trim($this->_getConfigData('second_tariff_id', false, $storeId))
+                    : trim($this->_getConfigData('tariff_id', true, $storeId));
     }
 
     /**
@@ -1147,9 +1291,11 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-    private function _validateBasicParams() {
-        $helper = $this->_helper;
-        if ($helper->checkIsNumeric($this->_vendorId) && $this->_authcode && $helper->checkIsNumeric($this->_productId) && $helper->checkIsNumeric($this->_tariffId)) {
+    private function _validateBasicParams()
+    {
+        $helper = $this->helper;
+        if ($helper->checkIsNumeric($this->_vendorId) && $this->_authcode && $helper->checkIsNumeric($this->_productId)
+                && $helper->checkIsNumeric($this->_tariffId)) {
             return true;
         }
         return false;
@@ -1159,16 +1305,15 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * Check whether callback option is enabled
      *
      */
-    public function isCallbackTypeCall() {
+    public function isCallbackTypeCall()
+    {
         $callbackTid = "hasNnCallbackTid" . ucfirst($this->_code);
-        $total = $this->_helper->getFormatedAmount($this->_getAmount());
+        $total = $this->helper->getFormatedAmount($this->_getAmount());
         $callBackMinimum = (int) $this->_getConfigData('callback_minimum_amount');
         $countryCode = strtoupper($this->_getInfoObject()->getBillingAddress()->getCountryId());
 
-        return $this->_helper->_getCheckoutSession()->$callbackTid()
-                || ($this->_getConfigData('callback')
-                && ($callBackMinimum ? $total >= $callBackMinimum : true)
-                && ($this->_helper->isCallbackTypeAllowed($countryCode)));
+        return $this->helper->_getCheckoutSession()->$callbackTid() || ($this->_getConfigData('callback')
+                && ($callBackMinimum ? $total >= $callBackMinimum : true) && ($this->helper->isCallbackTypeAllowed($countryCode)));
     }
 
     /**
@@ -1176,71 +1321,78 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-	private function _initiateCallbackProcess($paymentCode) {
-		$infoInstance = $this->getInfoInstance();
-		$isCallbackTypeCall = $this->isCallbackTypeCall();
-		$isPlaceOrder = $this->_isPlaceOrder();
-		$callbackPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('fraudCheckPayment');
-        if (in_array($paymentCode, $callbackPayment)) {
-            $payCode = ucfirst($paymentCode);
-            $callbackTid		= "getNnCallbackTid" . $payCode;
-            $callbackOrderNo	= "getNnCallbackOrderNo" . $payCode;
-            $callbackPin		= "getNnCallbackPin" . $payCode;
-            $callbackNewPin		= "getNnNewCallbackPin" . $payCode;
-            $setcallbackPin		= "setNnCallbackPin" . $payCode;
+    private function _initiateCallbackProcess($paymentCode)
+    {
+        $infoInstance = $this->getInfoInstance();
+        $isCallbackTypeCall = $this->isCallbackTypeCall();
+        $isPlaceOrder = $this->_isPlaceOrder();
 
-            if (!$isPlaceOrder && $isCallbackTypeCall && $this->_getIncrementId() != $this->_getMethodSession()->$callbackOrderNo()) {
-                $this->_unsetMethodSession();
-            }
-            //validate callback session
-            $this->_validateCallbackSession();
-			$methodSession = $this->_getMethodSession();
-            if ($isCallbackTypeCall && $infoInstance->getCallbackPinValidationFlag() && $methodSession->$callbackTid()) {
-                $nnCallbackPin = $infoInstance->$callbackPin();
-                if (!$infoInstance->$callbackNewPin() && (!$this->_helper->checkIsValid($nnCallbackPin) || empty($nnCallbackPin))) {
-                    $this->showException('PIN you have entered is incorrect or empty');
-                }
-            }
-            if ($isCallbackTypeCall && !$isPlaceOrder && $this->_getConfigData('callback') != 3) {
-                if ($methodSession->$callbackTid()) {
-                    if ($infoInstance->$callbackNewPin()) {
-                        $this->_regenerateCallbackPin();
-                    } else {
-                        $methodSession->$setcallbackPin($infoInstance->$callbackPin());
-                    }
-                } else {
-                    $this->_generateCallback();
-                }
-            } elseif ($isCallbackTypeCall && !$isPlaceOrder && $this->_getConfigData('callback') == 3) {
+        $payCode = ucfirst($paymentCode);
+        $callbackTid = "getNnCallbackTid" . $payCode;
+        $callbackOrderNo = "getNnCallbackOrderNo" . $payCode;
+        $callbackPin = "getNnCallbackPin" . $payCode;
+        $callbackNewPin = "getNnNewCallbackPin" . $payCode;
+        $setcallbackPin = "setNnCallbackPin" . $payCode;
 
-                if (!$methodSession->$callbackTid()) {
-                    $this->_generateCallback();
-                }
-            }
-            if ($isPlaceOrder) {
-                $this->_validateCallbackProcess();
+        if (!$isPlaceOrder && $isCallbackTypeCall && $this->_getIncrementId() && $this->_getMethodSession()->$callbackOrderNo()
+            && ($this->_getIncrementId() != $this->_getMethodSession()->$callbackOrderNo())) {
+            $this->unsetMethodSession();
+        }
+        //validate callback session
+        $this->_validateCallbackSession();
+        $methodSession = $this->_getMethodSession();
+        if ($isCallbackTypeCall && $infoInstance->getCallbackPinValidationFlag()
+                && $methodSession->$callbackTid()) {
+            $nnCallbackPin = $infoInstance->$callbackPin();
+            if (!$infoInstance->$callbackNewPin() && (!$this->helper->checkIsValid($nnCallbackPin)
+                    || empty($nnCallbackPin))) {
+                $this->showException('PIN you have entered is incorrect or empty!');
             }
         }
-	}
+        if (!$isPlaceOrder && $isCallbackTypeCall && $this->_getConfigData('callback')
+                != 3) {
+            if ($methodSession->$callbackTid()) {
+                if ($infoInstance->$callbackNewPin()) {
+                    $this->_regenerateCallbackPin();
+                } else {
+                    $methodSession->$setcallbackPin($infoInstance->$callbackPin());
+                }
+            } else {
+                $this->_generateCallback();
+            }
+        } elseif (!$isPlaceOrder && $isCallbackTypeCall && $this->_getConfigData('callback')
+                == 3) {
+
+            if (!$methodSession->$callbackTid()) {
+                $this->_generateCallback();
+            }
+        }
+        if ($isPlaceOrder) {
+            $this->_validateCallbackProcess();
+        }
+    }
 
     /**
      * validate order amount is getting changed after callback initiation
      *
      * throw Mage Exception
      */
-    private function _validateCallbackSession() {
+    private function _validateCallbackSession()
+    {
         $payCode = ucfirst($this->_code);
         $callbackTid = "hasNnCallbackTid" . $payCode;
         $getNnDisableTime = "getNnDisableTime" . $payCode;
         $methodSession = $this->_getMethodSession();
         if ($methodSession->$callbackTid()) {
             if ($methodSession->$getNnDisableTime() && time() > $methodSession->$getNnDisableTime()) {
-                $this->_unsetMethodSession();
-            } elseif ($methodSession->getOrderAmount() != $this->_helper->getFormatedAmount($this->_getAmount())) {
-                $this->_unsetMethodSession();
-                if (!$this->_isPlaceOrder() && $this->_getConfigData('callback') != 3) {
+                $this->unsetMethodSession();
+            } elseif ($methodSession->getOrderAmount() != $this->helper->getFormatedAmount($this->_getAmount())) {
+                $this->unsetMethodSession();
+                if (!$this->_isPlaceOrder() && $this->_getConfigData('callback')
+                        != 3) {
                     $this->showException('You have changed the order amount after getting PIN number, please try again with a new call');
-                } else if (!$this->_isPlaceOrder() && $this->_getConfigData('callback') == 3) {
+                } else if (!$this->_isPlaceOrder() && $this->_getConfigData('callback')
+                        == 3) {
                     $this->showException('You have changed the order amount after getting e-mail, please try again with a new call');
                 }
             }
@@ -1252,32 +1404,34 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return mixed
      */
-    private function _getIncrementId() {
-		$storeId = $this->_getHelper()->getMagentoStoreId();
-		$orders = Mage::getModel('sales/order')->getCollection()
-					->addAttributeToFilter('store_id', $storeId)
-					->setOrder('entity_id','DESC');
-		$lastIncrementId = $orders->getFirstItem()->getIncrementId();
-		if($lastIncrementId) {
-			$IncrementId = ++$lastIncrementId;
-		} else {
-			$IncrementId = $storeId.Mage::getModel('eav/entity_increment_numeric')->getNextId();
-		}
-		return $IncrementId;
+    private function _getIncrementId()
+    {
+        $storeId = $this->_getHelper()->getMagentoStoreId();
+        $orders = Mage::getModel('sales/order')->getCollection()
+                ->addAttributeToFilter('store_id', $storeId)
+                ->setOrder('entity_id', 'DESC');
+        $lastIncrementId = $orders->getFirstItem()->getIncrementId();
+        if ($lastIncrementId) {
+            $incrementId = ++$lastIncrementId;
+        } else {
+            $incrementId = $storeId . Mage::getModel('eav/entity_increment_numeric')->getNextId();
+        }
+        return $incrementId;
     }
 
     /**
      * Make callback request and validate response
      *
      */
-    private function _generateCallback() {
+    private function _generateCallback()
+    {
         $payCode = ucfirst($this->_code);
         $callbackTid = "setNnCallbackTid" . $payCode;
         $callbackOrderNo = "setNnCallbackOrderNo" . $payCode;
 
         $request = $this->buildRequest(Novalnet_Payment_Model_Config::POST_CALLBACK);
-        $response = $this->_postRequest($request);
-		$this->logNovalnetTransactionData($request, $response, $response->getTid());
+        $response = $this->postRequest($request);
+        $this->logNovalnetTransactionData($request, $response, $response->getTid());
         if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
             $this->_getMethodSession()
                     ->$callbackTid(trim($response->getTid()))
@@ -1286,14 +1440,15 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                     ->setOrderAmount($request->getAmount())
                     ->setNnCallbackSuccessState(true)
                     ->$callbackOrderNo(trim($response->getOrderNo()))
-					->setNnResponseData($response);
+                    ->setPaymentResData($response)
+                    ->setPaymentReqData($request);
             if ($this->_getConfigData('callback') == 3) {
-                $text = $this->_helper->__('Please reply to the e-mail');
-            } elseif ($this->_getConfigData('callback') == 1) {
-                $text = $this->_helper->__('You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box');
+                $text = $this->helper->__('Please reply to the e-mail');
+            } else {
+                $text = $this->helper->__('You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box');
             }
         } else {
-            $text = $this->_helper->htmlEscape($response->getStatusDesc());
+            $text = $this->helper->htmlEscape($response->getStatusDesc());
         }
         $this->showException($text, false);
     }
@@ -1302,14 +1457,15 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * Regenerate new pin for callback process
      *
      */
-    private function _regenerateCallbackPin() {
+    private function _regenerateCallbackPin()
+    {
         $callbackTid = "getNnCallbackTid" . ucfirst($this->_code);
         $methodSession = $this->_getMethodSession();
         $response = $this->doNovalnetStatusCall($methodSession->$callbackTid(), NULL, Novalnet_Payment_Model_Config::TRANSMIT_PIN_AGAIN);
         if ($response->getStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
-            $text = $this->_helper->__('You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box');
+            $text = $this->helper->__('You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box');
         } else {
-            $text = $this->_helper->htmlEscape($response->getStatusMessage()); //status_message
+            $text = $this->helper->htmlEscape($response->getStatusMessage()); //status_message
         }
         $this->showException($text, false);
     }
@@ -1318,18 +1474,19 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * validate callback response
      *
      */
-    private function _validateCallbackProcess() {
+    private function _validateCallbackProcess()
+    {
         $payCode = ucfirst($this->_code);
         $callbackTid = "getNnCallbackTid" . $payCode;
         $callbackPin = "getNnCallbackPin" . $payCode;
         $setNnDisableTime = "setNnDisableTime" . $payCode;
-        $getNnDisableTime = "getNnDisableTime" . $payCode;
         $methodSession = $this->_getMethodSession();
+
         if ($methodSession->getNnCallbackSuccessState()) {
             if ($this->_getConfigData('callback') == 3) {
                 $type = Novalnet_Payment_Model_Config::REPLY_EMAIL_STATUS;
                 $extraOption = '';
-            } elseif ($this->_getConfigData('callback') == 1) {
+            } else {
                 $type = Novalnet_Payment_Model_Config::PIN_STATUS;
                 $extraOption = '<pin>' . $methodSession->$callbackPin() . '</pin>';
             }
@@ -1344,7 +1501,9 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                 if ($result->getStatus() == Novalnet_Payment_Model_Config::METHOD_DISABLE_CODE) {
                     $methodSession->$setNnDisableTime(time() + (30 * 60));
                 }
-                $error = ($result->getStatusDesc() || $result->getStatusMessage()) ? $this->_helper->htmlEscape($result->getStatusMessage() . $result->getStatusDesc()) : $this->_helper->htmlEscape($result->pin_status['status_message']);
+                $error = ($result->getStatusDesc() || $result->getStatusMessage())
+                            ? $this->helper->htmlEscape($result->getStatusMessage() . $result->getStatusDesc())
+                            : $this->helper->htmlEscape($result->pinStatus['status_message']);
                 $this->showException($error, false);
             }
         }
@@ -1354,13 +1513,15 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      * Log novalnet transaction data
      *
      */
-    public function logNovalnetTransactionData($request, $response, $txnId, $customerId = NULL, $storeId = NULL) {
-        $this->_dataHelper->doRemoveSensitiveData($request, $this->_code);
-        $shopUrl = ($response->getMemburl()) ? $response->getMemburl() : $this->_helper->getCurrentSiteUrl();
-        $customerId = ($customerId) ? $customerId : $this->_helper->getCustomerId();
-        $storeId = ($storeId) ? $storeId : $this->_helper->getMagentoStoreId();
-        $modNovalTransactionOverview = $this->_helper->getModelTransactionOverview();
-        $modNovalTransactionOverview->setTransactionId($txnId)
+    public function logNovalnetTransactionData($request, $response, $txnId,
+        $customerId = NULL, $storeId = NULL
+    ) {
+        $this->dataHelper->doRemoveSensitiveData($request, $this->_code);
+        $shopUrl = ($response->getMemburl()) ? $response->getMemburl() : $this->helper->getCurrentSiteUrl();
+        $customerId = ($customerId) ? $customerId : $this->helper->getCustomerId();
+        $storeId = ($storeId) ? $storeId : $this->helper->getMagentoStoreId();
+        $modNnTransOverview = $this->helper->getModelTransactionOverview();
+        $modNnTransOverview->setTransactionId($txnId)
                 ->setOrderId($this->_getOrderId())
                 ->setRequestData(serialize($request->getData()))
                 ->setResponseData(serialize($response->getData()))
@@ -1368,33 +1529,8 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
                 ->setStatus($response->getStatus())
                 ->setStoreId($storeId)
                 ->setShopUrl($shopUrl)
-                ->setCreatedDate($this->_helper->getCurrentDateTime())
+                ->setCreatedDate($this->helper->getCurrentDateTime())
                 ->save();
-    }
-
-    /**
-     * Log novalnet transaction status data
-     *
-     */
-    public function logNovalnetStatusData($response, $txnId, $customerId = NULL, $storeId = NULL, $amount = NULL) {
-	    $shopUrl = ($response->getMemburl()) ? $response->getMemburl() : $this->_helper->getCurrentSiteUrl();
-        $customerId = ($customerId) ? $customerId : $this->_helper->getCustomerId();
-        $storeId = ($storeId) ? $storeId : $this->_helper->getMagentoStoreId();
-        $amount = ($amount) ? $amount : $this->_getAmount();
-        $modNovalTransactionStatus = $this->_helper->getModelTransactionStatus();
-        $modNovalTransactionStatus->setTransactionNo($txnId)
-								->setOrderId($this->_getOrderId())  //order number
-								->setTransactionStatus($response->getStatus()) //transaction status code
-								->setNcNo($response->getNcNo())
-								->setCustomerId($customerId) //customer number
-								->setPaymentName($this->_code)   //payment name
-								->setAmount($amount)  //amount
-								->setRemoteIp($this->_helper->getRealIpAddr()) //remote ip
-								->setStoreId($storeId)  //store id
-								->setShopUrl($shopUrl)
-								->setCreatedDate($this->_helper->getCurrentDateTime()) //created date
-								->save();
-
     }
 
     /**
@@ -1402,25 +1538,28 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-
-	public function validateNovalnetIframeParams() {
-		//$this->_manualCheckValidate();
-        if (!$this->_validateBasicParams()) {
+    public function validateNovalnetIframeParams()
+    {
+        $helper = $this->helper;
+        $amount = $helper->getFormatedAmount($this->_getAmount());
+        $manualCheckAmt = (int) $this->_getConfigData('manual_checking_amount');
+        if (!$helper->checkIsNumeric($this->_vendorId) || !$this->_authcode || !$helper->checkIsNumeric($this->_productId)) {
             return false;
-        } elseif ((int)$this->_getConfigData('manual_checking_amount') && (!$this->_helper->checkIsNumeric($this->_getConfigData('manual_checking_amount')) || !$this->_helper->checkIsNumeric($this->_getConfigData('second_product_id')) || !$this->_helper->checkIsNumeric($this->_getConfigData('second_tariff_id')))) {
+        } elseif ($manualCheckAmt && (!$helper->checkIsNumeric($manualCheckAmt) || ($amount
+                > $manualCheckAmt) && !$helper->checkIsNumeric($this->_getConfigData('second_product_id')))) {
             return false;
         }
-	$this->_manualCheckValidate();
+        $this->_manualCheckValidate();
         return true;
     }
 
     /**
-     * Get current infoinstance
+     * Get current info-instance
      *
      * @return Mage_Payment_Model_Method_Abstract
      */
-
-    private function _getInfoInstance() {
+    private function _getInfoInstance()
+    {
         if (!isset($this->infoInstance)) {
             $this->infoInstance = $this->getInfoInstance();
         }
@@ -1432,7 +1571,8 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return Mage_Payment_Model_Method_Abstract
      */
-    private function _getInfoObject() {
+    private function _getInfoObject()
+    {
         $info = $this->_getInfoInstance();
         if ($this->_isPlaceOrder()) {
             return $info->getOrder();
@@ -1446,7 +1586,8 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return bool
      */
-    private function _isPlaceOrder() {
+    private function _isPlaceOrder()
+    {
         $info = $this->_getInfoInstance();
         if ($info instanceof Mage_Sales_Model_Quote_Payment) {
             return false;
@@ -1460,7 +1601,8 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return string
      */
-    private function _getAmount() {
+    private function _getAmount()
+    {
         $info = $this->_getInfoInstance();
         if ($this->_isPlaceOrder()) {
             return (double) $info->getOrder()->getBaseGrandTotal();
@@ -1474,7 +1616,8 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
      *
      * @return string
      */
-    private function _getOrderId() {
+    private function _getOrderId()
+    {
         $info = $this->_getInfoInstance();
         if ($this->_isPlaceOrder()) {
             return $info->getOrder()->getIncrementId();
@@ -1484,61 +1627,71 @@ class Novalnet_Payment_Model_Payment_Method_Abstract extends Mage_Payment_Model_
     }
 
     /**
-     * Get payment data for current order
-     *
-     * @return Mage_Payment_Model_Method_Abstract
-     */
-    private function _getNnPaymentData() {
-        $info = $this->_getInfoInstance();
-        if ($this->_isPlaceOrder()) {
-            return $info->getOrder()->getPayment();
-        } else {
-            return $info;
-        }
-    }
-
-    /**
      * Retrieve model helper
      *
-     * @return Novalnet_Payment_Helper_Data
+     * @return Novalnet_Paymenthelper_Data
      */
-    protected function _getHelper() {
+    protected function _getHelper()
+    {
         return Mage::helper('novalnet_payment');
     }
 
     /**
      * Retrieve Assign data helper
      *
-     * @return Novalnet_Payment_Helper_AssignData
+     * @return Novalnet_Paymenthelper_AssignData
      */
-    protected function _getDataHelper() {
+    protected function _getDataHelper()
+    {
         return Mage::helper('novalnet_payment/AssignData');
     }
 
-	/**
-     * Show expection
+    /**
+     * Show exception
      *
-	 * @param $string
-	 * @param $lang
+     * @param $string
+     * @param $lang
      * @return Mage::throwException
      */
-	public function showException($string, $lang=true){
-		if($lang)
-			$string = $this->_helper->__($string);
+    public function showException($string, $lang = true)
+    {
+        if ($lang) {
+            $string = $this->helper->__($string);
+        }
 
-		return Mage::throwException($string);
-	}
+        return Mage::throwException($string);
+    }
 
-	/**
+    /**
      * Assign helper utilities needed for the payment process
      *
      */
-	public function assignUtilities(){
-		if(!$this->_helper){
-			$this->_helper = $this->_getHelper();
-		}
-		if(!$this->_dataHelper){
-			$this->_dataHelper = $this->_getDataHelper();
-		}
-	}
+    public function assignUtilities()
+    {
+        if (!$this->helper) {
+            $this->helper = $this->_getHelper();
+        }
+        if (!$this->dataHelper) {
+            $this->dataHelper = $this->_getDataHelper();
+        }
+    }
+
+    /**
+     * Get redirect URL
+     *
+     * @return Mage_Paymenthelper_Data
+     */
+    public function getOrderPlaceRedirectUrl()
+    {
+        $redirectPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayments');
+        if ((in_array($this->_code, $redirectPayment)) || ($this->_code == Novalnet_Payment_Model_Config::NN_CC
+                && !$this->helper->checkIsAdmin() && $this->_getConfigData('active_cc3d')
+                == 1)) {
+            $actionUrl = $this->_getHelper()->getUrl(Novalnet_Payment_Model_Config::GATEWAY_REDIRECT_URL);
+        } else {
+            $actionUrl = $this->_getHelper()->getUrl(Novalnet_Payment_Model_Config::GATEWAY_DIRECT_URL);
+        }
+        return $actionUrl;
+    }
+
 }

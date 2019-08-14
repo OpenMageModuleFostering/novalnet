@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,7 +23,8 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Payment_Method_NovalnetPhonepayment extends Novalnet_Payment_Model_Payment_Method_Abstract {
+class Novalnet_Payment_Model_Payment_Method_NovalnetPhonepayment extends Novalnet_Payment_Model_Payment_Method_Abstract
+{
 
     protected $_code = Novalnet_Payment_Model_Config::NN_TELEPHONE;
     protected $_canCapture = Novalnet_Payment_Model_Config::NN_TELEPHONE_CAN_CAPTURE;

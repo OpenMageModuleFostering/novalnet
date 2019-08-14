@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,12 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus extends Mage_Adminhtml_Block_Widget_Grid implements Mage_Adminhtml_Block_Widget_Tab_Interface {
+class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus extends Mage_Adminhtml_Block_Widget_Grid
+        implements Mage_Adminhtml_Block_Widget_Tab_Interface
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setId('novalnet_payment_block_adminhtml_sales_order_view_tab_transactionstatus');
         $this->setDefaultSort('created_at');
@@ -36,30 +38,36 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
         $this->setSkipGenerateContent(true);
     }
 
-    public function getTabLabel() {
+    public function getTabLabel()
+    {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Overview');
     }
 
-    public function getTabTitle() {
+    public function getTabTitle()
+    {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Overview');
     }
 
-    public function canShowTab() {
+    public function canShowTab()
+    {
         return true;
     }
 
-    public function isHidden() {
+    public function isHidden()
+    {
         return false;
     }
 
-    public function getTabClass() {
+    public function getTabClass()
+    {
         return 'ajax novalnet-widget-tab';
     }
 
     /**
      * @return Mage_Sales_Model_Order
      */
-    public function getOrder() {
+    public function getOrder()
+    {
         return Mage::registry('current_order');
     }
 
@@ -67,28 +75,32 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
      * @return Novalnet_Payment_Tab
      * Order left column Tab
      */
-    public function getTabUrl() {
+    public function getTabUrl()
+    {
         return $this->getUrl('novalnet_payment/adminhtml_sales_order/transactionStatusGrid', array(
                     '_current' => true
                         )
         );
     }
 
-    public function getGridUrl() {
+    public function getGridUrl()
+    {
         return $this->getUrl('novalnet_payment/adminhtml_sales_order/transactionStatusGrid', array(
                     '_current' => true
                         )
         );
     }
 
-    public function getRowUrl($row) {
+    public function getRowUrl($row)
+    {
         return $this->getUrl('novalnet_payment/adminhtml_transaction/view', array(
                     'nntxn_id' => $row->getId()
                         )
         );
     }
 
-    protected function _prepareCollection() {
+    protected function _prepareCollection()
+    {
         $collection = $this->getTransactionStatusCollection();
         $this->setCollection($collection);
         return parent::_prepareCollection();
@@ -97,72 +109,67 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
     /**
      * @return Novalnet_Payment_Model_TransactionStatus
      */
-    public function getTransactionStatusCollection() {
+    public function getTransactionStatusCollection()
+    {
         $order = $this->getOrder();
 
-        // @var $transactionStatusCollection Novalnet_Payment_Model_TransactionStatus_Collection
-        $transactionStatusCollection = $this->helperNovalnetPayment()->getModelTransactionStatus()->getCollection();
-        $transactionStatusCollection->getByOrder($order);
-        return $transactionStatusCollection;
+        // @var $transStatCollection Novalnet_Payment_Model_TransactionStatus_Collection
+        $transStatCollection = $this->helperNovalnetPayment()->getModelTransactionStatus()->getCollection();
+        $transStatCollection->getByOrder($order);
+        return $transStatCollection;
     }
 
-    protected function _prepareColumns() {
-        $helperNovalnetPayment = $this->helperNovalnetPayment();
+    protected function _prepareColumns()
+    {
+        $helperNnPayment = $this->helperNovalnetPayment();
         $this->setColumn('txid', array(
-            'header' => $helperNovalnetPayment->__('Transaction no'),
+            'header' => $helperNnPayment->__('Transaction no'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'transaction_no',
                 )
         );
         $this->setColumn('order_id', array(
-            'header' => $helperNovalnetPayment->__('Order no'),
+            'header' => $helperNnPayment->__('Order no'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'order_id',
                 )
         );
         $this->setColumn('transaction_status', array(
-            'header' => $helperNovalnetPayment->__('Transaction Status'),
+            'header' => $helperNnPayment->__('Transaction Status'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'transaction_status',
                 )
         );
         $this->setColumn('ncno', array(
-            'header' => $helperNovalnetPayment->__('NC No'),
+            'header' => $helperNnPayment->__('NC No'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'nc_no',
                 )
         );
         $this->setColumn('customer_id', array(
-            'header' => $helperNovalnetPayment->__('Customer ID'),
+            'header' => $helperNnPayment->__('Customer ID'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'customer_id',
                 )
         );
         $this->setColumn('store_id', array(
-            'header' => $helperNovalnetPayment->__('Store ID'),
+            'header' => $helperNnPayment->__('Store ID'),
             'width' => '200px',
             'type' => 'text',
             'index' => 'store_id',
                 )
         );
-        /* $this->setColumn('shop_url',
-          array(
-          'header' => $helperNovalnetPayment->__('Shop URL'),
-          'width' => '200px',
-          'type' => 'text',
-          'index' => 'shop_url',
-          )
-          ); */
 
         return parent::_prepareColumns();
     }
 
-    private function setColumn($field, $fieldColumnMap) {
+    private function setColumn($field, $fieldColumnMap)
+    {
         $this->addColumn($field, $fieldColumnMap);
     }
 
@@ -170,7 +177,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
      *
      * @return Novalnet_Payment_Helper_Data
      */
-    protected function helperNovalnetPayment() {
+    protected function helperNovalnetPayment()
+    {
         return Mage::helper('novalnet_payment');
     }
 

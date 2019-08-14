@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,14 +23,16 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adminhtml_Block_Widget_Form_Container {
+class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adminhtml_Block_Widget_Form_Container
+{
 
     var $novalnetPayments = array();
 
     /**
      *
      */
-    public function __construct() {
+    public function __construct()
+    {
         $this->_objectId = 'nnlog_id';
         $this->_mode = 'view';
         $this->_blockGroup = 'novalnet_payment';
@@ -49,27 +50,31 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adm
         $this->_removeButton('save');
     }
 
-    public function getNovalnetTransactionOverview() {
+    public function getNovalnetTransactionOverview()
+    {
         return Mage::registry('novalnet_payment_transactionoverview');
         ;
     }
 
-    public function getPaymentTitle() {
+    public function getPaymentTitle()
+    {
         $order = Mage::getModel("sales/order")->loadByIncrementId(trim($this->getNovalnetTransactionOverview()->getOrderId()));
-         if($order->getPayment()) {
-			$paymentMethod = $order->getPayment()->getMethod();
-			$title = Mage::helper("novalnet_payment")->getModel($paymentMethod)->_getConfigData('title');
-		} else {
-			$title = '';
-		}
+        if ($order->getPayment()) {
+            $paymentMethod = $order->getPayment()->getMethod();
+            $title = Mage::helper("novalnet_payment")->getModel($paymentMethod)->_getConfigData('title');
+        } else {
+            $title = '';
+        }
         return $title;
     }
 
-    public function getHeaderText() {
+    public function getHeaderText()
+    {
         $transStatus = $this->getNovalnetTransactionOverview();
         $text = Mage::helper('novalnet_payment')->__(
                 'Order #%s | TID : %s ', $transStatus->getOrderId(), $transStatus->getTransactionId()
         );
         return $text;
     }
+
 }

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,23 +23,16 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Payment_Method_Form_Ideal extends Mage_Payment_Block_Form {
+class Novalnet_Payment_Block_Payment_Method_Form_Ideal extends Mage_Payment_Block_Form
+{
 
     /**
      * Init default template for block
      */
-    protected function _construct() {
+    protected function _construct()
+    {
         parent::_construct();
         $this->setTemplate('novalnet/payment/method/form/Ideal.phtml');
-    }
-
-    /**
-     * Retrieve payment configuration object
-     *
-     * @return Mage_Payment_Model_Config
-     */
-    protected function _getConfig() {
-        return Mage::getSingleton('payment/config');
     }
 
     /**
@@ -48,17 +40,9 @@ class Novalnet_Payment_Block_Payment_Method_Form_Ideal extends Mage_Payment_Bloc
      *
      * @return string
      */
-    public function getUserInfo() {
+    public function getUserInfo()
+    {
         return $this->getMethod()->getConfigData('booking_reference');
-    }
-
-    /**
-     * Retrieve Novalnet Mode in Configuration
-     *
-     * @return bool
-     */
-    public function getLiveMode() {
-        return $this->getMethod()->_getConfigData('live_mode');
     }
 
 }

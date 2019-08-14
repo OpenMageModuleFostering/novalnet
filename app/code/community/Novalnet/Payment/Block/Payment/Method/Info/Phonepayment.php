@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payment_Block_Info {
+class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payment_Block_Info
+{
 
-    protected function _construct() {
+    protected function _construct()
+    {
         parent::_construct();
         $this->setTemplate('novalnet/payment/method/info/Phonepayment.phtml');
     }
@@ -35,7 +36,8 @@ class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payme
      * Render as PDF
      * @return string
      */
-    public function toPdf() {
+    public function toPdf()
+    {
         $this->setTemplate('novalnet/payment/method/pdf/Phonepayment.phtml');
         return $this->toHtml();
     }
@@ -45,7 +47,8 @@ class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payme
      *
      * @return Mage_Payment_Model_Method_Abstract
      */
-    public function getMethod() {
+    public function getMethod()
+    {
         return $this->getInfo()->getMethodInstance();
     }
 
@@ -55,14 +58,16 @@ class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payme
      * @param   string $field
      * @return  mixed
      */
-    public function getInfoData($field) {
+    public function getInfoData($field)
+    {
         return $this->htmlEscape($this->getMethod()->getInfoInstance()->getData($field));
     }
 
     /**
      * @return string
      */
-    public function getPaymentMethod() {
+    public function getPaymentMethod()
+    {
         return $this->htmlEscape($this->getMethod()->getConfigData('title'));
     }
 
@@ -71,7 +76,8 @@ class Novalnet_Payment_Block_Payment_Method_Info_Phonepayment extends Mage_Payme
      *
      * @return array
      */
-    public function getAdditionalData($key) {
+    public function getAdditionalData($key)
+    {
         return Mage::helper('novalnet_payment')->getAdditionalData($this->getInfo(), $key);
     }
 

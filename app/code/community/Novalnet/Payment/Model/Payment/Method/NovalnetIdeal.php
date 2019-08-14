@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,7 +23,8 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Payment_Method_NovalnetIdeal extends Novalnet_Payment_Model_Payment_Method_Abstract {
+class Novalnet_Payment_Model_Payment_Method_NovalnetIdeal extends Novalnet_Payment_Model_Payment_Method_Abstract
+{
 
     protected $_code = Novalnet_Payment_Model_Config::NN_IDEAL;
     protected $_canCapture = Novalnet_Payment_Model_Config::NN_IDEAL_CAN_CAPTURE;
@@ -34,12 +34,4 @@ class Novalnet_Payment_Model_Payment_Method_NovalnetIdeal extends Novalnet_Payme
     protected $_formBlockType = Novalnet_Payment_Model_Config::NN_IDEAL_FORM_BLOCK;
     protected $_infoBlockType = Novalnet_Payment_Model_Config::NN_IDEAL_INFO_BLOCK;
 
-    /**
-     * Get redirect URL
-     *
-     * @return Mage_Payment_Helper_Data
-     */
-    public function getOrderPlaceRedirectUrl() {
-        return $this->_getHelper()->getUrl(Novalnet_Payment_Model_Config::GATEWAY_REDIRECT_URL);
-    }
 }

@@ -25,15 +25,15 @@
  */
 ?>
 <?php
-	$code    = $this->getMethodCode();
-	$helper  = Mage::helper('novalnet_payment');
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
 ?>
 <fieldset class="form-list">
     <!-- PAYMENT LOGO -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."vorauskasse.jpg";  ?>
-            <img style="height:30px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "vorauskasse.png"; ?>
+            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
         </a>
     </div>
     <!-- PAYMENT LOGO -->
@@ -42,17 +42,17 @@
         <li>
             <?php echo $this->__('The Bank details will be emailed to you soon after the completion of checkout process') ?>
         </li>
-        <?php if($this->getUserInfo()): ?>
-        <li>
-            <?php echo $this->getUserInfo()?>
-        </li>
+        <?php if ($this->getUserInfo()): ?>
+            <li>
+                <?php echo $this->getUserInfo() ?>
+            </li>
         <?php endif ?>
-        <?php if($this->getLiveMode() == 0): ?>
-        <li>
-            <div style="font-weight:bold;color:red;font-size:12px;">
-                <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
-            </div>
-        </li>
+        <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
+            <li>
+                <div style="font-weight:bold;color:red;font-size:12px;">
+                    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+                </div>
+            </li>
         <?php endif ?>
         <!--}}} PAYMENT DESCRIPTION  -->
     </ul>

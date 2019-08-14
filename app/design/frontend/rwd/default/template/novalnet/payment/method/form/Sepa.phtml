@@ -1,0 +1,125 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodule of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Novalnet AG
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+include(Mage::getBaseDir('base') . '/novalnet_css_link.php');
+
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$sepaRefill = $this->getMethod()->getConfigData('sepa_refill');
+?>
+<fieldset class="form-list" id="fieldset_<?php echo $code ?>">
+    <!--{{{ Payment Logo -->
+    <div>
+        <a HREF="<?php echo $helper->getNovalnetUrl(); ?>" TARGET="_new" style="text-decoration:none;">
+            <?php
+            $image = "sepa_logo.png";
+            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+            ?>
+            <img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
+        </a>
+    </div>
+    <!--}}} Payment Logo -->
+    <!--{{{ Novalnet SEPA Form -->
+    <div id="payment_form_<?php echo $code ?>" style="display:none;">
+        <?php if (!$this->getMethod()->validateNovalnetIframeParams()): ?>
+            <div style="font-weight:bold;color:red;font-size:12px;">
+                <?php echo $this->__('Basic parameter not valid') . '!' ?>
+            </div>
+        <?php else: ?>
+            <div id="nnsepa_loading">
+                <img src="<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif" alt="Loading" />
+            </div>
+            <iframe frameborder="0" scrolling="no" name="ifm_payment_form_<?php echo $code ?>" id="ifm_payment_form_<?php echo $code ?>"
+                    style="width: 603px; height: 560px; border: none; display: block; margin-top: 5px;" onload="novalnet_sepa_iframe(this)" src="<?php echo $helper->getUrl('novalnet_payment/NovalnetSepa') ?>" >
+            </iframe>
+	    <ul>
+                <!--{{{ CallbackType-->
+                <?php if ($this->isCallbackTypeCall()): ?>
+                    <!--{{{ PIN by Callback-->
+                    <?php
+                    if ($this->getCallbackConfigData() != 3):
+                        ?>
+                        <li>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_tel">
+                                    <?php
+                                    if ($this->getCallbackConfigData() == 2):
+                                        ?>
+                                        <?php echo $this->__('Mobile phone number'); ?>
+                                    <?php else: ?>
+                                        <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
+                                    <?php endif; ?>
+                                    <span class="required"></span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" value="<?php
+                                echo $sepaRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackTelNovalnetSepa()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required"></span></label><br/>
+                                <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                                <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                                <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                            </div>
+                        </li>
+                        <!--}}} PIN by Callback-->
+                        <!--{{{ Reply by Email-->
+                        <?php
+                    elseif ($this->getCallbackConfigData() == 3):
+                        ?>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required"></span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php
+                                echo $sepaRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackEmailNovalnetSepa()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                    <?php endif ?>
+                    <!--}}} Reply by Email-->
+                <?php endif ?>
+                <!--}}} CallbackType-->
+            </ul>
+        <?php endif; ?>
+    </div>
+    <input type="hidden" id="original_sepa_customstyle_css" value="input~~~select" />
+    <input type="hidden" id="original_sepa_customstyle_cssval" value="background: none repeat scroll 0 0 #FFFFFF;
+    border-color: #AAAAAA #C8C8C8 #C8C8C8 #AAAAAA;border-style: solid;border-width: 1px;font: 12px;width:224px;~~~max-width: 100%;width:365px;" />
+    <input type="hidden" name="novalnet_sepa_owner" id="novalnet_sepa_owner" value="" />
+    <input type="hidden" name="novalnet_sepa_pan_hash" id="novalnet_sepa_pan_hash" value="" />
+    <input type="hidden" name="novalnet_sepa_unique_id" id="novalnet_sepa_unique_id" value="" />
+    <input type="hidden" name="novalnet_sepa_iban_confirmed" id="novalnet_sepa_iban_confirmed" value="" />
+    <input type="hidden" name="novalnet_sepa_field_validator" id="novalnet_sepa_field_validator" value="" />
+    <!--}}} Novalnet SEPA Form -->
+</fieldset>

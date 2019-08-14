@@ -1,0 +1,143 @@
+<?php
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodule of Novalnet AG
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
+ * would be greatly appreciated.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Novalnet AG
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+/*
+ * For Custom Style
+ */
+
+include(Mage::getBaseDir('base') . '/novalnet_css_link.php');
+
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$ccRefill = $this->getMethod()->getConfigData('cc_refill');
+$creditCardSecure = $this->getMethod()->getConfigData('active_cc3d');
+?>
+<fieldset class="form-list" id="fieldset_<?php echo $code ?>">
+    <!--{{{ Payment Logo -->
+    <div>
+        <!-- Amex Logo -->
+        <?php if ($this->getMethod()->_getConfigData('enable_amex_logo')): ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."creditcard_amex.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>"
+                title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php else: ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "creditcard_small.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->_getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!--}}} Payment Logo -->
+    <!--{{{ Novalnet Cc Form -->
+    <div id="payment_form_<?php echo $code ?>" style="display:none;">
+        <?php if (!$this->getMethod()->validateNovalnetIframeParams()): ?>
+            <div style="font-weight:bold;color:red;font-size:12px;">
+                <?php echo $this->__('Basic parameter not valid') . '!' ?>
+            </div>
+        <?php else: ?>
+            <div id="nncc_loading">
+                <img src="<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif" alt="Loading" />
+            </div>
+            <iframe frameborder="0" name="ifm_payment_form_<?php echo $code ?>" id="ifm_payment_form_<?php echo $code ?>"
+                    scrolling= "no" style="width: 603px; height: 345px; border: none; display: block; margin-top: 5px;" onload="novalnet_cc_iframe(this)" src="<?php echo $helper->getUrl('novalnet_payment/NovalnetCc') ?>" >
+            </iframe>
+            <ul>
+                <!--{{{ CallbackType-->
+                <?php if (!$creditCardSecure && $this->isCallbackTypeCall()): ?>
+                    <!--{{{ PIN by Callback-->
+                    <?php
+                    if ($this->getCallbackConfigData() != 3):
+                        ?>
+                        <li>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_tel">
+                                    <?php
+                                    if ($this->getCallbackConfigData() == 2):
+                                        ?>
+                                        <?php echo $this->__('Mobile phone number'); ?>
+                                    <?php else: ?>
+                                        <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
+                                    <?php endif; ?>
+                                    <span class="required"></span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" value="<?php
+                                echo $ccRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackTelNovalnetCc()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required"></span></label><br/>
+                                <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                                <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                                <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                            </div>
+                        </li>
+                        <!--}}} PIN by Callback-->
+                        <!--{{{ Reply by Email-->
+                        <?php
+                    elseif ($this->getCallbackConfigData() == 3):
+                        ?>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required"></span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php
+                                echo $ccRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackEmailNovalnetCc()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                    <?php endif ?>
+                    <!--}}} Reply by Email-->
+                <?php endif ?>
+                <!--}}} CallbackType-->
+            </ul>
+        <?php endif; ?>
+    </div>
+
+    <input type="hidden" id="original_vendor_id" value="<?php echo trim($this->getMethod()->_getConfigData('merchant_id', true)) ?>" />
+    <input type="hidden" id="original_vendor_authcode" value="<?php echo trim($this->getMethod()->_getConfigData('auth_code', true)) ?>" />
+    <input type="hidden" id="original_customstyle_css" value="input~~~#novalnetCc_cc_cid~~~.ccv~~~select~~~#novalnetCc_expiration_yr~~~#novalnetCc_expiration_yr.error" />
+    <input type="hidden" id="original_customstyle_cssval" value="max-width: 100%;width: 260px !important;height: 30px !important;-moz-appearance: none;background: none repeat scroll 0 0 #ffffff;border: 1px solid silver;border-radius: 2px;font-size: 15px;~~~width:50px !important;~~~float: left;margin: 8px;~~~height:28px;~~~width:110px;~~~color:#2f2f2f;font-weight:lighter;" />
+
+
+    <input type="hidden" name="novalnet_cc_owner" id="novalnet_cc_owner" value="" />
+    <input type="hidden" name="novalnet_cc_type" id="novalnet_cc_type" value="" />
+    <input type="hidden" name="novalnet_cc_exp_month" id="novalnet_cc_exp_month" value="" />
+    <input type="hidden" name="novalnet_cc_exp_year" id="novalnet_cc_exp_year" value="" />
+    <input type="hidden" name="novalnet_cc_cid" id="novalnet_cc_cid" value="" />
+    <input type="hidden" name="novalnet_cc_pan_hash" id="novalnet_cc_pan_hash" value="" />
+    <input type="hidden" name="novalnet_cc_unique_id" id="novalnet_cc_unique_id" value="" />
+    <input type="hidden" name="novalnet_cc_field_validator" id="novalnet_cc_field_validator" value="" />
+
+</fieldset>

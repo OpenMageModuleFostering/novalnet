@@ -32,8 +32,8 @@ $helper = Mage::helper('novalnet_payment');
     <!-- PAYMENT LOGO -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "kauf-auf-rechnung.jpg"; ?>
-            <img style="height:30px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "kauf-auf-rechnung.png"; ?>
+            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
         </a>
     </div>
     <!-- PAYMENT LOGO -->
@@ -47,7 +47,7 @@ $helper = Mage::helper('novalnet_payment');
                 <?php echo $this->getUserInfo() ?>
             </li>
         <?php endif ?>
-        <?php if ($this->getLiveMode() == 0): ?>
+        <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
             <li>
                 <div style="font-weight:bold;color:red;font-size:12px;">
                     <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
@@ -62,7 +62,9 @@ $helper = Mage::helper('novalnet_payment');
                 <li>
                     <div class="input-box">
                         <label style="float:none;" for="<?php echo $code ?>_callback_tel">
-                            <?php if ($this->getCallbackConfigData() == 2): ?>
+                            <?php
+                            if ($this->getCallbackConfigData() == 2):
+                                ?>
                                 <?php echo $this->__('Mobile phone number'); ?>
                             <?php else: ?>
                                 <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
@@ -77,9 +79,9 @@ $helper = Mage::helper('novalnet_payment');
                     </div>
                     <div class="input-box">
                         <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required">*</span></label><br/>
-                        <input onchange="document.getElementById('inv_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
-                        <input id="inv_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
-                        <label style="float:none;" for="inv_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                        <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                        <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                        <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
                     </div>
                 </li>
                 <!--}}} PIN by Callback-->

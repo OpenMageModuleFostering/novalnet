@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Block_Form {
+class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Block_Form
+{
 
-    protected function _construct() {
+    protected function _construct()
+    {
         parent::_construct();
         $this->setTemplate('novalnet/payment/method/form/Invoice.phtml');
     }
@@ -36,7 +37,8 @@ class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Bl
      *
      * @return bool
      */
-    public function isCallbackTypeCall() {
+    public function isCallbackTypeCall()
+    {
         return $this->getMethod()->isCallbackTypeCall();
     }
 
@@ -45,32 +47,9 @@ class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Bl
      *
      * @return string
      */
-    public function getCallbackConfigData() {
+    public function getCallbackConfigData()
+    {
         return $this->getMethod()->_getConfigData('callback');
-    }
-
-    /**
-     * Get Customer Telephone no
-     *
-     * @return int
-     */
-    public function getCustomersTelephone() {
-        $customer = Mage::getSingleton('customer/session')->getCustomer()->getDefaultBillingAddress();
-        if ($customer) {
-            return $customer->getTelephone();
-        }
-    }
-
-    /**
-     * Get Customer Email address
-     *
-     * @return string
-     */
-    public function getCustomersEmail() {
-        $customer = Mage::getSingleton('customer/session')->getCustomer()->getEmail();
-        if ($customer) {
-            return $customer;
-        }
     }
 
     /**
@@ -78,17 +57,9 @@ class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Bl
      *
      * @return string
      */
-    public function getUserInfo() {
+    public function getUserInfo()
+    {
         return $this->getMethod()->getConfigData('booking_reference');
-    }
-
-    /**
-     * Retrieve Novalnet Mode in Configuration
-     *
-     * @return bool
-     */
-    public function getLiveMode() {
-        return $this->getMethod()->_getConfigData('live_mode');
     }
 
 }

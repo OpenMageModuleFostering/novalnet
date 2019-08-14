@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <checkout_onepage_index>
+        <reference name="head">
+            <action method="addJs">
+                <script>novalnet/novalnetcc.js</script>
+            </action>
+            <action method="addJs">
+                <script>novalnet/novalnetsepa.js</script>
+            </action>
+        </reference>
+    </checkout_onepage_index>
+</layout>

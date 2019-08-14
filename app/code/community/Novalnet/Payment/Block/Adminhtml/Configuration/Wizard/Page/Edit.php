@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_Edit extends Mage_Adminhtml_Block_Widget_Form_Container {
+class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_Edit extends Mage_Adminhtml_Block_Widget_Form_Container
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_mode = '';
         $this->_blockGroup = 'novalnet_payment';
         $this->_controller = 'adminhtml_configuration_wizard_page_edit';
@@ -49,7 +50,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_Edit extends Ma
         ));
     }
 
-    public function getHeaderText() {
+    public function getHeaderText()
+    {
         $session = Mage::getSingleton('admin/session');
         $storeConfig = $session->getNnStoreConfig();
 
@@ -59,17 +61,20 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_Edit extends Ma
         return $text;
     }
 
-    public function getBackUrl() {
+    public function getBackUrl()
+    {
         $url = $this->helperWizard()->getPreviousPageUrlAsString();
         return $this->getUrl($url, array('_current' => true));
     }
 
-    public function getConfigPage($path) {
+    public function getConfigPage($path)
+    {
         $config = $this->helperWizard()->getConfigPage();
         return $config->getData($path);
     }
 
-    public function helperWizard() {
+    public function helperWizard()
+    {
         return Mage::helper('novalnet_payment');
     }
 

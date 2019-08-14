@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,13 +23,15 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Novalnet_Source_Callbacktypes {
+class Novalnet_Payment_Model_Novalnet_Source_Callbacktypes
+{
 
-    public function toOptionArray() {
-        return array(0 => Mage::helper('novalnet_payment')->__('Nicht aktiv'),
-            1 => Mage::helper('novalnet_payment')->__('Callback (Telefon & Handy)'),
-            2 => Mage::helper('novalnet_payment')->__('SMS (nur Handy)'),
-            3 => Mage::helper('novalnet_payment')->__('Antwort per Email')
+    public function toOptionArray()
+    {
+        return array(0 => Mage::helper('novalnet_payment')->__('Not active'),
+            1 => Mage::helper('novalnet_payment')->__('Callback (Landline & mobile)'),
+            2 => Mage::helper('novalnet_payment')->__('SMS (Mobile only)'),
+            3 => Mage::helper('novalnet_payment')->__('Email Reply')
         );
     }
 

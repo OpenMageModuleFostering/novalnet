@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,17 +23,33 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Callback extends Mage_Core_Model_Abstract {
+class Novalnet_Payment_Model_Callback extends Mage_Core_Model_Abstract
+{
 
     /**
      *
      */
-    public function _construct() {
+    public function _construct()
+    {
         parent::_construct();
         $this->_init('novalnet_payment/callback');
     }
 
-    public function loadLogByOrderId($orderId) {
+    /**
+     * Load order transaction status by custom attribute value. Attribute value should be unique
+     *
+     * @param string $attribute
+     * @param string $value
+     * @return Novalnet_Payment_Model_Source_Callback
+     */
+    public function loadByAttribute($attribute, $value)
+    {
+        $this->load($value, $attribute);
+        return $this;
+    }
+
+    public function loadLogByOrderId($orderId)
+    {
         $this->load($orderId, 'order_id');
         return $this;
     }

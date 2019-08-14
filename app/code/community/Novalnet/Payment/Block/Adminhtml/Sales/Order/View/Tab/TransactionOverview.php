@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,44 +23,53 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionOverview extends Mage_Adminhtml_Block_Widget implements Mage_Adminhtml_Block_Widget_Tab_Interface {
+class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionOverview extends Mage_Adminhtml_Block_Widget
+        implements Mage_Adminhtml_Block_Widget_Tab_Interface
+{
 
-    public function __construct() {
-        //parent::__construct();
-        $this->setTemplate('novalnet/sales/order/view/tab/transactionoverview.phtml');
+    public function __construct()
+    {
+        $this->setTemplate('novalnet/sales/order/transactionoverview.phtml');
     }
 
-    public function getTabLabel() {
+    public function getTabLabel()
+    {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Log');
     }
 
-    public function getTabTitle() {
+    public function getTabTitle()
+    {
         return Mage::helper('novalnet_payment')->__('Novalnet - Transaction Log');
     }
 
-    public function canShowTab() {
+    public function canShowTab()
+    {
         return true;
     }
 
-    public function isHidden() {
+    public function isHidden()
+    {
         return false;
     }
 
-    public function getTabClass() {
+    public function getTabClass()
+    {
         return 'ajax novalnet-widget-tab';
     }
 
     /**
      * @return Mage_Sales_Model_Order
      */
-    public function getOrder() {
+    public function getOrder()
+    {
         return Mage::registry('current_order');
     }
 
     /**
      * @return Novalnet_Payment_Model_TransactionOverview
      */
-    public function getTransactionOverview() {
+    public function getTransactionOverview()
+    {
         if (!Mage::registry('novalnet_payment_transactionoverview_collection')) {
             $order = $this->getOrder();
 
@@ -77,7 +85,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionOverview 
      *
      * @return Novalnet_Payment_Helper_Data
      */
-    protected function helperNovalnetPayment() {
+    protected function helperNovalnetPayment()
+    {
         return Mage::helper('novalnet_payment');
     }
 

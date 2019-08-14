@@ -33,7 +33,7 @@ $helper = Mage::helper('novalnet_payment');
     <div>
         <A HREF="<?php echo $helper->getNovalnetUrl() ?>" TARGET="_new" style="text-decoration:none;">
             <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "novaltel_reciever.png"; ?>
-            <img style="height:32px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
         </A>
     </div>
     <!--}}} Payment Logo -->
@@ -48,7 +48,7 @@ $helper = Mage::helper('novalnet_payment');
                     <?php echo $this->getUserInfo() ?>
                 </li>
             <?php endif ?>
-            <?php if ($this->getLiveMode() == 0): ?>
+            <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
                 <li>
                     <div style="font-weight:bold;color:red;font-size:12px;">
                         <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>

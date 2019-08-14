@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,19 +23,44 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
+class Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View extends Mage_Adminhtml_Block_Sales_Order_Invoice_View
+{
 
-class Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View extends Mage_Adminhtml_Block_Sales_Order_Invoice_View {
-
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
-
         $payment = $this->getInvoice()->getOrder()->getPayment();
-        $paymentMethod = $payment->getMethodInstance()->getCode();
+        $paymentCode = $payment->getMethodInstance()->getCode();
+        $helper = Mage::helper('novalnet_payment');
 
-        if (preg_match("/novalnet/i", $paymentMethod)) {
-			if ($paymentMethod == Novalnet_Payment_Model_Config::NN_SEPA) {
-				$this->_removeButton('capture');
-			}
-	    }
+        if (preg_match("/novalnet/i", $paymentCode) && $paymentCode == Novalnet_Payment_Model_Config::NN_INVOICE) {
+            $this->_removeButton('print');
+            $this->_removeButton('capture');
+            $baseGrandTotal = $payment->getOrder()->getBaseGrandTotal();
+            $orderPayment = $this->getInvoice()->getOrder()->getPayment();
+            $orderId = $this->getInvoice()->getOrder()->getIncrementId();
+            $refundedAmount = $helper->getFormatedAmount($orderPayment->getAmountRefunded());
+            $callbackTrans = $helper->loadCallbackValue($orderId);
+            $callbackValue = $callbackTrans && $callbackTrans->getCallbackAmount()
+                    != NULL ? $callbackTrans->getCallbackAmount() : '';
+            if ($callbackValue && $callbackValue > (string) $refundedAmount && $baseGrandTotal
+                    != $orderPayment->getAmountRefunded()) {
+                $this->_addButton('capture', array(// capture?
+                    'label' => Mage::helper('sales')->__('Credit Memo'),
+                    'class' => 'go',
+                    'onclick' => 'setLocation(\'' . $this->getCreditMemoUrl() . '\')'
+                        )
+                );
+            }
+            if ($this->getInvoice()->getId()) {
+                $this->_addButton('print', array(
+                    'label' => Mage::helper('sales')->__('Print'),
+                    'class' => 'save',
+                    'onclick' => 'setLocation(\'' . $this->getPrintUrl() . '\')'
+                        )
+                );
+            }
+        }
     }
+
 }

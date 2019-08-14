@@ -12,108 +12,110 @@
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
  * Part of the Paymentmodul of Novalnet AG
- * https://www.novalnet.de 
- * If you have found this script usefull a small        
- * recommendation as well as a comment on merchant form 
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
- * 
+ *
  * @category   js
- * @package    Mage
- * @copyright  Copyright (c) Novalnet AG
+ * @package    Novalnet_Payment
+ * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-Event.observe(window, 'load', function(){
-    // For Frontend Payment
-    if (typeof payment != 'undefined' && typeof payment.save != 'undefined') {
-        novalnetPaymentWrap();		
-    }
-    // For Creating Admin Order
-    if (typeof order != 'undefined' && typeof order.submit != 'undefined') {
-        novalnetAdminOrder();		
-        novalnetbuildParams();
-    }
-});
+function novalnet_cc_iframe(iframe) {
+    document.getElementById('nncc_loading').style.display = 'none';
+    var frameObj = (iframe.contentWindow || iframe.contentDocument);
+    if (frameObj.document)
+        frameObj = frameObj.document;
 
-function enableElements(elements) 
-{
-    for (var i=0; i<elements.length; i++) {
-        elements[i].disabled = false;
+    var card_type = frameObj.getElementById("novalnetCc_cc_type");
+    var card_owner = frameObj.getElementById("novalnetCc_cc_owner");
+    var card_exp_month = frameObj.getElementById("novalnetCc_expiration");
+    var card_exp_year = frameObj.getElementById("novalnetCc_expiration_yr");
+    var card_cid = frameObj.getElementById("novalnetCc_cc_cid");
+    var card_no = frameObj.getElementById("novalnetCc_cc_number");
+    var nncc_unique_id = frameObj.getElementById("nncc_unique_id");
+    var nncc_hash_id = frameObj.getElementById("nncc_cardno_id");
+
+    card_type.onchange = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
+    }
+    card_owner.onkeyup = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
+    }
+    card_no.onblur = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
+    }
+    card_exp_month.onchange = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
+    }
+    card_exp_year.onchange = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
+    }
+    card_cid.onkeyup = function() {
+        setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id);
     }
 }
 
-function novalnetPaymentWrap() 
-{
-    payment.save = payment.save.wrap(function(origSaveMethod){
-        if ($('p_method_novalnetCc') && $('p_method_novalnetCc').checked) {
-            if (checkout.loadWaiting!=false) return;
-            var elements = $('fieldset_novalnetCc').select('input[type="hidden"]');
-            enableElements(elements);
-            //if (this.validate() && $('payment_form_novalnetCc').contentWindow.validate()) {
-            checkout.setLoadWaiting('payment');
-            if($('ifm_payment_form_novalnetCc')) {
-                $('ifm_payment_form_novalnetCc').contentWindow.updateHiddenElements(elements);
-            }
-            var request = new Ajax.Request(
-                payment.saveUrl,
-                {
-                    method:'post',
-                    onComplete: payment.onComplete,
-                    onSuccess: payment.onSave,
-                    onFailure: checkout.ajaxFailure.bind(checkout),
-                    parameters: Form.serialize(payment.form)
-                }
-                ); 				
-        //}
-        } else {
-            origSaveMethod();
-        }
-    });
-}
+function setFormFieldsValue(card_type, card_owner, card_exp_month, card_exp_year, card_cid, card_no, nncc_unique_id, nncc_hash_id) {
+    document.getElementById('novalnet_cc_type').value = card_type.value;
+    document.getElementById('novalnet_cc_type').disabled = false;
 
-function novalnetAdminOrder() 
-{
-    order.submit = order.submit.wrap(function(origSaveMethod){
-        if ($('p_method_novalnetCc') && $('p_method_novalnetCc').checked) {
-            //if(editForm.validator.validate() && $('payment_form_novalnetCc').contentWindow.validate()){		
-            var elements = $('fieldset_novalnetCc').select('input[type="hidden"]');
-            enableElements(elements);
-            if($('ifm_payment_form_novalnetCc')) {
-                $('ifm_payment_form_novalnetCc').contentWindow.updateHiddenElements(elements);    
-            }
-            if(order.orderItemChanged){
-                if(confirm('You have item changes')){
-                    editForm.submit();
-                }
-                else{
-                    order.itemsUpdate();
-                }
-            }
-            else{
-                editForm.submit();
-            }
-        //}
-        } else {
-            origSaveMethod();
-        }
-    });
-}
+    document.getElementById('novalnet_cc_owner').value = card_owner.value;
+    document.getElementById('novalnet_cc_owner').disabled = false;
 
-function novalnetbuildParams() 
-{
-    order.prepareParams = order.prepareParams.wrap(function(origMethod, origParams){
-        if ($('p_method_novalnetCc') && $('p_method_novalnetCc').checked) {
-            var params = origMethod(origParams);
-            params['novalnet_cc_owner'] = '';
-            params['novalnet_cc_type'] = '';
-            params['novalnet_cc_pan_hash'] = '';
-            params['novalnet_cc_unique_id'] = '';
-            params['novalnet_cc_exp_month'] = '';
-            params['novalnet_cc_exp_year'] = '';
-            params['novalnet_cc_cid'] = '';
-            return params;
-        } else {
-            return origMethod(origParams);
-        }
-    });
+    document.getElementById('novalnet_cc_exp_month').value = card_exp_month.value;
+    document.getElementById('novalnet_cc_exp_month').disabled = false;
+
+    document.getElementById('novalnet_cc_exp_year').value = card_exp_year.value;
+    document.getElementById('novalnet_cc_exp_year').disabled = false;
+
+    document.getElementById('novalnet_cc_cid').value = card_cid.value;
+    document.getElementById('novalnet_cc_cid').disabled = false;
+
+    if (card_type.value != '' && card_owner.value != '' && card_exp_month.value != '' && card_exp_year.value != ''
+        && card_cid.value != '' && card_no.value != '') {
+        document.getElementById('novalnet_cc_pan_hash').value = nncc_hash_id.value;
+        document.getElementById('novalnet_cc_pan_hash').disabled = false;
+        document.getElementById('novalnet_cc_unique_id').value = nncc_unique_id.value;
+        document.getElementById('novalnet_cc_unique_id').disabled = false;
+    } else {
+        document.getElementById('novalnet_cc_pan_hash').value = '';
+        document.getElementById('novalnet_cc_pan_hash').disabled = false;
+        document.getElementById('novalnet_cc_unique_id').value = '';
+        document.getElementById('novalnet_cc_unique_id').disabled = false;
+    }
+
+    var iframe = document.getElementById("ifm_payment_form_novalnetCc");
+    var ccIframe = (iframe.contentWindow || iframe.contentDocument);
+    if (ccIframe.document)
+        ccIframe = ccIframe.document;
+
+    if (typeof nncc_hash_id != 'undefined' && nncc_hash_id.value != '') {
+
+        var cc_type = 0;
+        var cc_owner = 0;
+        var cc_no = 0;
+        var cc_hash = 0;
+        var cc_month = 0;
+        var cc_year = 0;
+        var cc_cid = 0;
+
+        if (card_type.value != '')
+            cc_type = 1;
+        if (card_owner.value != '')
+            cc_owner = 1;
+        if (card_no.value != '')
+            cc_no = 1;
+        if (card_exp_month.value != '')
+            cc_month = 1;
+        if (card_exp_year.value != '')
+            cc_year = 1;
+        if (card_cid.value != '')
+            cc_cid = 1;
+
+        document.getElementById('novalnet_cc_field_validator').value = cc_type + ',' + cc_owner + ',' + cc_no + ',' + cc_month + ',' + cc_year + ',' + cc_cid;
+        document.getElementById('novalnet_cc_field_validator').disabled = false;
+    }
 }

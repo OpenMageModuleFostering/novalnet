@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,12 +23,14 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adminhtml_Block_Widget_Grid {
+class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adminhtml_Block_Widget_Grid
+{
 
     /**
      *
      */
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setId('novlanet_transactionoverview_grid');
         $this->setUseAjax(true);
@@ -40,7 +41,8 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
     /**
      * @return Mage_Adminhtml_Block_Widget_Grid
      */
-    protected function _prepareCollection() {
+    protected function _prepareCollection()
+    {
         $collection = Mage::getModel('novalnet_payment/transactionoverview')->getCollection();
         $this->setCollection($collection);
         return parent::_prepareCollection();
@@ -49,23 +51,24 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
     /**
      * @return
      */
-    protected function _prepareColumns() {
-        $helperNovalnetPayment = $this->helperNovalnetPayment();
+    protected function _prepareColumns()
+    {
+        $helperNnPayment = $this->helperNovalnetPayment();
 
         $this->addColumn('order_id', array(
-            'header' => $helperNovalnetPayment->__('Order no #'),
+            'header' => $helperNnPayment->__('Order no #'),
             'width' => '80px',
             'type' => 'text',
             'index' => 'order_id',
         ));
         $this->addColumn('transaction_no', array(
-            'header' => $helperNovalnetPayment->__('Transaction #'),
+            'header' => $helperNnPayment->__('Transaction #'),
             'width' => '80px',
             'type' => 'text',
             'index' => 'transaction_id',
         ));
         $this->addColumn('id', array(
-            'header' => $helperNovalnetPayment->__('Store id #'),
+            'header' => $helperNnPayment->__('Store id #'),
             'width' => '80px',
             'type' => 'text',
             'index' => 'store_id',
@@ -78,7 +81,8 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
      *
      * @return Novalnet_Payment_Helper_Data
      */
-    protected function helperNovalnetPayment() {
+    protected function helperNovalnetPayment()
+    {
         return Mage::helper('novalnet_payment');
     }
 
@@ -86,14 +90,16 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
      * @param $row
      * @return string
      */
-    public function getRowUrl($row) {
+    public function getRowUrl($row)
+    {
         return $this->getUrl('novalnet_payment/adminhtml_transactionoverview/view', array(
                     'nnlog_id' => $row->getId()
                         )
         );
     }
 
-    public function getGridUrl() {
+    public function getGridUrl()
+    {
         return $this->getUrl('*/*/grid', array('_current' => true));
     }
 

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Widget extends Mage_Adminhtml_Block_Widget_Form_Container {
+class Novalnet_Payment_Block_Adminhtml_Widget extends Mage_Adminhtml_Block_Widget_Form_Container
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
         $this->setTemplate('configuration/wizard/index.phtml');
     }
@@ -36,7 +37,8 @@ class Novalnet_Payment_Block_Adminhtml_Widget extends Mage_Adminhtml_Block_Widge
      *
      * @return string
      */
-    public function getFormHtml() {
+    public function getFormHtml()
+    {
         $this->getChild('form')->setData('action1', $this->getSaveUrl());
         return $this->getChildHtml('form');
     }

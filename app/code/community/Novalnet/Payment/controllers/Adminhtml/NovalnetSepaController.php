@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,14 +23,17 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Adminhtml_NovalnetSepaController extends Mage_Adminhtml_Controller_Action {
+class Novalnet_Payment_Adminhtml_NovalnetSepaController extends Mage_Adminhtml_Controller_Action
+{
 
-    public function indexAction() {
+    public function indexAction()
+    {
         //Loading current layout
         $this->loadLayout();
 
         //Creating a new block
-        $block = $this->getLayout()->createBlock('Mage_Core_Block_Template', 'SepaForm', array('template' => 'novalnet/payment/method/form/Sepaform.phtml'));
+        $block = $this->getLayout()->createBlock('Mage_Core_Block_Template', 'SepaForm', array(
+            'template' => 'novalnet/payment/method/form/Sepaform.phtml'));
         $this->getLayout()->getBlock('content')->append($block);
 
         // TO avoid Background and to load our form in empty page

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,11 +23,34 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Payment_Method_Form_Sepa extends Mage_Payment_Block_Form {
+class Novalnet_Payment_Block_Payment_Method_Form_Sepa extends Mage_Payment_Block_Form
+{
 
-    protected function _construct() {
+    protected function _construct()
+    {
         parent::_construct();
         $this->setTemplate('novalnet/payment/method/form/Sepa.phtml');
+    }
+
+    /**
+     * Check whether Callback type allowed
+     *
+     * @return bool
+     */
+    public function isCallbackTypeCall()
+    {
+        return $this->getMethod()->isCallbackTypeCall();
+        //return false;
+    }
+
+    /**
+     * Novalnet Callback data getter
+     *
+     * @return string
+     */
+    public function getCallbackConfigData()
+    {
+        return $this->getMethod()->_getConfigData('callback');
     }
 
 }

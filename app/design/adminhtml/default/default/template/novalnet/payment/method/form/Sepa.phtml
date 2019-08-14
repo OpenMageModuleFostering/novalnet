@@ -23,21 +23,22 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-include(MAGENTO_ROOT.'/novalnet_css_link.php');
+include(Mage::getBaseDir('base') . '/novalnet_css_link.php');
 
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
-
 ?>
 <fieldset class="form-list" id="fieldset_<?php echo $code ?>">
     <!--{{{ Payment Logo -->
-        <div>
-			<a HREF="<?php echo $helper->getNovalnetUrl();?>" TARGET="_new" style="text-decoration:none;">
-            <?php $image = "sepa_logo.jpg";
-					  $imgpath = $helper->getNovalnetPaymentFormLogoUrl().$image; ?>
-            <img style="height:20px;" src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
-       </a>
-		</div>
+    <div>
+        <a HREF="<?php echo $helper->getNovalnetUrl(); ?>" TARGET="_new" style="text-decoration:none;">
+            <?php
+            $image = "sepa_logo.png";
+            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+            ?>
+            <img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
+        </a>
+    </div>
     <!--}}} Payment Logo -->
     <!--{{{ Novalnet SEPA Form -->
     <div id="payment_form_<?php echo $code ?>" style="display:none;">
@@ -46,21 +47,19 @@ $helper = Mage::helper('novalnet_payment');
                 <?php echo $this->__('Basic parameter not valid') . '!' ?>
             </div>
         <?php else: ?>
-            <div id="nn_loading">
+            <div id="nnsepa_loading">
                 <img src="<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif" alt="Loading" />
             </div>
             <iframe frameborder="0" scrolling="no" name="ifm_payment_form_<?php echo $code ?>" id="ifm_payment_form_<?php echo $code ?>"
-                    style="width: 400px; height: 480px; border: none; display: block; margin-top: 5px;" onload="document.getElementById('nn_loading').style.display = 'none'" src="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/NovalnetSepa/index') ?>" >
+                    style="width: 400px; height: 580px; border: none; display: block; margin-top: 5px;" onload="novalnet_sepa_iframe(this)" src="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/NovalnetSepa/index') ?>" >
             </iframe>
         <?php endif; ?>
     </div>
     <input type="hidden" id="original_sepa_customstyle_css" value="<?php echo NOVALNET_SEPA_CUSTOM_CSS; ?>" />
-	<input type="hidden" id="original_sepa_customstyle_cssval" value="<?php echo NOVALNET_SEPA_CUSTOM_CSS_STYLE; ?>" />
-	<input type="hidden" name="novalnet_sepa_owner" id="novalnet_sepa_owner" value="" />
+    <input type="hidden" id="original_sepa_customstyle_cssval" value="<?php echo NOVALNET_SEPA_CUSTOM_CSS_STYLE; ?>" />
+    <input type="hidden" name="novalnet_sepa_owner" id="novalnet_sepa_owner" value="" />
     <input type="hidden" name="novalnet_sepa_pan_hash" id="novalnet_sepa_pan_hash" value="" />
-    <input type="hidden" name="novalnet_sepa_unique_id" id="novalnet_sepa_unique_id" value="" />
-    <input type="hidden" name="novalnet_sepa_mandate_ref" id="novalnet_sepa_mandate_ref" value="" />
-    <input type="hidden" name="novalnet_sepa_mandate_date" id="novalnet_sepa_mandate_date" value="" />
+    <input type="hidden" name="novalnet_sepa_unique_id" id="novalnet_sepa_unique_id" value="" />    
     <input type="hidden" name="novalnet_sepa_iban_confirmed" id="novalnet_sepa_iban_confirmed" value="" />
     <input type="hidden" name="novalnet_sepa_field_validator" id="novalnet_sepa_field_validator" value="" />
     <!--}}} Novalnet SEPA Form -->

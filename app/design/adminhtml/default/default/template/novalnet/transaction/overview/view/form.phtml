@@ -23,9 +23,8 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-//$data = $this->getTransaction();
-$data  = $this->getNovalnetTransactionOverview();
 ?>
+<?php $data  = $this->getNovalnetTransactionOverview(); ?>
 <div class="content-header">
     <table cellspacing="0">
         <tr>
@@ -39,147 +38,147 @@ $data  = $this->getNovalnetTransactionOverview();
 <input type="hidden" name="order_id" value="<?php echo $data->getOrderId() ?>"/>
 
 <div class="box-left">
-	<!--Novalnet Order Information-->
-	<div class="entry-edit">
-		<div class="entry-edit-head">
-			<h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Order Information') ?></h4>
-		</div>
-		<div class="fieldset">
-			<table cellspacing="0" class="form-list">
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Store-ID') ?></label>
-					</td>
-					<td class="label">
-						<strong><?php echo $data->getStoreId() ?></strong>
-					</td>
-				</tr>
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Order-ID') ?></label>
-					</td>
-					<td class="label">
-						<?php 						
-							$orderViewId = Mage::getModel('sales/order')->loadByIncrementId($data->getOrderId())->getId();
-							$orderViewUrl = Mage::helper('adminhtml')->getUrl('adminhtml/sales_order/view', array('order_id' => $orderViewId));
-						?>
-						<strong><a href="<?php echo $orderViewUrl ?>"><?php echo $data->getOrderId() ?></a></strong>
-					</td>
-				</tr>
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Tranaction-ID') ?></label>
-					</td>
-					<td class="label">
-						<strong><?php echo $data->getTransactionId() ?></strong>
-					</td>
-				</tr>				
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Customer-ID') ?></label>
-					</td>
-					<td class="label">
-						<strong><?php echo $data->getCustomerId() ?></strong>
-					</td>
-				</tr>
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Payment Name') ?></label>
-					</td>
-					<td class="label">
-						<strong><?php echo $this->getPaymentTitle() ?></strong>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+    <!--Novalnet Order Information-->
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Order Information') ?></h4>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Store-ID') ?></label>
+                    </td>
+                    <td class="label">
+                        <strong><?php echo $data->getStoreId() ?></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Order-ID') ?></label>
+                    </td>
+                    <td class="label">
+                        <?php
+                            $orderViewId = Mage::getModel('sales/order')->loadByIncrementId($data->getOrderId())->getId();
+                            $orderViewUrl = Mage::helper('adminhtml')->getUrl('adminhtml/sales_order/view', array('order_id' => $orderViewId));
+                        ?>
+                        <strong><a href="<?php echo $orderViewUrl ?>"><?php echo $data->getOrderId() ?></a></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Tranaction-ID') ?></label>
+                    </td>
+                    <td class="label">
+                        <strong><?php echo $data->getTransactionId() ?></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Customer-ID') ?></label>
+                    </td>
+                    <td class="label">
+                        <strong><?php echo $data->getCustomerId() ?></strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Payment Name') ?></label>
+                    </td>
+                    <td class="label">
+                        <strong><?php echo $this->getPaymentTitle() ?></strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 
 <div class="box-right">
-	<!--Novalnet Order Shop Information-->
-	<div class="entry-edit">
-		<div class="entry-edit-head">
-			<h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Shop Information') ?></h4>
-		</div>
-		<div class="fieldset">
-			<table cellspacing="0" class="form-list" width="100%">
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Shop URL') ?></label>
-					</td>
-					<td style="word-break:break-word;">
-						<strong><?php echo $data->getShopUrl() ?></strong>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+    <!--Novalnet Order Shop Information-->
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Shop Information') ?></h4>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list" width="100%">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Shop URL') ?></label>
+                    </td>
+                    <td style="word-break:break-word;">
+                        <strong><?php echo $data->getShopUrl() ?></strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 <div class="box-right">
-	<!--Novalnet Order Additional Information-->
-	<div class="entry-edit">
-		<div class="entry-edit-head">
-			<h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Additional Information') ?></h4>
-		</div>
-		<div class="fieldset">
-			<table cellspacing="0" class="form-list">
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Additional Data') ?></label>
-					</td>
-					<td style="word-break:break-word;">
-						<strong><?php echo $data->getAdditionalData() ?></strong>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+    <!--Novalnet Order Additional Information-->
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Additional Information') ?></h4>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Additional Data') ?></label>
+                    </td>
+                    <td style="word-break:break-word;">
+                        <strong><?php echo $data->getAdditionalData() ?></strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 <!-- Novalnet API Data -->
 <div class="box-left" style="clear:both;">
-	<div class="entry-edit">
-		<div class="entry-edit-head">
-			<h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Request Data') ?></h4>
-		</div>
-		<div class="fieldset">
-			<table cellspacing="0" class="form-list" width="100%">
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Request Data') ?></label><br>
-						<div style="height:250px;overflow:scroll;width:600px;"><strong><?php
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Request Data') ?></h4>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list" width="100%">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Request Data') ?></label><br>
+                        <div style="height:250px;overflow:scroll;width:600px;"><strong><?php
 
-						 $getrequestData = unserialize($data->getRequestData());
-						  echo "<pre>";print_r($getrequestData);echo "</pre>";
+                         $getrequestData = unserialize($data->getRequestData());
+                          echo "<pre>";print_r($getrequestData);echo "</pre>";
 
-						 ?></strong></div>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+                         ?></strong></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 <div class="box-right">
-	<div class="entry-edit">
-		<div class="entry-edit-head">
-			<h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Response Data') ?></h4>
-		</div>
-		<div class="fieldset">
-			<table cellspacing="0" class="form-list" width="100%">
-				<tr>
-					<td class="label">
-						<label><?php echo $this->helper('novalnet_payment')->__('Response Data') ?></label><br>
-						<div style="height:250px;overflow:scroll;width:600px;"><strong><?php
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-payment-method"><?php echo Mage::helper('novalnet_payment')->__('Novalnet Response Data') ?></h4>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list" width="100%">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->helper('novalnet_payment')->__('Response Data') ?></label><br>
+                        <div style="height:250px;overflow:scroll;width:600px;"><strong><?php
 
-						 $getresponseData = unserialize($data->getResponseData());
-						 echo "<pre>";print_r($getresponseData);echo "</pre>";
+                         $getresponseData = unserialize($data->getResponseData());
+                         echo "<pre>";print_r($getresponseData);echo "</pre>";
 
-						 ?></strong></div>
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
+                         ?></strong></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>

@@ -23,42 +23,49 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-include(MAGENTO_ROOT.'/novalnet_css_link.php');
+include(Mage::getBaseDir('base') . '/novalnet_css_link.php');
 
-$code   = $this->getMethodCode();
+$code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
-
 ?>
 <fieldset class="form-list" id="fieldset_<?php echo $code ?>">
     <!--{{{ Payment Logo -->
-        <div>
-			<a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "creditcard_small.jpg" ?>
-                <img style="height:20px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->_getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
-			</a>
-	<!-- Amex Logo -->
-		</div>
+    <div>
+        <!-- Amex Logo -->
+        <?php if ($this->getMethod()->_getConfigData('enable_amex_logo')): ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."creditcard_amex.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>"
+                title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php else: ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "creditcard_small.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->_getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
     <!--}}} Payment Logo -->
-        <!--{{{ Novalnet Cc Form -->
+    <!--{{{ Novalnet Cc Form -->
     <div id="payment_form_<?php echo $code ?>" style="display:none;">
-        <?php if(!$this->getMethod()->validateNovalnetIframeParams()): ?>
+        <?php if (!$this->getMethod()->validateNovalnetIframeParams()): ?>
             <div style="font-weight:bold;color:red;font-size:12px;">
-                <?php echo $this->__('Basic parameter not valid').'!' ?>
+                <?php echo $this->__('Basic parameter not valid') . '!' ?>
             </div>
-        <?php else:?>
+        <?php else: ?>
             <div id="nncc_loading">
                 <img src="<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif" alt="Loading" />
             </div>
             <iframe frameborder="0" name="ifm_payment_form_<?php echo $code ?>" id="ifm_payment_form_<?php echo $code ?>"
-            style="width: 400px; height: 320px; border: none; display: block; margin-top: 5px;" onload="document.getElementById('nncc_loading').style.display = 'none'" src="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/NovalnetCc/index') ?>" >
+                    scrolling= "no" style="width: 420px; height: 300px; border: none; display: block; margin-top: 5px;" onload="novalnet_cc_iframe(this)" src="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/NovalnetCc/index') ?>" >
             </iframe>
         <?php endif; ?>
     </div>
 
     <input type="hidden" id="original_vendor_id" value="<?php echo trim($this->getMethod()->_getConfigData('merchant_id', true)) ?>" />
     <input type="hidden" id="original_vendor_authcode" value="<?php echo trim($this->getMethod()->_getConfigData('auth_code', true)) ?>" />
-	<input type="hidden" id="original_customstyle_css" value="<?php echo NOVALNET_CC_CUSTOM_CSS; ?>" />
-	<input type="hidden" id="original_customstyle_cssval" value="<?php echo NOVALNET_CC_CUSTOM_CSS_STYLE; ?>" />
+    <input type="hidden" id="original_customstyle_css" value="<?php echo NOVALNET_CC_CUSTOM_CSS; ?>" />
+    <input type="hidden" id="original_customstyle_cssval" value="<?php echo NOVALNET_CC_CUSTOM_CSS_STYLE; ?>" />
     <input type="hidden" name="novalnet_cc_owner" id="novalnet_cc_owner" value="" />
     <input type="hidden" name="novalnet_cc_type" id="novalnet_cc_type" value="" />
     <input type="hidden" name="novalnet_cc_exp_month" id="novalnet_cc_exp_month" value="" />

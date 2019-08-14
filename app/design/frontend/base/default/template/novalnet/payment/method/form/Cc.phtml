@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -28,22 +27,30 @@
  * For Custom Style
  */
 
-include(MAGENTO_ROOT.'/novalnet_css_link.php');
+include(Mage::getBaseDir('base') . '/novalnet_css_link.php');
 
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
-$assignDatahelper = Mage::helper('novalnet_payment/AssignData');
-$ccError = $this->getMethod()->getConfigData('cc_error');
+$ccRefill = $this->getMethod()->getConfigData('cc_refill');
+$creditCardSecure = $this->getMethod()->getConfigData('active_cc3d');
 ?>
 <fieldset class="form-list" id="fieldset_<?php echo $code ?>">
     <!--{{{ Payment Logo -->
-        <div>
-			<a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "creditcard_small.jpg" ?>
-                <img style="height:20px;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->_getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
-			</a>
-	<!-- Amex Logo -->
-		</div>
+    <div>
+        <!-- Amex Logo -->
+        <?php if ($this->getMethod()->_getConfigData('enable_amex_logo')): ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl()."creditcard_amex.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>"
+                title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php else: ?>
+            <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . "creditcard_small.png" ?>
+                <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->_getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
     <!--}}} Payment Logo -->
     <!--{{{ Novalnet Cc Form -->
     <div id="payment_form_<?php echo $code ?>" style="display:none;">
@@ -56,60 +63,72 @@ $ccError = $this->getMethod()->getConfigData('cc_error');
                 <img src="<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif" alt="Loading" />
             </div>
             <iframe frameborder="0" name="ifm_payment_form_<?php echo $code ?>" id="ifm_payment_form_<?php echo $code ?>"
-                    style="width: 603px; height: 320px; border: none; display: block; margin-top: 5px;" onload="document.getElementById('nncc_loading').style.display = 'none'" src="<?php echo $helper->getUrl('novalnet_payment/NovalnetCc') ?>" >
+                    scrolling= "no" style="width: 603px; height: 270px; border: none; display: block; margin-top: 5px;" onload="novalnet_cc_iframe(this)" src="<?php echo $helper->getUrl('novalnet_payment/NovalnetCc') ?>" >
             </iframe>
             <ul>
-	 <!--{{{ CallbackType-->
-        <?php if ($this->isCallbackTypeCall()): ?>
-            <!--{{{ PIN by Callback-->
-            <?php if ($this->getCallbackConfigData() != 3): ?>
-                <li>
-                    <div class="input-box">
-                        <label style="float:none;" for="<?php echo $code ?>_callback_tel">
-                            <?php if ($this->getCallbackConfigData() == 2): ?>
-                                <?php echo $this->__('Mobile phone number'); ?>
-                            <?php else: ?>
-                                <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
-                            <?php endif; ?>
-                            <span class="required">*</span></label><br/>
-                        <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" value="<?php echo $ccError ? $assignDatahelper->_getCheckout()->getNnCallbackTelNovalnetCc() : '';?>"/>
-                    </div>
-                </li>
-                <li>
-                    <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
-                        <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.') ?>
-                    </div>
-                    <div class="input-box">
-                        <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required">*</span></label><br/>
-                        <input onchange="document.getElementById('new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
-                        <input id="new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
-                        <label style="float:none;" for="new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
-                    </div>
-                </li>
-                <!--}}} PIN by Callback-->
-                <!--{{{ Reply by Email-->
-            <?php elseif ($this->getCallbackConfigData() == 3): ?>
-                <li>
-                    <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
-                        <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.') ?>
-                    </div>
-                    <div class="input-box">
-                        <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required">*</span></label><br/>
-                        <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php echo $ccError ? $assignDatahelper->_getCheckout()->getNnCallbackEmailNovalnetCc() : '';?>"/>
-                    </div>
-                </li>
-            <?php endif ?>
-            <!--}}} Reply by Email-->
-        <?php endif ?>
-        <!--}}} CallbackType-->
-    </ul>
+                <!--{{{ CallbackType-->
+                <?php if (!$creditCardSecure && $this->isCallbackTypeCall()): ?>
+                    <!--{{{ PIN by Callback-->
+                    <?php
+                    if ($this->getCallbackConfigData() != 3):
+                        ?>
+                        <li>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_tel">
+                                    <?php
+                                    if ($this->getCallbackConfigData() == 2):
+                                        ?>
+                                        <?php echo $this->__('Mobile phone number'); ?>
+                                    <?php else: ?>
+                                        <?php echo $this->__('Ihre Telefon- / Mobil- Nummer'); ?>
+                                    <?php endif; ?>
+                                    <span class="required">*</span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" value="<?php
+                                echo $ccRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackTelNovalnetCc()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required">*</span></label><br/>
+                                <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                                <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                                <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                            </div>
+                        </li>
+                        <!--}}} PIN by Callback-->
+                        <!--{{{ Reply by Email-->
+                        <?php
+                    elseif ($this->getCallbackConfigData() == 3):
+                        ?>
+                        <li>
+                            <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
+                                <?php echo $this->__('Hinweis: Nach einem Klick auf "Fortsetzen" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.') ?>
+                            </div>
+                            <div class="input-box">
+                                <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required">*</span></label><br/>
+                                <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php
+                                echo $ccRefill ? $helper->_getCheckout()->getData($code)->getNnCallbackEmailNovalnetCc()
+                                            : '';
+                                ?>"/>
+                            </div>
+                        </li>
+                    <?php endif ?>
+                    <!--}}} Reply by Email-->
+                <?php endif ?>
+                <!--}}} CallbackType-->
+            </ul>
         <?php endif; ?>
     </div>
 
     <input type="hidden" id="original_vendor_id" value="<?php echo trim($this->getMethod()->_getConfigData('merchant_id', true)) ?>" />
     <input type="hidden" id="original_vendor_authcode" value="<?php echo trim($this->getMethod()->_getConfigData('auth_code', true)) ?>" />
-	<input type="hidden" id="original_customstyle_css" value="<?php echo NOVALNET_CC_CUSTOM_CSS; ?>" />
-	<input type="hidden" id="original_customstyle_cssval" value="<?php echo NOVALNET_CC_CUSTOM_CSS_STYLE; ?>" />
+    <input type="hidden" id="original_customstyle_css" value="<?php echo NOVALNET_CC_CUSTOM_CSS; ?>" />
+    <input type="hidden" id="original_customstyle_cssval" value="<?php echo NOVALNET_CC_CUSTOM_CSS_STYLE; ?>" />
 
     <input type="hidden" name="novalnet_cc_owner" id="novalnet_cc_owner" value="" />
     <input type="hidden" name="novalnet_cc_type" id="novalnet_cc_type" value="" />

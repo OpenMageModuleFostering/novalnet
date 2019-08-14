@@ -27,50 +27,6 @@
 <?php
 $_code = Novalnet_Payment_Model_Config::NN_CC;
 ?>
-<script type="text/javascript">
-    function updateHiddenElements(elements) {
-
-		var cc_type=0; var cc_owner=0; var cc_no=0; var cc_hash=0; var cc_month=0; var cc_year=0; var cc_cid=0;
-		if(document.getElementById("novalnetCc_cc_type").value!= '') cc_type=1;
-		if(document.getElementById("novalnetCc_cc_owner").value!= '') cc_owner=1;
-		if(document.getElementById("novalnetCc_cc_number").value!= '') cc_no=1;
-		if(document.getElementById("novalnetCc_expiration").value!= '') cc_month = 1;
-		if(document.getElementById("novalnetCc_expiration_yr").value!= '') cc_year = 1;
-		if(document.getElementById("novalnetCc_cc_cid").value!= '') cc_cid=1;
-
-		var novalnet_cc_field_validator = cc_type+','+cc_owner+','+cc_no+','+cc_month+','+cc_year+','+cc_cid;
-
-        for (var i=0; i<elements.length; i++) {
-            switch (elements[i].name) {
-                case 'novalnet_cc_field_validator':
-                    elements[i].value = novalnet_cc_field_validator;
-                    break;
-                case 'novalnet_cc_owner':
-                    elements[i].value = document.getElementById('<?php echo $_code ?>_cc_owner').value;
-                    break;
-                case 'novalnet_cc_type':
-                    elements[i].value = document.getElementById('<?php echo $_code ?>_cc_type').value;
-                    break;
-                case 'novalnet_cc_pan_hash':
-                    elements[i].value = document.getElementById('nncc_cardno_id').value;
-                    break;
-                case 'novalnet_cc_unique_id':
-                    elements[i].value = document.getElementById('nncc_unique_id').value;
-                    break;
-                case 'novalnet_cc_exp_month':
-                    elements[i].value = document.getElementById('<?php echo $_code ?>_expiration').value;
-                    break;
-                case 'novalnet_cc_exp_year':
-                    elements[i].value = document.getElementById('<?php echo $_code ?>_expiration_yr').value;
-                    break;
-                case 'novalnet_cc_cid':
-                    elements[i].value = document.getElementById('<?php echo $_code ?>_cc_cid').value;
-                    break;
-                }
-            }
-            return true;
-        }
-</script>
 <!--{{{ Payment Description -->
 <ul>
     <li style="margin: 0 0 8px;">
@@ -79,7 +35,10 @@ $_code = Novalnet_Payment_Model_Config::NN_CC;
     <li style="margin: 0 0 8px;">
         <?php echo Mage::helper('novalnet_payment')->getModel('novalnetCc')->_getConfigData('booking_reference') ?>
     </li>
-    <?php if (Mage::helper('novalnet_payment')->getModel('novalnetCc')->_getConfigData('live_mode', true) == 0): ?>
+    <?php
+    if (Mage::helper('novalnet_payment')->getModel('novalnetCc')->_getConfigData('live_mode', true)
+            == 0):
+        ?>
         <li style="margin: 0 0 8px;">
             <div style="font-weight:bold;color:red;font-size:12px;">
                 <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>

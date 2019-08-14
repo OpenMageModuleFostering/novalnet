@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,13 +23,13 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
+class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
+{
 
-	/**
+    /**
      * Array values to configure global configuration
      */
-
-    protected $config = array(
+    protected $_config = array(
         'index' => array(
             'header_text' => 'Novalnet Global Configuration',
             'previous_page' => '',
@@ -41,8 +40,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
             'header_text' => 'Novalnet Global Configuration',
             'codes' => array(
                 'page' => 'generalGlobal',
-                //'section' => 'payment_config',
-				'section' => 'novalnet_global',
+                'section' => 'novalnet_global',
             ),
             'previous_page' => 'index',
         )
@@ -55,8 +53,9 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param $request
      * @return Varien_Object
      */
-    public function initConfig($actionName, $request) {
-        $config = new Varien_Object($this->config);
+    public function initConfig($actionName, $request)
+    {
+        $config = new Varien_Object($this->_config);
         $this->registerConfig($config);
 
         $configPages = $this->initConfigPage($actionName);
@@ -78,7 +77,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Varien_Object
      */
-    public function getConfig() {
+    public function getConfig()
+    {
         return Mage::registry('novalnet_wizard_config');
     }
 
@@ -87,7 +87,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @param Varien_Object $config
      */
-    public function registerConfig(Varien_Object $config) {
+    public function registerConfig(Varien_Object $config)
+    {
         Mage::register('novalnet_wizard_config', $config);
     }
 
@@ -96,7 +97,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Varien_Object
      */
-    public function getConfigPage() {
+    public function getConfigPage()
+    {
         /** @var $config Varien_Object */
         return Mage::registry('novalnet_wizard_config_page');
     }
@@ -106,7 +108,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @param Varien_Object $config
      */
-    public function registerConfigPage(Varien_Object $config) {
+    public function registerConfigPage(Varien_Object $config)
+    {
         Mage::register('novalnet_wizard_config_page', $config);
     }
 
@@ -116,18 +119,12 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param $page
      * @return array|null
      */
-    public function initConfigPage($page) {
-        if (!array_key_exists($page, $this->config)) {
+    public function initConfigPage($page)
+    {
+        if (!array_key_exists($page, $this->_config)) {
             return null;
         }
-        return $this->config[$page];
-    }
-
-    /**
-     * @return array
-     */
-    public function initConfigArray() {
-        return $this->config;
+        return $this->_config[$page];
     }
 
     /**
@@ -135,7 +132,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getNextPageUrlAsString() {
+    public function getNextPageUrlAsString()
+    {
         $pageName = $this->getConfigPage()->getData('next_page');
         $url = $this->getPageUrlAsString($pageName);
         return $url;
@@ -146,7 +144,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getPreviousPageUrlAsString() {
+    public function getPreviousPageUrlAsString()
+    {
         $pageName = $this->getConfigPage()->getData('previous_page');
         $url = $this->getPageUrlAsString($pageName);
         return $url;
@@ -157,7 +156,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getPageUrlAsString($nextPageName) {
+    public function getPageUrlAsString($nextPageName)
+    {
         $config = $this->getConfig();
         $nextPage = $config->getData($nextPageName);
         if ($nextPage && array_key_exists('url', $nextPage)) {
@@ -169,28 +169,36 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
     }
 
     /**
-     * Get configuration wizard page code
+     * Get the respective payport url
      *
      * @return string
      */
-    public function getNextPageCode($pageCode) {
-        $pages = $this->initConfigPage($pageCode);
-        if ($pages === null) {
-            return 'index';
+    public function getPayportUrl($reqType, $paymentCode = NULL)
+    {
+        $protocol = Mage::app()->getStore()->isCurrentlySecure() ? 'https' : 'http';
+
+        if ($paymentCode && $reqType == 'redirect') {
+            $redirectUrl = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayportUrl');
+            $payportUrl = $redirectUrl[$paymentCode];
+        } else {
+            $urlType = array(
+                'paygate' => Novalnet_Payment_Model_Config::PAYPORT_URL,
+                'infoport' => Novalnet_Payment_Model_Config::INFO_REQUEST_URL,
+                'cc' => Novalnet_Payment_Model_Config::CC_URL,
+                'sepa' => Novalnet_Payment_Model_Config::SEPA_URL
+            );
+            $payportUrl = $urlType[$reqType];
         }
-        if (!array_key_exists('next_page', $pages)) {
-            return 'index';
-        }
-        $nextPageKey = $pages['next_page'];
-        return $nextPageKey;
+        return $protocol . $payportUrl;
     }
 
     /**
      * Check whether logged in as admin
      *
-	 * @return bool
+     * @return bool
      */
-    public function checkIsAdmin() {
+    public function checkIsAdmin()
+    {
         return (Mage::app()->getStore()->isAdmin()) ? true : false;
     }
 
@@ -199,7 +207,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return mixed
      */
-    public function getMagentoVersion() {
+    public function getMagentoVersion()
+    {
         return Mage::getVersion();
     }
 
@@ -208,7 +217,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return int
      */
-    public function getMagentoStoreId() {
+    public function getMagentoStoreId()
+    {
         $storeId = Mage::getModel('sales/quote')->getStoreId();
         if ($this->checkIsAdmin()) {
             $storeId = $this->_getAdminCheckoutSession()->getStoreId();
@@ -221,7 +231,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Mage_Core_Model_Store
      */
-    public function getMagentoStore() {
+    public function getMagentoStore()
+    {
         return Mage::app()->getStore();
     }
 
@@ -230,9 +241,10 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getNovalnetVersion() {
+    public function getNovalnetVersion()
+    {
         $versionInfo = (string) Mage::getConfig()->getNode('modules/Novalnet_Payment/version');
-        return "Novalnet CE (v{$versionInfo})";
+        return "NN_$versionInfo";
     }
 
     /**
@@ -240,12 +252,27 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getRealIpAddr() {
-		$ipAddr = Mage::helper('core/http')->getRemoteAddr();
-		if($ipAddr == '::1') {//IPv6 Issue
-			return '127.0.0.1';
-		}
-		return $ipAddr;
+    public function getRealIpAddr()
+    {
+        $ipAddr = Mage::helper('core/http')->getRemoteAddr();
+        if ($ipAddr == '::1') {//IPv6 Issue
+            return '127.0.0.1';
+        }
+        return $ipAddr;
+    }
+
+    /**
+     * Get Server Ip address
+     *
+     * @return string
+     */
+    public function getServerAddr()
+    {
+        $serverAddr = Mage::helper('core/http')->getServerAddr();
+        if ($serverAddr == '::1') {//IPv6 Issue
+            return '127.0.0.1';
+        }
+        return $serverAddr;
     }
 
     /**
@@ -253,7 +280,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getNovalnetUrl() {
+    public function getNovalnetUrl()
+    {
         if (strtoupper($this->getDefaultLanguage()) == 'DE') {
             $siteUrl = 'https://www.novalnet.de';
         } else {
@@ -267,9 +295,10 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getNovalnetPaymentFormLogoUrl() {
+    public function getNovalnetPaymentFormLogoUrl()
+    {
         $baseUrl = Mage::getBaseUrl('skin');
-        $imageUrl = $baseUrl . "frontend/default/default/images/novalnet/" . strtoupper($this->getDefaultLanguage()) . "/";
+        $imageUrl = $baseUrl . "frontend/base/default/images/novalnet/";
         return $imageUrl;
     }
 
@@ -278,7 +307,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Mage_Checkout_Model_Session
      */
-    public function _getCheckoutSession() {
+    public function _getCheckoutSession()
+    {
         return Mage::getSingleton('checkout/session');
     }
 
@@ -287,8 +317,23 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Mage_adminhtml_Model_Session_quote
      */
-    public function _getAdminCheckoutSession() {
+    public function _getAdminCheckoutSession()
+    {
         return Mage::getSingleton('adminhtml/session_quote');
+    }
+
+    /**
+     * Get checkout session
+     *
+     * @return Mage_Sales_Model_Order
+     */
+    public function _getCheckout()
+    {
+        if ($this->checkIsAdmin()) {
+            return $this->_getAdminCheckoutSession();
+        } else {
+            return $this->_getCheckoutSession();
+        }
     }
 
     /**
@@ -296,7 +341,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return date/time
      */
-    public function getCurrentDateTime() {
+    public function getCurrentDateTime()
+    {
         return Mage::getModel('core/date')->date('Y-m-d H:i:s');
     }
 
@@ -305,33 +351,44 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Mage_customer_Model_Session
      */
-    public function getCustomerSession() {
+    public function getCustomerSession()
+    {
         return Mage::getSingleton('customer/session');
     }
 
     /**
-     * Check customer_no for Logged in user
+     * Get the core session
+     */
+    public function getCoresession()
+    {
+        return Mage::getSingleton('core/session');
+    }
+
+    /**
+     * Check customerNo for Logged in user
      *
      * @return bool
      */
-    public function customerNumberValidation() {
+    public function customerNumberValidation()
+    {
         $getCoreData = $this->getCurrentDateTime();
         try {
             $getCustomerSession = $this->getCustomerSession();
-            $order_details = Mage::getModel('checkout/cart')->getQuote()->getData();
+            $orderDetails = Mage::getModel('checkout/cart')->getQuote()->getData();
 
             //Checking custommer loggin status
-            $login_check = $getCustomerSession->isLoggedIn();
-            if ($login_check) {
-                $customer_no = $getCustomerSession->getCustomer()->getId();
-                if (empty($customer_no)) {
-                    $customer_no = $_SESSION['core']['visitor_data']['customer_id']; // Used Only customer id is not assigned in mage session
+            $loginCheck = $getCustomerSession->isLoggedIn();
+            if ($loginCheck) {
+                $customerNo = $getCustomerSession->getCustomer()->getId();
+                if (empty($customerNo)) {
+                    $coreSession = $this->getCoresession()->getvisitorData();
+                    $customerNo = $coreSession['customer_id']; // Used Only customer id is not assigned in mage session
                 }
                 //Log customer Order details
-                if ($customer_no == "") {
+                if ($customerNo == "") {
                     Mage::log($getCustomerSession->getCustomer(), NULL, "Customerid_Missing_" . $getCoreData . ".log");
                     Mage::log("Below are Order Details : ", NULL, "Customerid_Missing_" . $getCoreData . ".log");
-                    Mage::log($order_details, NULL, "Customerid_Missing_" . $getCoreData . ".log");
+                    Mage::log($orderDetails, NULL, "Customerid_Missing_" . $getCoreData . ".log");
                     Mage::throwException($this->__('Basic Parameter Missing. Please contact Shop Admin') . '!');
                 }
             }
@@ -345,7 +402,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * for Zero subtotal Checkout
      * @return bool
      */
-    public function isModuleActive($grandTotal = NULL) {
+    public function isModuleActive($grandTotal = NULL)
+    {
         if (!$grandTotal || $grandTotal == 0) {
             return false;
         }
@@ -357,29 +415,20 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return bool
      */
-    public function isCallbackTypeAllowed($countryCode) {
-        $allowedCountryCode = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('callbackAllowedCountry');
-        if (in_array($countryCode, $allowedCountryCode)
-                && !(Mage::app()->getStore()->isAdmin())) {
+    public function isCallbackTypeAllowed($countryCode)
+    {
+        $allowedCountryCode = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('callbackAllowed');
+        if (in_array($countryCode, $allowedCountryCode) && !(Mage::app()->getStore()->isAdmin())) {
             return true;
         }
         return false;
     }
 
     /**
-     * Encode special characters
-     * @param String $input
-     *
-     * @return String
-     */
-    public function nn_utf8_encode($input) {
-        return (mb_detect_encoding($input, 'UTF-8', true) == 'UTF-8') ? utf8_decode($input) : $input;
-    }
-
-    /**
      * @return string
      */
-    public function getDefaultLanguage() {
+    public function getDefaultLanguage()
+    {
         $locale = explode('_', Mage::app()->getLocale()->getLocaleCode());
         if (is_array($locale) && !empty($locale)) {
             $locale = $locale[0];
@@ -394,11 +443,12 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return int|null
      */
-    public function getCustomerId() {
+    public function getCustomerId()
+    {
         $customerNo = '';
         if ($this->checkIsAdmin()) {
-            $adminuser = Mage::getSingleton('admin/session');
-            $customerNo = $adminuser->getUser()->getUserId();
+            $quoteCustomerNo = $this->_getAdminCheckoutSession()->getQuote()->getCustomerId();
+            $customerNo = $quoteCustomerNo ? $quoteCustomerNo : 'guest';
         } else {
             $loginCheck = $this->getCustomerSession()->isLoggedIn();
             if ($loginCheck) {
@@ -417,7 +467,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param   array $params
      * @return  string
      */
-    public function getUrl($route, $params = array()) {
+    public function getUrl($route, $params = array())
+    {
         $params['_type'] = Mage_Core_Model_Store::URL_TYPE_LINK;
         if (isset($params['is_secure'])) {
             $params['_secure'] = (bool) $params['is_secure'];
@@ -434,7 +485,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return array
      */
-    public function getAdditionalData($info, $key = null) {
+    public function getAdditionalData($info, $key = null)
+    {
         $data = array();
         if ($info->getAdditionalData()) {
             $data = unserialize($info->getAdditionalData());
@@ -451,7 +503,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return bool
      */
-    public function checkCustomerAccess($userGroupId = NULL) {
+    public function checkCustomerAccess($userGroupId = NULL)
+    {
         $exludedGroupes = trim($userGroupId);
         if (strlen($exludedGroupes)) {
             $exludedGroupes = explode(',', $exludedGroupes);
@@ -465,7 +518,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * Do encode for novalnet params
      *
      */
-    public function setNovalnetEncodedParam(Varien_Object $request, $key) {
+    public function setNovalnetEncodedParam(Varien_Object $request, $key)
+    {
         $request->setAuthCode($this->getEncodedParam($request->getAuthCode(), $key))
                 ->setProduct($this->getEncodedParam($request->getProduct(), $key))
                 ->setTariff($this->getEncodedParam($request->getTariff(), $key))
@@ -481,11 +535,13 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return string
      */
-    public function getEncodedParam($data, $key) {
+    public function getEncodedParam($data, $key)
+    {
         $data = trim($data);
-        if ($data == '')
+        if ($data == '') {
             return'Error: no data';
-        if (!function_exists('base64_decode') or !function_exists('pack') or !function_exists('crc32')) {
+        }
+        if (!function_exists('base64_decode') or ! function_exists('pack') or ! function_exists('crc32')) {
             return'Error: func n/a';
         }
         try {
@@ -494,7 +550,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
             $data = bin2hex($data . $key);
             $data = strrev(base64_encode($data));
         } catch (Exception $e) {
-            echo('Error: ' . $e);
+            return false;
         }
         return $data;
     }
@@ -503,11 +559,12 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * Function to Encode Novalnet PCI data
      *
      * @param string $data
-
+     *
      * @param string $key
      * @return string
      */
-    public function getPciEncodedParam(&$fields, $key) {
+    public function getPciEncodedParam(&$fields, $key)
+    {
         if (!function_exists('base64_encode') || !function_exists('pack') || !function_exists('crc32')) {
             return false;
         }
@@ -537,7 +594,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return string
      */
-    public function getDecodedParam($data, $key) {
+    public function getDecodedParam($data, $key)
+    {
         $data = trim($data);
         if ($data == '') {
             return'Error: no data';
@@ -560,7 +618,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
             }
             return $value;
         } catch (Exception $e) {
-            echo('Error: ' . $e);
+            return false;
         }
     }
 
@@ -570,7 +628,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $str
      * @return bool
      */
-    public function isEmptyString($str) {
+    public function isEmptyString($str)
+    {
         $str = trim($str);
         return !isset($str[0]);
     }
@@ -582,7 +641,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return string
      */
-    public function generateHash($data, $key) {
+    public function generateHash($data, $key)
+    {
         if (!function_exists('md5') || $this->isEmptyString($key)) {
             return false;
         }
@@ -604,7 +664,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return string
      */
-    public function generateHashReturn($data, $key) {
+    public function generateHashReturn($data, $key)
+    {
         if (!function_exists('md5') || $this->isEmptyString($key)) {
             return false;
         }
@@ -626,7 +687,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return string
      */
-    public function getHash($h, $key) {
+    public function getHash($h, $key)
+    {
         if (empty($h)) {
             return'Error: no data';
         }
@@ -643,27 +705,15 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $key
      * @return bool
      */
-    public function checkHash($request, $key) {
-        if (!$request)
+    public function checkHash($request, $key)
+    {
+        if (!$request) {
             return false;
+        }
         if ($request['hash2'] != $this->getHash($request, $key)) {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Check PCI hash value
-     *
-     * @param array $response
-     * @param string $key
-     * @return bool
-     */
-    public function checkPciHash($response, $key) {
-        return isset($response['hash2'])
-                && !$this->isEmptyString($response['hash2'])
-                && (($tmp = $this->generateHashReturn($response, $key)) !== false)
-                && ($response['hash2'] == $tmp);
     }
 
     /**
@@ -673,7 +723,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $password
      * @return int
      */
-    public function checkParams($response, $password) {
+    public function checkParams($response, $password)
+    {
         $status = $response['status'];
         if (!$response['hash2']) {
             $status = '94';
@@ -696,42 +747,22 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return int
      */
-    public function getPaymentId($code) {
-		if($code == 'novalnetSepa' && $this->getModel($code)->_getConfigData('sepatypes') == 'DD_SEPA_SIGNED') {
-			$code = $code.'Signed';
-		}
+    public function getPaymentId($code)
+    {
         $arrPaymentId = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetPaymentKey');
         return $arrPaymentId[$code];
     }
 
-    public function checkOrdersCount($minOrderCount) {
-		$customerId = $this->getCustomerId();
+    public function checkOrdersCount($minOrderCount)
+    {
+        $customerId = $this->getCustomerId();
         // Load orders and check
-        $orders = Mage::getModel('sales/order')->getCollection()->addFieldToFilter('customer_id',$customerId);
-		$OrdersCount = $orders->count();
-        if (trim($OrdersCount) < $minOrderCount) {
+        $orders = Mage::getModel('sales/order')->getCollection()->addFieldToFilter('customer_id', $customerId);
+        $ordersCount = $orders->count();
+        if (trim($ordersCount) < $minOrderCount) {
             return true;
         }
         return false;
-
-    }
-
-    /**
-     * Parse an NVP response string into an associative array
-     *
-     * @param string $nvpstr
-     * @return array
-     */
-    public function deformatNvp($delim_char, $query) {
-        $deformated = array();
-        if (strlen($query)) {
-            $tmp = explode($delim_char, $query);
-            foreach ($tmp as $k) {
-                $k = explode('=', $k);
-                $deformated[urldecode($k[0])] = isset($k[1]) ? urldecode($k[1]) : NULL;
-            }
-        }
-        return $deformated;
     }
 
     /**
@@ -739,7 +770,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return bool
      */
-    public function setDueDate($paymentDuration) {
+    public function setDueDate($paymentDuration)
+    {
         $dueDate = '';
         if ($paymentDuration && $this->checkIsNumeric($paymentDuration)) {
             $dueDate = date('Y-m-d', strtotime('+' . (int) $paymentDuration . ' days'));
@@ -754,7 +786,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Novalnet_Payment_Model_Payment_Method_Abstract
      */
-    public function getModel($modelclass) {
+    public function getModel($modelclass)
+    {
         return Mage::getModel('novalnet_payment/payment_method_' . $modelclass);
     }
 
@@ -763,8 +796,19 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Novalnet_Payment_Model_Transactionstatus_Collection
      */
-    public function getModelTransactionStatus() {
+    public function getModelTransactionStatus()
+    {
         return Mage::getModel('novalnet_payment/transactionstatus');
+    }
+
+    /**
+     * Get novalnet callback model
+     *
+     * @return Novalnet_Payment_Model_Callback_Collection
+     */
+    public function getModelCallback()
+    {
+        return Mage::getModel('novalnet_payment/callback');
     }
 
     /**
@@ -772,7 +816,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return Novalnet_Payment_Model_Transactionoverview_Collection
      */
-    public function getModelTransactionOverview() {
+    public function getModelTransactionOverview()
+    {
         return Mage::getModel('novalnet_payment/transactionoverview');
     }
 
@@ -782,7 +827,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param mixed $value
      * @return bool
      */
-    public function checkIsNumeric($value) {
+    public function checkIsNumeric($value)
+    {
         return preg_match('/^\d+$/', $value) ? true : false;
     }
 
@@ -792,7 +838,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param mixed $value
      * @return bool
      */
-    public function checkIsValid($value) {
+    public function checkIsValid($value)
+    {
         return (!$value || preg_match('/[#%\^<>@$=*!]/', $value)) ? false : true;
     }
 
@@ -802,16 +849,20 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param mixed $value
      * @return bool
      */
-    public function validateEmail($emailId) {
-        return preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $emailId) ? true : false;
+    public function validateEmail($emailId)
+    {
+        return preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $emailId)
+                    ? true : false;
     }
+
     /**
      * Replace strings from the value passed
      *
      * @param mixed $value
      * @return integer
      */
-    public function makeValidNumber($value) {
+    public function makeValidNumber($value)
+    {
         return preg_replace('/[^0-9]+/', '', $value);
     }
 
@@ -822,7 +873,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param string $type
      * @return mixed
      */
-    public function getFormatedAmount($amount, $type = 'CENT') {
+    public function getFormatedAmount($amount, $type = 'CENT')
+    {
         return ($type == 'RAW') ? $amount / 100 : round($amount, 2) * 100;
     }
 
@@ -832,18 +884,20 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      * @param integer $txnId
      * @return object Novalnet_Payment_Model_Transactionstatus
      */
-    public function loadTransactionStatus($txnId) {
+    public function loadTransactionStatus($txnId)
+    {
         return $this->getModelTransactionStatus()->loadByAttribute('transaction_no', $txnId);
     }
 
     /**
-     * Mask payment data
+     * Load novalnet callback value based on order-id
      *
-     * @param integer $txnId
-     * @return varchar
+     * @param integer $orderId
+     * @return object Novalnet_Payment_Model_Callback
      */
-    public function doMaskPaymentData($data) {
-        return substr($data, 0, -4) . '****';
+    public function loadCallbackValue($orderId)
+    {
+        return $this->getModelCallback()->loadByAttribute('order_id', $orderId);
     }
 
     /**
@@ -851,7 +905,8 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-    public function getNovalnetGlobalPath() {
+    public function getNovalnetGlobalPath()
+    {
         return 'novalnet_global/novalnet/';
     }
 
@@ -860,8 +915,58 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract {
      *
      * @return string
      */
-
-    public function getCurrentSiteUrl() {
+    public function getCurrentSiteUrl()
+    {
         return Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
     }
+
+    /**
+     * Log novalnet transaction status data
+     *
+     */
+    public function doTransactionStatusSave($response, $transactionStatus, $payment,
+        $amount = NULL, $customerNo = NULL
+    ) {
+        $paymentObj = $payment->getMethodInstance();
+        $storeId = $payment->getOrder()->getStoreId();
+        $ncNo = ($response->getNcNo()) ? $response->getNcNo() : NULL;
+        $amount = ($response->getAmount() && is_numeric($response->getAmount())) ? $response->getAmount() : $amount;
+        $customerId = $response->getCustomerNo() ? $response->getCustomerNo() : $customerNo;
+        $orderId = ($response->getOrderNo()) ? $response->getOrderNo() : $payment->getOrder()->getIncrementId();
+        $modNnTransStatus = Mage::getModel('novalnet_payment/transactionstatus');
+        $modNnTransStatus->setTransactionNo($response->getTid())
+                ->setOrderId($orderId)
+                ->setTransactionStatus($transactionStatus->getStatus()) //Novalnet Admin transaction status
+                ->setNcNo($ncNo)
+                ->setCustomerId($customerId)
+                ->setPaymentName($paymentObj->getCode())
+                ->setAmount($amount)
+                ->setRemoteIp($this->getRealIpAddr())
+                ->setStoreId($storeId)
+                ->setShopUrl($this->getCurrentSiteUrl())
+                ->setCreatedDate($this->getCurrentDateTime())
+                ->save();
+    }
+
+    /**
+     * Log novalnet payment response data
+     *
+     */
+    public function doTransactionOrderLog($response, $orderId, $storeId = NULL, $customerId = NULL)
+    {
+        $customerId = ($customerId != NULL) ? $customerId : $this->getCustomerId();
+        $storeId = ($storeId != NULL) ? $storeId : $this->getMagentoStoreId();
+        $modNnTransOverview = $this->getModelTransactionOverview()->loadByAttribute('order_id', $orderId);
+        $response = ($modNnTransOverview->getResponseData())
+                ? new Varien_Object(array_merge(unserialize($modNnTransOverview->getResponseData()), $response->getData()))
+                : $response;
+        $modNnTransOverview->setTransactionId($response->gettid())
+                ->setResponseData(serialize($response->getData()))
+                ->setCustomerId($customerId)
+                ->setStatus($response->getstatus()) //transaction status code
+                ->setStoreId($storeId)
+                ->setShopUrl($this->getCurrentSiteUrl())
+                ->save();
+    }
+
 }

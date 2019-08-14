@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,12 +23,18 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
+if (!defined('NOVALNET_CC_CUSTOM_CSS')) {
+    define('NOVALNET_CC_CUSTOM_CSS', 'input~~~#novalnetCc_expiration_yr~~~#novalnetCc_expiration_yr.error');
+}
+if (!defined('NOVALNET_CC_CUSTOM_CSS_STYLE')) {
+    define('NOVALNET_CC_CUSTOM_CSS_STYLE', 'background: none repeat scroll 0 0 #FFFFFF;
+    border-color: #AAAAAA #C8C8C8 #C8C8C8 #AAAAAA;border-style: solid;border-width: 1px;font: 12px;width:224px;~~~width:75px;~~~color:#2f2f2f;font-weight:lighter;');
+}
 
-if (!defined('NOVALNET_CC_CUSTOM_CSS')) define('NOVALNET_CC_CUSTOM_CSS', 'label~~~td~~~input');
-if (!defined('NOVALNET_CC_CUSTOM_CSS_STYLE')) define('NOVALNET_CC_CUSTOM_CSS_STYLE', 'color: rgb(102, 102, 102);font-weight: bold;~~~color: rgb(102, 102, 102);font-weight: bold;~~~width: 254px;border: 1px solid rgb(182, 182, 182);padding: 2px;');
-
-if (!defined('NOVALNET_SEPA_CUSTOM_CSS')) define('NOVALNET_SEPA_CUSTOM_CSS', 'label~~~td~~~input~~~select');
-if (!defined('NOVALNET_SEPA_CUSTOM_CSS_STYLE')) define('NOVALNET_SEPA_CUSTOM_CSS_STYLE', 'color: rgb(102, 102, 102);font-weight: bold;~~~color: rgb(102, 102, 102);font-weight: bold;~~~width: 254px;border: 1px solid rgb(182, 182, 182);padding: 2px;~~~width: 254px;border: 1px solid rgb(182, 182, 182);padding: 2px;');
-
-
-?>
+if (!defined('NOVALNET_SEPA_CUSTOM_CSS')) {
+    define('NOVALNET_SEPA_CUSTOM_CSS', 'input~~~select');
+}
+if (!defined('NOVALNET_SEPA_CUSTOM_CSS_STYLE')) {
+    define('NOVALNET_SEPA_CUSTOM_CSS_STYLE', 'background: none repeat scroll 0 0 #FFFFFF;
+    border-color: #AAAAAA #C8C8C8 #C8C8C8 #AAAAAA;border-style: solid;border-width: 1px;font: 12px;width:224px;~~~background: none repeat scroll 0 0 #FFFFFF;border-color: #AAAAAA #C8C8C8 #C8C8C8 #AAAAAA;border-style: solid;border-width: 1px;font: 12px;width:224px;');
+}

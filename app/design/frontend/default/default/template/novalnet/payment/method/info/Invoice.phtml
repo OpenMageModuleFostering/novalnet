@@ -13,44 +13,61 @@
  * to license@magentocommerce.com so we can send you a copy immediately.
  *
  * Part of the Paymentmodule of Novalnet AG
- * https://www.novalnet.de 
- * If you have found this script usefull a small        
- * recommendation as well as a comment on merchant form 
+ * https://www.novalnet.de
+ * If you have found this script usefull a small
+ * recommendation as well as a comment on merchant form
  * would be greatly appreciated.
- * 
+ *
  * @category   Mage
  * @package    Mage_Novalnet
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-?>
-<?php
 $_info = $this->getInfo();
-if ($_info):
-    ?>
-    <?php if ($this->getAdditionalData('NnTestOrder'))
-        echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!', $this->__('Testorder'), '!</div>'
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $_info->getLastTransId();
+$helper = Mage::helper('novalnet_payment');
+$currentUrl = Mage::helper('core/url')->getCurrentUrl();
+?>
+<?php if ($_info): ?>
+    <?php
+    if ($this->getAdditionalData('NnTestOrder'))
+            echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!', $this->__('Testorder'), '!</div>'
         ?>
     <?php echo $this->htmlEscape($this->getPaymentMethod()) ?><br />
-    <?php if ($_info->getLastTransId() != "") echo $this->__('TID: %s', $this->htmlEscape($_info->getLastTransId())) ?>
-    <?php if (strlen($this->getAdditionalData('NnComments'))) {
-        echo '<br>', nl2br($this->getAdditionalData('NnComments'));
-    } ?>
-    <?php if (strlen($this->getAdditionalData('NnNote'))) {
-        echo '<br>', nl2br($this->getAdditionalData('NnNote'));
-    } ?>
-    <?php if (strlen($this->getAdditionalData('NnNoteAmount'))) {
+    <?php if ($transactionId) echo $this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId)) . '<br />' ?>
+	<?php if ($this->getAdditionalData('voidTid')) echo '<br>' . $this->__('Transaction deactivated successfully') . '<br>' ?>
+    <?php if ($this->getAdditionalData('refunded_tid')):
+            foreach($this->getAdditionalData('refunded_tid') as $key => $value):
+                if ($this->getAdditionalData('fullRefund') == true):
+                    echo '<br>' . $this->__('Refunded Transaction ID: %s', $helper->makeValidNumber($value['reqtid'])) . '<br>';
+                else:
+                    echo '<br>' . $this->__('For Tid: %s', $helper->makeValidNumber($value['reqtid'])) . ' ' . $this->__('amount refunded is %s', $value['refamount']) . '<br>';
+                endif;
+            endforeach;
+          endif;
+    ?>
+    <?php if (!preg_match("/creditmemo|shipment|callback_novalnet2magento/i", $currentUrl)) { ?>    
+    <?php
+    if (strlen($this->getAdditionalData('NnNote'))) {
+        echo ($this->getAdditionalData('NnNote'));
+    }
+    ?>
+    <?php
+    if (strlen($this->getAdditionalData('NnNoteAmount'))) {
         echo nl2br($this->getAdditionalData('NnNoteAmount'));
-    } ?>
-    <?php if (strlen($this->getAdditionalData('NnNoteTID'))) {
+    }
+    ?>
+    <?php
+    if (strlen($this->getAdditionalData('NnNoteTID'))) {
         echo nl2br($this->getAdditionalData('NnNoteTID'));
-    } ?>
-    <?php if (strlen($this->getAdditionalData('NnNoteTransfer'))) {
-        echo nl2br($this->getAdditionalData('NnNoteTransfer'));
-    } ?>
-    <?php if (strlen($this->getAdditionalData('NnScript'))) {
-        echo '<br>', nl2br($this->getAdditionalData('NnScript'));
-    } ?>
+    }
+    ?>        
+	<?php
+    if (strlen($this->getAdditionalData('NnComments'))) {
+        echo nl2br($this->getAdditionalData('NnComments')) . '<br>';
+    }
+    ?>
+    <?php } ?>
 <?php else: ?>
     <?php echo $this->__('Error in getting payment method') ?>
 <?php endif; ?>

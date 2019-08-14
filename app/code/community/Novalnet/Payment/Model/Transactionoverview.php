@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,12 +23,14 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Transactionoverview extends Mage_Core_Model_Abstract {
+class Novalnet_Payment_Model_Transactionoverview extends Mage_Core_Model_Abstract
+{
 
     /**
      *
      */
-    public function _construct() {
+    public function _construct()
+    {
         parent::_construct();
         $this->_init('novalnet_payment/transactionoverview');
     }
@@ -41,29 +42,15 @@ class Novalnet_Payment_Model_Transactionoverview extends Mage_Core_Model_Abstrac
      * @param string $value
      * @return Novalnet_Payment_Model_Source_Transactionoverview
      */
-    public function loadByAttribute($attribute, $value) {
+    public function loadByAttribute($attribute, $value)
+    {
         $this->load($value, $attribute);
         return $this;
     }
 
-    /**
-     * @param Mage_Sales_Model_Order_Payment $payment
-     * @return Novalnet_Payment_Model_Transactionoverview
-     */
-    public function loadByPayment(Mage_Sales_Model_Order_Payment $payment) {
-        if ($payment->getOrder()->getIncrementId()) {
-            $this->load($payment->getOrder()->getIncrementId(), 'order_id');
-        }
-        return $this;
-    }
-
-    public function loadByOrderLogId(Novalnet_Payment_Model_Transactionoverview $orderLog) {
+    public function loadByOrderLogId(Novalnet_Payment_Model_Transactionoverview $orderLog)
+    {
         $this->load($orderLog->getNnLogId(), 'nn_log_id');
-        return $this;
-    }
-
-    public function loadLogByOrderId($orderId) {
-        $this->load($orderId, 'order_id');
         return $this;
     }
 

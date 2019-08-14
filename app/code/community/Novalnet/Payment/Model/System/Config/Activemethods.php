@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,34 +23,35 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_System_Config_Activemethods {
+class Novalnet_Payment_Model_System_Config_Activemethods
+{
 
-    public function toOptionArray() {
+    public function toOptionArray()
+    {
         $methods = array();
         $activePayment = false;
         $inactivePayment = false;
- 
-		if (strlen($code = Mage::app()->getRequest()->getParam('store'))) { // store level
-			$scopeId = Mage::getModel('core/store')->load($code)->getId();
-		}
-		elseif (strlen($code = Mage::app()->getRequest()->getParam('website'))) { // website level
-			$website_id = Mage::getModel('core/website')->load($code)->getId();
-			$scopeId = Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
-		}
-		else { // default level
-			$scopeId = 0;
-		}
+
+        if (strlen($code = Mage::app()->getRequest()->getParam('store'))) { // store level
+            $scopeId = Mage::getModel('core/store')->load($code)->getId();
+        } elseif (strlen($code = Mage::app()->getRequest()->getParam('website'))) { // website level
+            $websiteId = Mage::getModel('core/website')->load($code)->getId();
+            $scopeId = Mage::app()->getWebsite($websiteId)->getDefaultStore()->getId();
+        } else { // default level
+            $scopeId = 0;
+        }
 
         $payments = Mage::getSingleton('payment/config')->getActiveMethods($scopeId);
-		foreach ($payments as $paymentCode => $paymentModel) {
-		
+        $novalnetPaymentMethods = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetPaymentMethods');
+        foreach ($payments as $paymentCode => $paymentModel) {
+
             if (preg_match("/novalnet/i", $paymentCode)) {
 
                 $paymentActive = Mage::getStoreConfig('payment/' . $paymentCode . '/active', $scopeId);
                 if ($paymentActive == true) {
-                    $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title', $scopeId);
+                    $paymentMethod = Mage::helper('novalnet_payment')->__($novalnetPaymentMethods[$paymentCode]);
                     $methods[$paymentCode] = array(
-                        'label' => $paymentTitle,
+                        'label' => $paymentMethod,
                         'value' => $paymentCode,
                     );
                     $activePayment = true;

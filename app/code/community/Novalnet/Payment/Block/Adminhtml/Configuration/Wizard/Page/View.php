@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -24,9 +23,11 @@
  * @copyright  Novalnet AG
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Mage_Adminhtml_Block_Widget_View_Container {
+class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Mage_Adminhtml_Block_Widget_View_Container
+{
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->_blockGroup = 'novalnet_payment';
         $this->_controller = 'adminhtml_configuration_wizard_page';
         $this->_headerText = Mage::helper('novalnet_payment')->__('Novalnet Payment Configuration');
@@ -41,7 +42,8 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Ma
         ));
     }
 
-    public function getViewHtml() {
+    public function getViewHtml()
+    {
         $html = '';
         foreach ($this->getSortedChildren() as $childName) {
 
@@ -52,27 +54,33 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Page_View extends Ma
         return $html;
     }
 
-    protected function getNextUrl() {
+    protected function getNextUrl()
+    {
         $url = $this->helperWizard()->getNextPageUrlAsString();
         return $this->getUrl($url, array('_current' => true));
     }
 
-    public function getHeaderText() {
+    public function getHeaderText()
+    {
         $headerText = $this->getConfigPage('header_text');
         $text = Mage::helper('novalnet_payment')->__($headerText);
         return $text;
     }
 
-    public function getConfigPage($path) {
+    public function getConfigPage($path)
+    {
         $config = $this->helperWizard()->getConfigPage();
         return $config->getData($path);
     }
 
-    public function helperWizard() {
+    public function helperWizard()
+    {
         return Mage::helper('novalnet_payment');
     }
-    
-	protected function _prepareLayout()	{
-		$this->unsetChild('', '');
-	}
+
+    protected function _prepareLayout()
+    {
+        $this->unsetChild('', '');
+    }
+
 }
