@@ -1,5 +1,0 @@
-<?php if( $this->getInfo()->getNnTestorder() ) echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!',$this->__('Testorder'),'!</div>' ?>
-<?php echo $this->__($this->htmlEscape($this->getMethod()->getTitle())) ?><br />
-<?php if($this->getInfo()->getLastTransId()): ?>
-   <?php echo Mage::helper('sofortueberweisung')->__('TID: %s',$this->getInfo()->getLastTransId()) ?><br />
-<?php endif; ?>   

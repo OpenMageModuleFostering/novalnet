@@ -1,0 +1,336 @@
+Enable Novalnet Module,Enable module
+--Please Select--,--Please Select--
+accepted,accepted
+Account Holder,Account Holder
+Account Holder: %s,Account Holder: %s
+Account Holder2,Account Holder
+Account Number,Account Number
+Account Number: %s,Account Number: %s
+acdc Check,ACDC-Check
+ACDC-Check,Enable ACDC Control
+ACDC-Check accepted,ACDC-Check accepted
+Amount,Amount
+"Amounts below 0,99 Euros and above 10,00 Euros cannot be processed and are not accepted","Amounts below 0,99 Euros and above 10,00 Euros cannot be processed and are not accepted"
+and is only possible from German Landline Telefon connection,and is only possible from German Landline Telefon connection
+Antwort per Email,Email Reply
+AT,Austria
+Bank,Bank
+Bank Sorting Code,Bank Code
+Bank Sorting Code: %s,Bank Code: %s
+Basic Parameter Missing,Basic Parameter Missing
+Billing Addr. not found,Billing Addr. not found
+Booking Reference,Booking Reference
+Callback (Telefon & Handy),Callback (Landline & mobile)
+Callback session has expired. Please resubmit payment method,"Your PIN session has expired, Please try again"
+Card Verification Number,CVC (Verification Code)
+Card Verification Number: %s,CVC (Verification Code): %s
+Cc Card Verification Number,CVC (Verification Code)
+CC,Credit Card
+Cc,Credit Card
+Comment,Comment
+Country,Country
+Country: ,Country: 
+Credit Card,Credit Card
+Credit Card 3D-Secure,Credit Card 3D Secure
+Credit card holder ,Credit Card holder
+Credit card holder: %s,Credit Card holder: %s
+Credit Card Number,Credit Card Number
+Credit Card Number: %s,Credit Card Number: %s
+Credit Card Number: xxxx-%s,Credit Card Number: xxxx-%s
+Credit Card PCI,Credit Card PCI
+Credit Card Type,Credit Card Type
+Credit Card Type: %s,Credit Card Type: %s
+Credit Card Types,Credit Card Types
+Creditcard,Credit Card
+Customer aborted payment process,Customer aborted payment process
+Customer successfully returned from Novalnet,Customer successfully returned from Novalnet
+Customer was redirected to Novalnet,Customer was redirected to Novalnet
+Customer was rejected by Novalnet,Customer was rejected by Novalnet
+DE,Germany
+Did you called this number,Haben Sie diese Nummer angerufen
+Die Hashfunktionen sind nicht verf?gbar!,Check Hash Failed
+Direct Debit,Direct Debit
+Due at,Due at
+Due Date,Due Date
+Email Address,Email Address
+Email address missing,Email address missing
+Enter your Novalnet Password,Enter your Novalnet payment access key 
+Error,Error
+Excluded User Group Desc,"To exclude groups of customers, write their IDs here (separated by comma). You can find the IDs in the Customers → Customer Groups."
+Expiration Date,Expiration Date
+Expiration Date: %s/%s,Expiration Date: %s/%s
+Cc Expiration Date,Expiration Date
+Following steps are required to complete the telephone payment process,Following steps are required to complete the telephone payment process
+Forgot PIN? [New PIN Request],Forgot PIN? [New PIN Request]
+Gateway Timeout,Gateway Timeout
+Gateway Timeout in seconds,Gateway Timeout in seconds
+"Hinweis: Nach einem Klick auf ""Fortsetzen"" erhalten Sie in Kürze ein EMAIL, das Sie sofort ohne änderung des Mailtexts beantworten müssen.","Note: Shortly, after clicking on ""Continue"" you will recieve an EMAIL, that you need to reply right away, without making any changes."
+"Hinweis: Nach einem Klick auf ""Fortsetzen"" erhalten Sie in Kürze eine PIN per Telefon-/Handyrückruf oder SMS.","Note: Shortly, after clicking on ""Continue"" you will receive a PIN via a landline or mobile network call, or via SMS."
+I accept the ACDC check,I accept the ACDC check
+Ihre Telefon- / Mobil- Nummer,Phone Number
+inclusive tax,including VAT
+Instant Bank Transfer,Instant Bank Transfer
+Invoice,Invoice
+Manual checking amount in cents,Manual checking amount in cents
+Minimum Amount For Callback (in cents),Minimum Amount Limit for Callback in cents
+Month,Month
+New order status,Set Order Status
+Nicht aktiv,Not active
+NN_Amount,Amount
+NN_Bank,Bank
+NN_Reference,Reference
+Notice for Clients,Notice for Clients
+Novalnet Auth Code,Novalnet Merchant Authorisation Code
+Novalnet Credit Card,Novalnet Credit Card
+Novalnet Credit Card 3D-Secure,Novalnet Credit Card 3D Secure
+Novalnet Credit Card PCI,Novalnet Credit Card PCI
+Novalnet Creditcard,Novalnet Credit Card
+Novalnet Direct Debit,Novalnet Direct Debit
+Novalnet Direct Debit Austria,Novalnet Direct Debit Austria
+Novalnet Direct Debit Austria PCI,Novalnet Direct Debit Austria PCI
+Novalnet Direct Debit German,Novalnet Direct Debit German
+Novalnet Direct Debit German PCI,Novalnet Direct Debit German PCI
+Novalnet Ideal,Novalnet iDeal
+Novalnet Ideal,Novalnet iDEAL
+Novalnet Instant Bank Transfer,Novalnet Instant Bank Transfer
+Novalnet Invoice,Novalnet Invoice
+Novalnet Live Mode,Enable Live Mode
+Novalnet Live Mode Desc,You have to set the live mode to 'Yes' for real payments.
+Novalnet Maximum Order Total,Maximum Order Total (in Euro)
+Novalnet Merchant ID,Novalnet Merchant ID
+Novalnet Minimum Order Total,Minimum Order Total (in Euro)
+Novalnet Minimum Orders Count,Minimum Orders Count
+Novalnet Minimum Orders Count Desc,"Default: ""0"" for disabled check | Minimum count of orders (in the past) needed for the customer to use this payment method."
+Novalnet Password,Novalnet Payment access key 
+Novalnet Phonepayment,Novalnet Telephone Payment
+Novalnet Phonepayment Desc,"If you like to test phonepayment contact Novalnet AG (Phone: 0049 89 923068320), please!"
+Novalnet Prepayment,Novalnet Prepayment
+Novalnet Prepayment,Novalnet Prepayment
+Novalnet Product ID,Novalnet Product ID
+Novalnet Sort Order,Sort order of display
+Novalnet Tariff Id,Novalnet Tariff ID
+Only for foreign transfers,Only for international transfers
+Order amount has been changed. Please resubmit the payment method,"You have changed the cart amount after getting PIN number, please try again with new call"
+Order Price not found,Order Price not found
+Parameter missing,Parameter missing
+Params (aryResponse) missing,Params (aryResponse) missing
+Pay by Call,Pay by Call
+Payment Duration,Payment period in days
+Payment from applicable countries,Payment from applicable countries
+Payment from Specific countries,Payment from Specific countries
+PAYPAL API Password,PayPal API Password
+PAYPAL API Signature,PayPal API Signature
+PAYPAL API User Name,PayPal API User Name
+Phonepayment,Phonepayment
+PIN by Callback/SMS/E-Mail Desc,"When activated by PIN Callback / SMS / E-Mail the customer to enter their phone / mobile number / E-Mail requested. By phone or SMS, the customer receives a PIN from Novalnet AG, which must enter before ordering. If the PIN is valid, the payment process has been completed successfully, otherwise the customer will be prompted again to enter the PIN. This service is only available for customers from specified countries."
+PIN you have entered is incorrect or empty,PIN you have entered is incorrect or empty
+Please agree to all terms and conditions before ordering.,Please agree to all terms and conditions before ordering.
+Please click on continue after your successive call,Please click on continue after your successive call
+Please dial the following number,Please dial the following number
+Please enter valid account details,Please enter valid account details
+Please note that the Transfer can only be identified with the above mentioned Reference,Please note that the Transfer can only be identified with the above mentioned Reference
+Please reply to the e-mail,"We have sent a email, please answer"
+Please transfer the invoice amount with the following information to our payment provider Novalnet AG,Please transfer the amount to the following information to our payment service Novalnet AG
+Please wait for the Signal tone and hangup the reciever,Please wait for the Signal tone and hangup the reciever
+Prepayment,Prepayment
+Reference,Reference
+Required Second Product Tariff,Product-ID2 and/or Tariff-ID2 missing
+Response contains no XML data,Response contains no XML data
+Second Novalnet Product ID,Second Product ID in Novalnet
+Second Novalnet Tariff Id,Second Tariff ID in Novalnet
+SMS (nur Handy),SMS (Mobile only)
+Step,Step
+successful,successful
+Test Mode,Test mode
+Testorder,Test order
+The amount will be booked immediately from your credit card.,The amount will be booked immediately from your credit card when you submit the order.
+The Bank details will be emailed to you soon after the completion of checkout process,The Bank details will be emailed to you soon after the completion of checkout process.
+The password is admin.novalnet.de:Master Data-Paymentzugriffsschluessel view.,"The password is admin.novalnet.de: Master Data - Paymentzugriffsschluessel view.Please consider this even if the live mode = 0, the order amount is deducted, if true account data is entered. This is due to the implementation by the Provider Payment Network AG."
+This call costs,This call costs
+This is a required field,This is a required field
+This is not a valid pin code.,The entered PIN is incorrect or blank!
+TID: %s,Novalnet Transaction ID: %s
+to following account:,to following account:
+User Group Excluded,User Group Excluded
+What is this?,What is this?
+Year,Year
+"You have changed the order amount after getting PIN number, please try again with a new call","You have changed the order amount after getting PIN number, please try again with a new call"
+You receive a call soon! Please enter the PIN code received in the text box.,You will shortly receive a PIN via phone / SMS. Please enter the PIN in the appropriate text box
+You will be redirected to Novalnet AG website when you place an order.,You will be redirected to Novalnet AG website when you place the order.
+You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box,You will shortly receive a PIN by phone / SMS. Please enter the PIN in the appropriate text box
+Credit card holder,Credit Card holder
+Card number,Card number
+Authentication Failed,Please enter valid credit card details
+Please fill the customer name/email fields.,Please fill the customer name/email fields.
+You have changed the order amount after receiving telephone number,"You have changed the order amount after receiving telephone number, please try again with a new call"
+,
+Not possible,Not available
+Account holder: %s,Kontoinhaber: %s
+Account number,Account number
+Account number: %s,Account number: %s
+Bank code,Bank code
+Bank code: %s,Bank code: %s
+Cancelation of payment,Cancelation of payment
+Create Invoice,Create Invoice after payment
+Customer canceled payment,Customer canceled payment
+Customer canceled payment or payment error,Customer canceled payment or payment error
+Die Hashfunktionen sind nicht verf&uuml;gbar!,Check Hash Failed
+Error while saving this configuration: ,Error while saving this configuration: 
+Expires,Expires
+Fast shippiung,ships immediately from stock / immediate download
+Gateway request error: %s,Gateway request error: %s
+Get stock articles.,Stock quickly obtained due to immediate dispatch. Now you need your online banking data (PIN/TAN).
+Holder,Account holder
+Invalid amount for authorization.,Invalid amount for authorization.
+Item was successfully saved,Item was successfully saved.
+Maximum Order Total,Maximum Order Total
+Minimum Order Total,Minimum Order Total
+Minimum Orders Count,Minimum Orders Count
+More,More information
+Netherlands banks,Netherlands banks?
+No registration,no registration required
+Notification password," ""Notification password"""
+Order No.: ,Order No. 
+Order: ,Order. 
+Paycode information,Product is immediately sent after the payment with a paycode. Your online banking data is primarily needed when paying (PIN und TAN).
+Paycode: %s,Paycode: %s
+payment error,payment error
+Payment was not successfull,Payment was not successfull. An error occured.
+Payment was successful.,Payment was successful.
+Paymentinformations: %s,Paymentinformations: %s
+"Paymentinformations: %s;""Paymentinformations: %s""",
+Please check your account data.,Please check your account data.
+Please fill out the account holder,Please fill in the account holder
+Please fill out the account number,Please fill in the account number
+Please fill out the bank code,Please fill in the bank code
+Privacy,T??V-certified privacy
+Project password,Project password
+Projekt Id,Project ID
+Save payment,pay safely und fast
+Sofortueberweisung,Sofort??berweisung
+Sofortueberweisung payment loaded,Sofortueberweisung was loaded
+Theres no password defined,"There is no password defined. Please fill in the created/designed password from the customer area at sofort??berweisung.de in the 
+corresponding field for the configuration."
+Transaction Id: %s,TID: %s
+Use input check,Activate input check
+User Id,User ID
+You will be redirected to Sofortueberweisung in a few seconds.,You will be redirected to Sofortueberweisung in a few seconds.
+You will be redirected to Sofort??berweisung,You will be redirected to Sofort??berweisung
+Your benefit:,Your advantages:
+Please fill the customer name/email fields.,Please fill the customer name/email fields.
+,
+Enabled,Enable module
+--Please Select--,--Please Select--
+accepted,accepted
+Amount,Amount
+AT,Austria
+Bank,Bank
+Billing Addr. not found,Billing Addr. not found
+Booking Reference,Booking Reference
+CC,Credit Card
+Cc,Credit Card
+Comment,Comment
+Country,Country
+Country: ,Country: 
+Customer aborted payment process,Customer aborted payment process
+Customer successfully returned from Novalnet,Customer successfully returned from Novalnet
+Customer was redirected to Novalnet,Customer was redirected to Novalnet
+Customer was rejected by Novalnet,Customer was rejected by Novalnet
+DE,Germany
+Did you called this number,Haben Sie diese Nummer angerufen
+Die Hashfunktionen sind nicht verf&uuml;gbar!,Check Hash Failed
+Due at,Due at
+Email address missing,Email address missing
+Error,Error
+Following steps are required to complete the telephone payment process,Following steps are required to complete the telephone payment process
+I accept the ACDC check,I accept the ACDC check
+Live Mode,Live mode
+Maximum Order Total,Maximum Order Total
+Method,Method
+Minimum Order Total,Minimum Order Total
+Minimum Orders Count,Minimum Orders Count
+Month,Month
+New order status,New order status
+Note: after submitting your order an email with bank transfer data of the Novalnet AG will be sent to you.,Bemerkung: Nach dem Absenden Ihrer Bestellung wird 
+Notice for Clients,Notice for Clients
+Novalnet Auth Code,Novalnet Auth Code
+Novalnet Merchant ID,Novalnet Merchant ID
+Novalnet Product ID,Novalnet Product ID
+Novalnet Tariff ID,Novalnet Tariff ID
+Order Price not found,Order Price not found
+Parameter missing,Parameter missing
+Params (aryResponse) missing,Params (aryResponse) missing
+Pay by Call,Pay by Call
+Payment from applicable countries,Payment from applicable countries
+Payment from Specific countries,Payment from Specific countries
+Please click on continue after your successive call,Please click on continue after your successive call
+Please dial the following number,Please dial the following number
+Please note that the Transfer can only be identified with the above mentioned Reference,Please note that the Transfer can only be identified with the above mentioned Reference
+Please wait for the Signal tone and hangup the reciever,Please wait for the Signal tone and hangup the reciever
+Reference,Reference
+Response contains no XML data,Response contains no XML data
+Step,Step
+Test Mode,Test mode
+Testorder,Test order
+This call costs,This call costs
+This is a required field,This is a required field
+Title,Title
+User Group Excluded,User Group Excluded
+Year,Year
+You will be redirected to Novalnet AG in a few seconds,You will be redirected to Novalnet AG in a few seconds
+,
+Not possible,Not available
+Account holder: %s,Kontoinhaber: %s
+Account number,Account number
+Account number: %s,Account number: %s
+Bank code,Bank code
+Bank code: %s,Bank code: %s
+Cancelation of payment,Cancelation of payment
+Create Invoice,Create Invoice after payment
+Customer canceled payment,Customer canceled payment
+Customer canceled payment or payment error,Customer canceled payment or payment error
+Die Hashfunktionen sind nicht verf&uuml;gbar!,Check Hash Failed
+Error while saving this configuration: ,Error while saving this configuration: 
+Expires,Expires
+Fast shippiung,ships immediately from stock / immediate download
+Gateway request error: %s,Gateway request error: %s
+Get stock articles.,Stock quickly obtained due to immediate dispatch. Now you need your online banking data (PIN/TAN).
+Holder,Account holder
+Invalid amount for authorization.,Invalid amount for authorization.
+Item was successfully saved,Item was successfully saved.
+Maximum Order Total,Maximum Order Total
+Minimum Order Total,Minimum Order Total
+Minimum Orders Count,Minimum Orders Count
+More,More information
+Netherlands banks,Netherlands banks?
+No registration,no registration required
+Notification password," ""Notification password"""
+Order No.: ,Order No. 
+Order: ,Order. 
+Paycode information,Product is immediately sent after the payment with a paycode. Your online banking data is primarily needed when paying (PIN und TAN).
+Paycode: %s,Paycode: %s
+payment error,payment error
+Payment was not successfull,Payment was not successfull. An error occured.
+Payment was successful.,Payment was successful.
+Paymentinformations: %s,Paymentinformations: %s
+"Paymentinformations: %s;""Paymentinformations: %s""",
+Please check your account data.,Please check your account data.
+Please fill out the account holder,Please fill in the account holder
+Please fill out the account number,Please fill in the account number
+Please fill out the bank code,Please fill in the bank code
+Privacy,T??V-certified privacy
+Project password,Project password
+Projekt Id,Project ID
+Save payment,pay safely und fast
+Sofortueberweisung,Sofort??berweisung
+Sofortueberweisung payment loaded,Sofortueberweisung was loaded
+Theres no password defined,"There is no password defined. Please fill in the created/designed password from the customer area at sofort??berweisung.de in the 
+corresponding field for the configuration."
+Transaction Id: %s,TID: %s
+Use input check,Activate input check
+User Id,User ID
+You will be redirected to Sofortueberweisung in a few seconds.,You will be redirected to Sofortueberweisung in a few seconds.
+You will be redirected to Sofort??berweisung,You will be redirected to Sofort??berweisung
+Your benefit:,Your advantages:
+Second Product Id/Tariff Id is missing/Invalid,Second Product Id/Tariff Id is missing/Invalid
+Your amount will be added in your telephone bill when you place the order,Your amount will be added in your telephone bill when you place the order.

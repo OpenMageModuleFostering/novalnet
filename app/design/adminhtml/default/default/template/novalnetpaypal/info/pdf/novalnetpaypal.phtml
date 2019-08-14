@@ -1,7 +1,0 @@
-<?php if($_info = $this->getInfo()): ?>
-<?php if( $this->getNnTestorder() ) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
-<?php echo $this->__($this->htmlEscape($this->getPaymentMethod())) ?>{{pdf_row_separator}}
-<?php if ($_info->getLastTransId()!="") echo $this->__('TID: %s', $this->htmlEscape($_info->getLastTransId())) ?>{{pdf_row_separator}}
-<?php else: ?>
-Error in getting payment method
-<?php endif; ?>

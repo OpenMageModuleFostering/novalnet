@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+        <Novalnet_Payment>
+<!-- declare module's version information for database updates -->
+            <version>5.0.0</version>
+        </Novalnet_Payment>
+    </modules>
+
+    <global>
+<!-- IMPORTANT: if you use your own namespace (i.e. CompanyName) you also have to declare blocks group for new module. See topic: http://www.magentocommerce.com/boards/viewthread/22416/#t102732 -->
+        <blocks>
+            <novalnet_payment>
+                <class>Novalnet_Payment_Block</class>
+            </novalnet_payment>
+            <adminhtml>
+                <rewrite>
+                    <sales_order_view>Novalnet_Payment_Block_Adminhtml_Sales_Order_View</sales_order_view>
+                </rewrite>
+            </adminhtml>
+        </blocks>
+
+<!-- declare model group for new module -->
+        <models>
+<!-- model group alias to be used in Mage::getModel('newmodule/...') -->
+            <novalnet_payment>
+<!-- base class name for the model group -->
+                <class>Novalnet_Payment_Model</class>
+                <resourceModel>novalnet_resource</resourceModel>
+            </novalnet_payment>
+            <novalnet_payment_abstract>
+                <class>Novalnet_Payment_Model</class>
+            </novalnet_payment_abstract>
+            <novalnet_resource>
+                <class>Novalnet_Payment_Model_Resource</class>
+                <entities>
+                    <transaction_status>
+                        <table>novalnet_payment_transaction_status</table>
+                    </transaction_status>
+                    <order_log>
+                        <table>novalnet_payment_order_log</table>
+                    </order_log>
+                </entities>
+            </novalnet_resource>
+        </models>
+
+<!-- convert novalnet field values from quote to order to make it available in orderobject  -->
+        <fieldsets>
+            <sales_convert_quote_payment>
+                <nn_account_number>
+                    <to_order_payment>*</to_order_payment>
+                </nn_account_number>
+                <nn_bank_sorting_code>
+                    <to_order_payment>*</to_order_payment>
+                </nn_bank_sorting_code>
+                <nn_account_holder>
+                    <to_order_payment>*</to_order_payment>
+                </nn_account_holder>
+                <nn_elv_country>
+                    <to_order_payment>*</to_order_payment>
+                </nn_elv_country>
+                <nn_account_number_at>
+                    <to_order_payment>*</to_order_payment>
+                </nn_account_number_at>
+                <nn_bank_sorting_code_at>
+                    <to_order_payment>*</to_order_payment>
+                </nn_bank_sorting_code_at>
+                <nn_account_holder_at>
+                    <to_order_payment>*</to_order_payment>
+                </nn_account_holder_at>
+                <nn_elv_country_at>
+                    <to_order_payment>*</to_order_payment>
+                </nn_elv_country_at>
+                <nn_testorder>
+                    <to_order_payment>*</to_order_payment>
+                </nn_testorder>
+                <nn_comments>
+                    <to_order_payment>*</to_order_payment>
+                </nn_comments>
+                <id>
+                    <to_order_payment>nn_id</to_order_payment>
+                </id>
+            </sales_convert_quote_payment>
+            <sales_convert_order_payment>
+                <nn_account_number>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_account_number>
+                <nn_bank_sorting_code>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_bank_sorting_code>
+                <nn_account_holder>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_account_holder>
+                <nn_elv_country>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_elv_country>
+                <nn_account_number_at>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_account_number_at>
+                <nn_bank_sorting_code_at>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_bank_sorting_code_at>
+                <nn_account_holder_at>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_account_holder_at>
+                <nn_elv_country_at>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_elv_country_at>
+                <nn_testorder>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_testorder>
+                <nn_comments>
+                    <to_quote_payment>*</to_quote_payment>
+                </nn_comments>
+                <id>
+                    <to_quote_payment>nn_id</to_quote_payment>
+                </id>
+            </sales_convert_order_payment>
+        </fieldsets>
+
+        <resources>
+<!-- resource identifier -->
+            <novalnet_setup>
+<!-- specify that this resource is a setup resource and used for upgrades -->
+                <setup>
+<!-- which module to look for install/upgrade files in -->
+                    <module>Novalnet_Payment</module>
+                </setup>
+<!-- specify database connection for this resource -->
+                <connection>
+<!-- do not create new connection, use predefined core setup connection -->
+                    <use>core_setup</use>
+                </connection>
+                <novalnet_payment_write>
+                    <connection>
+                        <use>core_write</use>
+                    </connection>
+                </novalnet_payment_write>
+                <novalnet_payment_read>
+                    <connection>
+                        <use>core_read</use>
+                    </connection>
+                </novalnet_payment_read>
+            </novalnet_setup>
+        </resources>
+
+        <helpers>
+            <novalnet_payment>
+                <class>Novalnet_Payment_Helper</class>
+            </novalnet_payment>
+        </helpers>
+    </global>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <novalnet_payment>
+                    <file>novalnet/configuration.xml</file>
+                </novalnet_payment>
+            </updates>
+        </layout>
+        <translate>
+            <modules>
+                <novalnet_Payment>
+                    <files>
+                        <default>Novalnet_Payment.csv</default>
+                    </files>
+                </novalnet_Payment>
+            </modules>
+        </translate>
+    </adminhtml>
+
+    <frontend>
+        <routers>
+            <novalnet_payment>
+                <use>standard</use>
+                <args>
+                    <module>Novalnet_Payment</module>
+                    <frontName>novalnet_payment</frontName>
+                </args>
+            </novalnet_payment>
+        </routers>
+        <translate>
+            <modules>
+                <novalnet_Payment>
+                    <files>
+                        <default>Novalnet_Payment.csv</default>
+                    </files>
+                </novalnet_Payment>
+            </modules>
+        </translate>
+        <layout>
+            <updates>
+                <novalnet>
+                    <file>novalnet.xml</file>
+                </novalnet>
+            </updates>
+        </layout>
+    </frontend>
+
+    <admin>
+        <routers>
+            <novalnet_payment>
+                <use>admin</use>
+                <args>
+                    <module>Novalnet_Payment</module>
+                    <frontName>novalnet_payment</frontName>
+                </args>
+            </novalnet_payment>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <novalnet_payment after="Mage_Adminhtml">Novalnet_Payment_Adminhtml</novalnet_payment>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <default>
+<!-- 'payment' configuration section (tab) -->
+        <payment>
+<!-- 'newmodule' configuration group (fieldset) -->
+            <novalnetElvgerman translate="title" module="novalnet_payment">
+<!-- by default this payment method is inactive -->
+                <active>0</active>
+<!-- model to handle logic for this payment method -->
+                <model>novalnet_payment/payment_method_novalnetElvgerman</model>
+<!-- default title for payment checkout page and order view page -->
+                <title>Novalnet Lastschrift Deutschland</title>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+            </novalnetElvgerman>
+            <novalnetElvaustria translate="title" module="novalnet_payment">
+<!-- by default this payment method is inactive -->
+                <active>0</active>
+<!-- model to handle logic for this payment method -->
+                <model>novalnet_payment/payment_method_novalnetElvaustria</model>
+<!-- default title for payment checkout page and order view page -->
+                <title>Novalnet Lastschrift Österreich</title>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+            </novalnetElvaustria>
+            <novalnetInvoice translate="title" module="novalnet_payment">
+<!-- by default this payment method is inactive -->
+                <active>0</active>
+<!-- model to handle logic for this payment method -->
+                <model>novalnet_payment/payment_method_novalnetInvoice</model>
+<!-- default title for payment checkout page and order view page -->
+                <title>Novalnet Kauf auf Rechnung</title>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+            </novalnetInvoice>
+            <novalnetPrepayment translate="title" module="novalnet_payment">
+<!-- by default this payment method is inactive -->
+                <active>0</active>
+<!-- model to handle logic for this payment method -->
+                <model>novalnet_payment/payment_method_novalnetPrepayment</model>
+<!-- default title for payment checkout page and order view page -->
+                <title>Novalnet Vorauskasse</title>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+            </novalnetPrepayment>
+            <novalnetSofortueberweisung translate="title" module="novalnet_payment">
+                <active>0</active>
+                <url>https://payport.novalnet.de/online_transfer_payport</url>
+                <model>novalnet_payment/payment_method_novalnetSofortueberweisung</model>
+                <title>Novalnet Sofortueberweisung</title>
+                <allowspecific>0</allowspecific>
+                <createinvoice>0</createinvoice>
+            </novalnetSofortueberweisung>
+            <novalnetPaypal translate="title" module="novalnet_payment">
+                <active>0</active>
+                <url>https://payport.novalnet.de/paypal_payport</url>
+                <model>novalnet_payment/payment_method_novalnetPaypal</model>
+                <title>Novalnet PayPal</title>
+                <allowspecific>0</allowspecific>
+                <createinvoice>0</createinvoice>
+            </novalnetPaypal>
+            <novalnetIdeal translate="title" module="novalnet_payment">
+                <active>0</active>
+                <url>https://payport.novalnet.de/online_transfer_payport</url>
+                <model>novalnet_payment/payment_method_novalnetIdeal</model>
+                <title>Novalnet iDEAL</title>
+                <allowspecific>0</allowspecific>
+                <createinvoice>0</createinvoice>
+            </novalnetIdeal>
+            <novalnetCc translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetCc</model>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+                <title>Novalnet Kreditkarte</title>
+                <gateway_timeout>90</gateway_timeout>
+            </novalnetCc>
+            <novalnetSecure translate="title" module="novalnet_payment">
+                <cctypes>VI,MC</cctypes>
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetSecure</model>
+                <order_status>0</order_status>
+                <url>https://payport.novalnet.de/global_pci_payport</url>
+                <allowspecific>0</allowspecific>
+                <title>Novalnet Kreditkarte 3D Secure</title>
+            </novalnetSecure>
+            <novalnetPhonepayment translate="title" module="novalnet_payment">
+                <active>0</active>
+                <Phonepaymentcountries>DE,AT</Phonepaymentcountries>
+                <model>novalnet_payment/payment_method_novalnetPhonepayment</model>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+                <title>Novalnet Telefonpayment</title>
+                <gateway_timeout>90</gateway_timeout>
+            </novalnetPhonepayment>
+<!-- 'newmodule' configuration group (fieldset) -->
+        </payment>
+    </default>
+</config>

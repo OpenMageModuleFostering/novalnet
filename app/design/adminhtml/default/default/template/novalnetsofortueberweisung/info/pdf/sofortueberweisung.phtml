@@ -1,4 +1,0 @@
-<?php if( $this->getInfo()->getNnTestorder() ) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
-<strong><?php echo Mage::helper('sofortueberweisung')->__('%s',$this->getMethod()->getTitle()) ?></strong>
-{{pdf_row_separator}}
-<?php echo Mage::helper('sofortueberweisung')->__('Transaction Id: %s',$this->getInfo()->getLastTransId()) ?>{{pdf_row_separator}}
