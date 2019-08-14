@@ -28,17 +28,17 @@
 
 class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_Abstract
 {
-    const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
-    const PAYMENT_METHOD = 'Direct Debit';
-    const RESPONSE_DELIM_CHAR = '&';
-    const RESPONSE_CODE_APPROVED = 100;
-	const KEY = "8";
+  const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
+  const PAYMENT_METHOD = 'Direct Debit';
+  const RESPONSE_DELIM_CHAR = '&';
+  const RESPONSE_CODE_APPROVED = 100;
+  const KEY = "8";
     /**
      * unique internal payment method identifier
      *
      * @var string [a-z0-9_]
      */
-    protected $_code = 'novalnetElvaustria';
+    protected $_code          = 'novalnetElvaustria';
     protected $_formBlockType = 'novalnet/elvaustria_form';
     protected $_infoBlockType = 'novalnet/elvaustria_info';
 

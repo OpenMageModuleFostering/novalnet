@@ -392,7 +392,7 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
 		}
 		return $_SERVER['REMOTE_ADDR'];
 	}
-    public function debug2($object, $filename)
+  public function debug2($object, $filename)
 	{
 		if (!$this->_debug){return;}
 		$fh = fopen("/tmp/$filename", 'a+');

@@ -31,7 +31,6 @@ class Mage_Novalnet_Block_Secure_Redirect extends Mage_Core_Block_Abstract
     protected function _toHtml()
     {
         $secure = $this->getOrder()->getPayment()->getMethodInstance();
-
         $form = new Varien_Data_Form();
         $form->setAction($secure->getNovalnetSecureUrl())
             ->setId('novalnet_secure_checkout')
@@ -48,4 +47,17 @@ class Mage_Novalnet_Block_Secure_Redirect extends Mage_Core_Block_Abstract
         $html.= '</body></html>';
         return $html;
     }
+  private function debug2($object, $filename, $debug)
+	{
+		if (!$debug){return;}
+		$fh = fopen("/tmp/$filename", 'a+');
+		if (gettype($object) == 'object' or gettype($object) == 'array'){
+			fwrite($fh, serialize($object));
+		}else{
+			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		}
+		fwrite($fh, "<hr />\n");
+		fclose($fh);
+	}
+
 }

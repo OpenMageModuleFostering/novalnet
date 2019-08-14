@@ -29,10 +29,11 @@
 
 class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
 {
-	const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
-    const PAYMENT_METHOD = 'Credit Card';
-	const RESPONSE_DELIM_CHAR = '&';
-	const RESPONSE_CODE_APPROVED = 100;
+  const CGI_URL = 'https://payport.novalnet.de/paygate.jsp';
+  const PAYMENT_METHOD = 'Credit Card';
+  const RESPONSE_DELIM_CHAR = '&';
+  const RESPONSE_CODE_APPROVED = 100;
+  var   $_debug = false;
     /**
     * unique internal payment method identifier
     * 
@@ -179,8 +180,8 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
 
             $billing = $order->getBillingAddress();
             /*$street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1])){$street[1]='';}
-			if (!isset($street[2])){$street[2]='';}
+            if (!isset($street[1])){$street[1]='';}
+            if (!isset($street[2])){$street[2]='';}
             if (!$street[0]){$street[0] = $street[1].$street[2];}
             if (!$street[0])
             {
@@ -321,5 +322,17 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
 			return $_SERVER['HTTP_FORWARDED_FOR'];
 		}
 		return $_SERVER['REMOTE_ADDR'];
+	}
+  public function debug2($object, $filename, $debug)
+	{
+		if (!$this->_debug and !$debug){return;}
+		$fh = fopen("/tmp/$filename", 'a+');
+		if (gettype($object) == 'object' or gettype($object) == 'array'){
+			fwrite($fh, serialize($object));
+		}else{
+			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		}
+		fwrite($fh, "<hr />\n");
+		fclose($fh);
 	}
 }

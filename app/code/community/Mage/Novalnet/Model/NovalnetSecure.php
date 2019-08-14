@@ -29,20 +29,20 @@
 
 class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
 {
-	const CGI_URL = 'https://payport.novalnet.de/global_pci_payport';
-    const PAYMENT_METHOD = '3D-Secure Credit Card';
-	const RESPONSE_DELIM_CHAR = '&';
-	const RESPONSE_CODE_APPROVED = 100;
-    /**
-    * unique internal payment method identifier
-    * 
-    * @var string [a-z0-9_]
-    */
-    protected $_code = 'novalnet_secure';
-    protected $_formBlockType = 'novalnet/cc_form';
-	protected $_infoBlockType = 'novalnet/cc_info';
+  const CGI_URL = 'https://payport.novalnet.de/global_pci_payport';
+  const PAYMENT_METHOD = '3D-Secure Credit Card';
+  const RESPONSE_DELIM_CHAR = '&';
+  const RESPONSE_CODE_APPROVED = 100;
+  var   $_debug = false;
+  /**
+  * unique internal payment method identifier
+  * 
+  * @var string [a-z0-9_]
+  */
+  protected $_code = 'novalnet_secure';
+  protected $_formBlockType = 'novalnet/cc_form';
+  protected $_infoBlockType = 'novalnet/cc_info';
 
-  
     /**
      * Is this payment method a gateway (online auth/charge) ?
      */
@@ -56,7 +56,7 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
     /**
      * Can capture funds online?
      */
-    protected $_canCapture              = false;
+    protected $_canCapture              = true; #important; default: false
 
     /**
      * Can capture partial amounts online?
@@ -101,7 +101,7 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
      */
     public function authorize(Varien_Object $payment, $amount)
     {
-		return $this;
+      return $this;
     }
     public function capture(Varien_Object $payment, $amount)
     {
@@ -170,6 +170,7 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
     {
         $billing = $this->getOrder()->getBillingAddress();
         $payment = $this->getOrder()->getPayment();
+
         $fieldsArr = array();
         $session                = Mage::getSingleton('checkout/session');
         $paymentInfo            = $this->getInfoInstance();
@@ -186,28 +187,28 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
         $fieldsArr['last_name'] = $billing->getLastname();
         $fieldsArr['email']     = $this->getOrder()->getCustomerEmail();
         $fieldsArr['street']    = $billing->getStreet(1);
-        $fieldsArr['search_in_street'] = 1;
-        $fieldsArr['city'] = $billing->getCity();
-        $fieldsArr['zip'] = $billing->getPostcode();
-        $fieldsArr['country_code'] = $billing->getCountry();
-        $fieldsArr['lang'] = $billing->getLang();
-        #$fieldsArr['remote_ip'] = $order->getRemoteIp();
-        $fieldsArr['remote_ip'] = $this->getRealIpAddr();
-        $fieldsArr['tel'] = $billing->getTelephone();
-        $fieldsArr['fax'] = $billing->getFax();
-        $fieldsArr['birth_date'] = $order->getRemoteIp();
-        $fieldsArr['session'] = session_id();
-        $fieldsArr['cc_holder'] = $payment->getCcOwner();
-        $fieldsArr['cc_no'] = Mage::helper('core')->decrypt($session->getCcNumber()) ;
-        $fieldsArr['cc_exp_month'] = $payment->getCcExpMonth();
-        $fieldsArr['cc_exp_year'] = $payment->getCcExpYear();
-        $fieldsArr['cc_cvc2'] = Mage::helper('core')->decrypt($session->getCcCid());
-        $fieldsArr['return_url'] = Mage::getUrl('novalnet/secure/success', array('_secure' => true));
-        $fieldsArr['return_method'] = 'POST';
-        $fieldsArr['error_return_url'] = Mage::getUrl('novalnet/secure/success', array('_secure' => true));;
+        $fieldsArr['search_in_street']    = 1;
+        $fieldsArr['city']                = $billing->getCity();
+        $fieldsArr['zip']                 = $billing->getPostcode();
+        $fieldsArr['country_code']        = $billing->getCountry();
+        $fieldsArr['lang']                = $billing->getLang();
+        #$fieldsArr['remote_ip']          = $order->getRemoteIp();
+        $fieldsArr['remote_ip']           = $this->getRealIpAddr();
+        $fieldsArr['tel']                 = $billing->getTelephone();
+        $fieldsArr['fax']                 = $billing->getFax();
+        $fieldsArr['birth_date']          = $order->getRemoteIp();
+        $fieldsArr['session']             = session_id();
+        $fieldsArr['cc_holder']           = $payment->getCcOwner();
+        $fieldsArr['cc_no']               = Mage::helper('core')->decrypt($session->getcc_no());
+        $fieldsArr['cc_exp_month']        = $payment->getCcExpMonth();
+        $fieldsArr['cc_exp_year']         = $payment->getCcExpYear();
+        $fieldsArr['cc_cvc2']             = Mage::helper('core')->decrypt($session->getcc_cvc2());
+        $fieldsArr['return_url']          = Mage::getUrl('novalnet/secure/success', array('_secure' => true));
+        $fieldsArr['return_method']       = 'POST';
+        $fieldsArr['error_return_url']    = Mage::getUrl('novalnet/secure/success', array('_secure' => true));;
         $fieldsArr['error_return_method'] = 'POST';
-        $fieldsArr['input1']= 'order_id';
-        $fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
+        $fieldsArr['input1']              = 'order_id';
+        $fieldsArr['inputval1']           = $paymentInfo->getOrder()->getRealOrderId();
         $session->setCcNumber('');
         $session->setCcCid();
         $request = '';
@@ -257,5 +258,17 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
 			return $_SERVER['HTTP_FORWARDED_FOR'];
 		}
 		return $_SERVER['REMOTE_ADDR'];
+	}
+  private function debug2($object, $filename, $debug)
+	{
+		if (!$this->_debug and !$debug){return;}
+		$fh = fopen("/tmp/$filename", 'a+');
+		if (gettype($object) == 'object' or gettype($object) == 'array'){
+			fwrite($fh, serialize($object));
+		}else{
+			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		}
+		fwrite($fh, "<hr />\n");
+		fclose($fh);
 	}
 }

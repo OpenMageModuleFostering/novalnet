@@ -51,7 +51,7 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
         $order->setCustomerNoteNotify(true);
 
         $order->save();
-        #todo: update order status to open
+        #update order status to pending
         $_SESSION['status_zh']    = $order->getStatus();
         $this->setOrderStatus($session->getLastRealOrderId(), 'pending');
 
