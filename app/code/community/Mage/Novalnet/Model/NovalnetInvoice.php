@@ -380,6 +380,10 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 			Mage::getSingleton('checkout/session')->setInvoiceReqData($response);
 			Mage::getSingleton('checkout/session')->setInvoiceReqDataNote($this->_getNote($response));
 			if($response->getStatus()!='100'){
+			
+				$session=Mage::getSingleton('checkout/session');
+				$session->unsInvoiceReqData()
+				        ->unsInvoiceReqDataNote();
 				$text = Mage::helper('novalnet')->__($response->getstatus_desc());
 				Mage::throwException($text);
 			}

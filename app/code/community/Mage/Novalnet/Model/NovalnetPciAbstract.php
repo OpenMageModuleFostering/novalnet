@@ -159,8 +159,8 @@ class Mage_Novalnet_Model_NovalnetPciAbstract extends Mage_Payment_Model_Method_
 		$this->importNovalnetFormData($dataObj)
 				->importBillingData($dataObj)
 				->importUrlData($dataObj)
-				->importHashData($dataObj)
-				->importEncodeData($dataObj);
+				->importEncodeData($dataObj)
+				->importHashData($dataObj);
 				
 		return $dataObj;
     }

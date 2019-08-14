@@ -174,6 +174,11 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
 			Mage::getSingleton('checkout/session')->setInvoiceReqDataNote($this->getNote($response));
 			$resultdata=Mage::getSingleton('checkout/session')->getInvoiceReqData();
 			if($response->getStatus()!='100'){
+			
+				$session=Mage::getSingleton('checkout/session');
+				$session->unsInvoiceReqData()
+				        ->unsInvoiceReqDataNote();
+						
 				$text = Mage::helper('novalnet')->__($response->getstatus_desc());
 				Mage::throwException($text);
 			}

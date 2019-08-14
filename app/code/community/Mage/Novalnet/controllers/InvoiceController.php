@@ -29,6 +29,10 @@ class Mage_Novalnet_InvoiceController extends Mage_Core_Controller_Front_Action
 					->save();
 			}
 		
+			if ($order->getId()) {
+				$order->sendNewOrderEmail();
+			}
+
 		//$this->saveInvoice($order); // To generate Order Invoice 
 
 		$session->unsInvoiceReqData()

@@ -66,7 +66,7 @@ class Mage_Novalnet_Model_Observer extends Mage_Payment_Model_Method_Abstract
 						->setUniqid($uniqid)
 						->setTestMode($test_mode)
 						->setPassword($password)
-						->setLang()									
+						->setLang(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2))									
 						->setRemoteIp(Mage::helper('novalnet')->getRealIpAddr())	
 						->setSessionId($sessionid)
 						->setReturnUrl($returnURL)
