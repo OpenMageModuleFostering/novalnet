@@ -25,32 +25,29 @@
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 ?>
-<?php $_code=$this->getMethodCode();?>
+<?php #$_code=$this->getMethodCode();?>
 <?php
-$cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';#
-$customer_id = '';
-if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
+$allowed = true;
+$cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';
+if (isset($_SESSION['adminhtml_quote']["customer_id"]))
 {
-    $customer_id = $_SESSION['customer_base']['id'];
-    $accountData = $this->getCcData($customer_id);
+	$customer_id = $_SESSION['adminhtml_quote']["customer_id"];
+	$accountData = $this->getCcData($customer_id);
+	$cc_type = $cc_last4 = $cc_owner = $cc_exp_month = $cc_exp_year = '';
+	if ($accountData){
+		list($cc_type, $cc_last4, $cc_owner, $cc_exp_month, $cc_exp_year) = array_values($accountData);
+	}
+	$user_group_id = $this->getUserGroupId($customer_id);
+	$user_group_name = $this->getUserGroupExcluded();
+	if (!$user_group_name){$allowed = true;}
+	else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
 }
-
-if (isset($accountData) and $accountData){
-	list($cc_type, $cc_last4, $cc_owner, $cc_exp_month, $cc_exp_year) = array_values($accountData);
-}
-$user_group_id = $this->getUserGroupId($customer_id);
-$user_group_name = $this->getUserGroupExcluded();
-if (!$user_group_name){$allowed = true;}
-else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
 ?>
 <?php if ($allowed) {?>
   <fieldset class="form-list">
     <?php $_code=$this->getMethodCode() ?>
     <?php $baseUrl=Mage::getBaseUrl('skin') ?>
     <div style="position: relative; left: 14em; top: -2.5em">
-    <?php foreach($this->getCcAvailableTypes() as $_typeCode => $_typeName): ?>
-    	<img src='<?php echo $baseUrl?>frontend/default/default/images/novalnet/<?php echo $_typeCode ?>_Logo.png' alt='$cctype Logo'/>
-    <?php endforeach ?>
     </div>
     <ul id="payment_form_<?php echo $_code ?>" style="display:none">
 		<li>
@@ -109,7 +106,7 @@ else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
         </li>
         <?php endif; ?>
         <li>
-        <?php echo $this->__('The amount will be booked immediately from your credit card<BR>with <B>%s</B> note.',$this->getMethod()->getBookingReference());?>
+        <?php echo $this->__('The amount will be booked immediately from your credit card <BR>with <B>%s</B> note.',$this->getMethod()->getBookingReference());?>
         </li>
     </ul>
   </fieldset>

@@ -215,14 +215,14 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 
             $billing = $order->getBillingAddress();
             $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1])){$street[1]='';}
+			/*if (!isset($street[1])){$street[1]='';}
 			if (!isset($street[2])){$street[2]='';}
             if (!$street[0]){$street[0] = $street[1].$street[2];}
             if (!$street[0])
             {
                 Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
-            }
-
+            }*/
+            if (!$billing->getStreet(1)){Mage::throwException(Mage::helper('novalnet')->__('Street missing'));}
             if (!empty($billing)) {
 				if (session_is_registered('tid')){
 					$this->debug2($billing, 'magento_billing2.txt');

@@ -29,21 +29,19 @@
 
 class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model_Method_Abstract #Mage_Payment_Model_Method_Cc
 {
-	const CGI_URL = 'https://payport.novalnet.de/online_transfer_payport';
-    const PAYMENT_METHOD = 'Instant Bank Transfer';
+	const CGI_URL                = 'https://payport.novalnet.de/online_transfer_payport';
+  const PAYMENT_METHOD         = 'Instant Bank Transfer';
 	const RESPONSE_DELIM_CHAR    = '&';
 	const RESPONSE_CODE_APPROVED = 100;
-    const KEY                    = 33;
-    const PROJECT_ID             = 80036;#todo: replace with real project id; (80036 => test project id at www.sofortueberweisung.de/registration
-    const USER_ID                = 29236;#the user id from www.sofortueberweisung.de/registration
+  const KEY                    = 33;
 
-	private $debug = false; #todo: set to false
+	private $_debug = false; #todo: set to false for live system
     /**
     * unique internal payment method identifier
     * 
     * @var string [a-z0-9_]
     */
-    protected $_code = 'novalnetInstantbanktransfer';#path = magento\app\code\community\Mage\Novalnet\Model\novalnetInstantbanktransfer.php
+    protected $_code          = 'novalnetInstantbanktransfer';#path = magento\app\code\community\Mage\Novalnet\Model\novalnetInstantbanktransfer.php
     protected $_formBlockType = 'novalnet/instantbanktransfer_form';#path = magento\app\design\frontend\default\default\template\novalnet\instantbanktransfer\form.phtml
 	protected $_infoBlockType = 'novalnet/instantbanktransfer_info';
 
@@ -174,7 +172,6 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
 
         $fieldsArr['vendor'] = $this->getConfigData('merchant_id');
         $fieldsArr['auth_code'] = $this->getConfigData('auth_code');
-        #$fieldsArr['key'] = self::KEY;
         $fieldsArr['key'] = self::KEY;
         $fieldsArr['product'] = $this->getConfigData('product_id');
         $fieldsArr['tariff'] = $this->getConfigData('tariff_id');
@@ -190,42 +187,32 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
         $fieldsArr['zip'] = $billing->getPostcode();
         $fieldsArr['country_code'] = $billing->getCountry();
         $fieldsArr['lang'] = $billing->getLang();
-        #$fieldsArr['remote_ip'] = $order->getRemoteIp();
-		$fieldsArr['remote_ip'] = $this->getRealIpAddr();
+        $fieldsArr['remote_ip'] = $this->getRealIpAddr();
         $fieldsArr['tel'] = $billing->getTelephone();
         $fieldsArr['fax'] = $billing->getFax();
         $fieldsArr['birth_date'] = $order->getRemoteIp();
         $fieldsArr['session'] = session_id();
-        #$fieldsArr['return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));
-		$fieldsArr['return_url'] = Mage::getUrl('checkout/onepage/saveOrder/', array('success' => true, 'error' => false, 'redirect' => Mage::getUrl('checkout/onepage/saveOrder/', array()) ) );
+        $fieldsArr['return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#orig
         $fieldsArr['return_method'] = 'POST';
-        #$fieldsArr['error_return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#todo:failure
-		$fieldsArr['error_return_url'] = Mage::getUrl('checkout/onepage/savePayment/', array('error' => true, 'success' => false, 'redirect' => Mage::getUrl('checkout/onepage/savePayment/', array()) ) );#redirect
+        $fieldsArr['error_return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#orig. 
         $fieldsArr['error_return_method'] = 'POST';
-        #$fieldsArr['input1'] = 'order_id';
-        #$fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
+        $fieldsArr['input1'] = 'order_id';
+        $fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
 
 		#on Clicking onto <Weiter> after choice of payment type
-		/*
-		payment[method]=novalnetInstantbanktransfer
-		payment[cc_type]=VI
-		payment[cc_owner]=Zhang
-		payment[cc_number]=4200000000000000
-		payment[cc_exp_month]=1
-		payment[cc_exp_year]=2012
-		payment[cc_cid]=123
+      /*
+      payment[method]=novalnetInstantbanktransfer
+      payment[cc_type]=VI
+      payment[cc_owner]=Zhang
+      payment[cc_number]=4200000000000000
+      payment[cc_exp_month]=1
+      payment[cc_exp_year]=2012
+      payment[cc_cid]=123
 		*/
-		$fieldsArr['payment[method]'] = 'novalnetInstantbanktransfer';
+		#$fieldsArr['payment[method]'] = 'novalnetInstantbanktransfer';
 
 		############## INSTANT BANK Transfer specific parameters
-        $prefix                               = 'instantbanktransfer_';
-        $fieldsArr[$prefix.'url']             = self::CGI_URL;
-		$fieldsArr[$prefix.'project_id']      = self::PROJECT_ID;
-		$fieldsArr[$prefix.'user_id']         = self::USER_ID;
-		$fieldsArr[$prefix.'reason_1']        = 'Test2';#todo?
-		$fieldsArr[$prefix.'reason_2']        = 'Test3';#todo?
-		$fieldsArr[$prefix.'amount']          = str_replace(',', '.', $order->getBaseGrandTotal()*100);
-        $fieldsArr[$prefix.'user_variable_0'] = $paymentInfo->getOrder()->getRealOrderId();
+    $fieldsArr['user_variable_0'] = str_replace('http://', '', Mage::getBaseUrl());
 
         $request = '';
         foreach ($fieldsArr as $k => $v) {
@@ -236,7 +223,8 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
     
     public function getOrderPlaceRedirectUrl()
     {
-          return Mage::getUrl('novalnet/instantbanktransfer/redirect');#path: magento\app\code\community\Mage\Novalnet\Block\Instantbanktransfer\redirect.php
+        return Mage::getUrl('novalnet/instantbanktransfer/redirect', array('_secure' => true));#path: magento\app\code\community\Mage\Novalnet\Block\Instantbanktransfer\redirect.php
+        #Mage::log("getOrderPlaceRedirectUrl called");
     }
     
     public function getNovalnetInstantbanktransferUrl()
@@ -278,34 +266,11 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
 
 	public function assignData($data)#this mehtode will be called twice: once after choice of payment, once after klicking on <Place Order>
 	{
-		$this->debug2(__FUNCTION__, 'magento_assignData.txt');
-		$this->debug2($data, 'magento_assignData.txt');
-		/*if(!session_is_registered('tid')){
-			$this->debug2($data, 'magento_assignData1.txt');
-			$addresses = $this->getQuote()->getAllAddresses();
-			$this->checkAmountAllowed();
-			$this->aBillingAddress = $this->getBillingAddress($addresses);
-			$this->debug2($this, 'magento_assignData_this.txt');
-			$this->getFirstCall();
-		}else{
-			$this->debug2($data, 'magento_assignData2.txt');
-			#Mage::throwException($this->text.'hl');
-		}
-
-        if (!($data instanceof Varien_Object)) {
-            $data = new Varien_Object($data);
-        }
-        $info=$this->getInfoInstance();*/
-        /*$info->setNnElvCountry($data->getElvCountry())
-        ->setNnAccountHolder($data->getAccountHolder())
-        ->setNnAccountNumber($data->getAccountNumber())
-        ->setNnBankSortingCode($data->getBankSortingCode());*/
-
 		return $this;
 	}
 	public function debug2($object, $filename)
 	{
-		if (!$this->debug){return;}
+		if (!$this->_debug){return;}
 		$fh = fopen("/tmp/$filename", 'a+');
 		if (gettype($object) == 'object' or gettype($object) == 'array'){
 			fwrite($fh, serialize($object));

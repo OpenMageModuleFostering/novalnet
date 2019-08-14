@@ -209,6 +209,20 @@
                 <!-- default title for payment checkout page and order view page -->
                 <title>Phonepayment</title>
             </novalnetPhonepayment>
+			<novalnetInstantbanktransfer>
+				<cctypes>VI,MC</cctypes>
+				<!-- by default this payment method is inactive -->
+                <active>1</active>
+                <cgi_url>https://payport.novalnet.de/paygate.jsp</cgi_url>
+				<!-- model to handle logic for this payment method -->
+                <model>novalnet/novalnetInstantbanktransfer</model>
+                <payment_action>authorize_capture</payment_action>
+				<!-- order status for new orders paid by this payment method -->
+                <order_status>1</order_status>
+     			<allowspecific>0</allowspecific>
+				<!-- default title for payment checkout page and order view page -->
+                <title>Instant Bank Transfer</title>
+            </novalnetInstantbanktransfer>
         </payment>
     </default>
 </config>
