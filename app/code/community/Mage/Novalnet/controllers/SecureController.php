@@ -72,7 +72,7 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
             $order->sendNewOrderEmail();
         }
 
-        if ($status == 100) {
+        if ($status) {
             $this->setOrderStatus($response['inputval1'], $_SESSION['status_zh']);#new
             unset($_SESSION['status_zh']);
             $this->_redirect('checkout/onepage/success');
