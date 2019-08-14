@@ -95,7 +95,7 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_Grid extends Mage_Adm
      */
     public function getRowUrl($row)
     {
-        return $this->getUrl('novalnet_payment/adminhtml_transactionoverview/view', array(
+        return $this->getUrl('adminhtml/novalnetpayment_transactionoverview/view', array(
                     'nnlog_id' => $row->getId()
                         )
         );

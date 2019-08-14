@@ -43,7 +43,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Prepayment extends Mage_Payment
      */
     public function getUserInfo()
     {
-        return $this->getMethod()->getConfigData('booking_reference');
+        return trim(strip_tags(trim($this->getMethod()->getConfigData('booking_reference'))));
     }
 
     /**
@@ -53,7 +53,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Prepayment extends Mage_Payment
      */
     public function getLiveMode()
     {
-        return $this->getMethod()->_getConfigData('live_mode');
+        return $this->getMethod()->getNovalnetConfig('live_mode');
     }
 
 }

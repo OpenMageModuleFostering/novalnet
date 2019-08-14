@@ -43,7 +43,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Eps extends Mage_Payment_Block_
      */
     public function getUserInfo()
     {
-        return $this->getMethod()->getConfigData('booking_reference');
+        return trim(strip_tags(trim($this->getMethod()->getConfigData('booking_reference'))));
     }
 
 }

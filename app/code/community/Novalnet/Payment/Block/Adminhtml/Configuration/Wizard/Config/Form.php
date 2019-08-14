@@ -55,7 +55,7 @@ class Novalnet_Payment_Block_Adminhtml_Configuration_Wizard_Config_Form extends 
 
         if (!$getWebsiteCode && !$getStoreCode) {
             $session->setNnStoreConfig('Standard');
-        } else if ($getWebsiteCode != '' && !$getStoreCode) {
+        } elseif ($getWebsiteCode && !$getStoreCode) {
             $storeConfig = Mage::getModel('core/website')->load($getWebsiteCode)->getName();
             Mage::register('webConfig', Mage::getModel('core/website')->load($getWebsiteCode)->getId());
             $session->setNnStoreConfig($storeConfig);

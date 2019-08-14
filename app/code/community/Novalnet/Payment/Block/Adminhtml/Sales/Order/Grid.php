@@ -38,14 +38,11 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Grid extends Mage_Adminhtml_B
         $this->setSaveParametersInSession(true);
 
         /* Novalnet */
-        $payments = Mage::getSingleton('payment/config')->getAllMethods();
-        if (!$this->novalnetPayments) {
-            foreach ($payments as $paymentCode => $paymentModel) {
-                $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title');
-                if (preg_match('/novalnet/i', $paymentCode)) {
-                    $this->novalnetPayments[$paymentCode] = $paymentTitle;
-                }
-            }
+        $novalPaymentMethods = array_keys(Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetPaymentKey'));
+
+        foreach($novalPaymentMethods as $paymentCode) {
+            $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title');
+            $this->novalnetPayments[$paymentCode] = $paymentTitle;
         }
         /* Novalnet */
     }

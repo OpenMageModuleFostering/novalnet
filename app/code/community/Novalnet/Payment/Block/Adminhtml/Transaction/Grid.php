@@ -55,7 +55,7 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
      *
      * @return Novalnet_Payment_Block_Adminhtml_Transaction_Grid
      */
-    public function _prepareColumns()
+    protected function _prepareColumns()
     {
         $this->addColumn('order_id', array(
             'header' => Mage::helper('sales')->__('Order no #'),
@@ -98,7 +98,7 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_Grid extends Mage_Adminhtml_B
      */
     public function getRowUrl($row)
     {
-        return $this->getUrl('novalnet_payment/adminhtml_transaction/view', array(
+        return $this->getUrl('adminhtml/novalnetpayment_transaction/view', array(
                     'nntxn_id' => $row->getId()
                         )
         );

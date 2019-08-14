@@ -44,19 +44,21 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
      */
     public function getProfileProgress($profile)
     {
-        $checkout = Mage::getSingleton('checkout/session');
-        $quote = $checkout->getQuote();
+        $helper = Mage::helper('novalnet_payment');
+        $checkoutSession = $helper->getCheckoutSession();
+        $quote = $checkoutSession->getQuote();
         $paymentObj = $quote->getPayment()->getMethodInstance();
         $paymentCode = $quote->getPayment()->getMethod();
-        $helper = $paymentObj->helper;
-        if ($checkout->getNominalRequest() && $checkout->getNominalResponse()) {
+
+        if ($checkoutSession->getNominalRequest() && $checkoutSession->getNominalResponse()) {
             $paymentObj->validateCallbackProcess(ucfirst($paymentCode));
-            $request = $checkout->getNominalRequest();
-            $result = $checkout->getNominalResponse();
+            $request = $checkoutSession->getNominalRequest();
+            $result = $checkoutSession->getNominalResponse();
         } else {
             $request = $this->_buildRecurringRequest($profile, $paymentObj);
             $result = $paymentObj->postRequest($request);
         }
+
         $txnId = trim($result->getTid());
         //set profile reference id
         $profile->setReferenceId($txnId);
@@ -80,7 +82,7 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
             $this->updateInventory($quote);
         } else {
             $error = $result->getStatusMessage() ?  $result->getStatusMessage() : ($result->getStatusDesc() ?  $result->getStatusDesc()
-			: ($result->getStatusText() ?  $result->getStatusText() : $this->helper->__('Error in capturing the payment')));
+            : ($result->getStatusText() ?  $result->getStatusText() : $this->helper->__('Error in capturing the payment')));
             if ($error !== false) {
                 Mage::throwException($error);
             }
@@ -99,12 +101,11 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
     protected function _buildPostBackRequestForRecurring($config, $profile, $result, $paymentObj)
     {
         $request = Mage::getModel('novalnet_payment/novalnet_request');
-        $shopMode = (!$paymentObj->_getConfigData('live_mode')) ? 1 : 0;
+        $shopMode = (!$paymentObj->getNovalnetConfig('live_mode')) ? 1 : 0;
         $serverResponse = $result->getTestMode();
         $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
                 && $shopMode == 0)) ? 1 : 0 );
         $data = $paymentObj->setPaymentAddtionaldata($result, $config);
-
         $request->setVendor($config->getVendor())
                 ->setAuthCode($config->getAuthCode())
                 ->setProduct($config->getProduct())
@@ -130,31 +131,28 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
     protected function _buildRecurringRequest(Mage_Payment_Model_Recurring_Profile $profile, $paymentObj)
     {
         $request = Mage::getModel('novalnet_payment/novalnet_request');
-        $amount = round(($profile->getBillingAmount() + $profile->getShippingAmount()
-                        + $profile->getTaxAmount()), 2) * 100;
-        $initAmount = $profile->getInitAmount();
-        $trialAmount = $profile->getTrialBillingAmount();
-        if ($initAmount != '' || $trialAmount) {
-            $amountValue = $this->recurringAmount($profile);
-        } else {
-            $amountValue = $amount;
-        }
         $peroidUnit = $profile->getPeriodUnit();
         $periodUnitFormat = array("day" => "d", "month" => "m", "year" => "y");
 
         if ($peroidUnit == "semi_month") {
-            $tariffPeriod2 = "14d";
+            $tariffPeriod = "14d";
         } elseif ($peroidUnit == "week") {
-            $tariffPeriod2 = ($profile->getPeriodFrequency() * 7) . "d";
+            $tariffPeriod = ($profile->getPeriodFrequency() * 7) . "d";
         } else {
-            $tariffPeriod2 = $profile->getPeriodFrequency() . $periodUnitFormat[$peroidUnit];
+            $tariffPeriod = $profile->getPeriodFrequency() . $periodUnitFormat[$peroidUnit];
         }
-        $storeId = $paymentObj->helper->getMagentoStoreId();
-        $request = $paymentObj->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId, $amountValue);
 
-        $request->setTariffPeriod($tariffPeriod2)
-                ->setTariffPeriod2($tariffPeriod2)
-                ->setTariffPeriod2Amount($amount);
+        $storeId = $paymentObj->helper->getMagentoStoreId();
+        $originalAmount = round(($profile->getBillingAmount() + $profile->getShippingAmount()
+                        + $profile->getTaxAmount()), 2) * 100;
+        $initAmount = $profile->getInitAmount();
+        $amount = !empty($initAmount) ? $this->recurringAmount($profile) : $originalAmount;
+        $request = $paymentObj->buildRequest(Novalnet_Payment_Model_Config::POST_NORMAL, $storeId, $amount);
+        $period = $paymentObj->getNovalnetConfig('subsequent_period', true, $storeId);
+        $subsequentPeriod = !empty($period) ? $period : $tariffPeriod;
+        $request->setTariffPeriod($tariffPeriod)
+                ->setTariffPeriod2($subsequentPeriod)
+                ->setTariffPeriod2Amount($originalAmount);
 
         return $request;
     }
@@ -167,25 +165,9 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
      */
     public function recurringAmount($profile)
     {
-        $trialAmount = $profile->getTrialBillingAmount();
-        $initAmount = $profile->getInitAmount();
-        $billingAmount = $profile->getBillingAmount();
-        if ($trialAmount != '' && $initAmount != '' && $billingAmount != '') {
-            $amount = round(($trialAmount + $initAmount + $profile->getShippingAmount()
-                            + $profile->getTaxAmount()), 2) * 100;
-        } else if ($trialAmount != '' && $billingAmount != '') {
-            $amount = round(($trialAmount + $profile->getShippingAmount() + $profile->getTaxAmount()), 2)
-                    * 100;
-        } else if ($initAmount != '' && $billingAmount != '') {
-            $amount = round(($initAmount + $billingAmount + $profile->getShippingAmount()
-                            + $profile->getTaxAmount()), 2) * 100;
-        } else {
-            $amount = round(($billingAmount + $profile->getShippingAmount() + $profile->getTaxAmount()), 2)
-                    * 100;
-        }
-        return $amount;
+        return round(($profile->getInitAmount() + $profile->getBillingAmount()
+                        + $profile->getShippingAmount() + $profile->getTaxAmount()), 2) * 100;
     }
-
 
     /**
      * Get Recurring Increment Id
@@ -195,12 +177,13 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
      */
     public function getRecurringOrderNo($profile)
     {
+        $incrementId = array();
         $recurringProfileCollection = Mage::getResourceModel('sales/order_grid_collection')
                 ->addRecurringProfilesFilter($profile->getId());
         foreach ($recurringProfileCollection as $recurringProfileCollectionValue) {
-            $orderNo = $recurringProfileCollectionValue->getIncrementId();
+            $incrementId[] = $recurringProfileCollectionValue->getIncrementId();
         }
-        return $orderNo;
+        return $incrementId;
     }
 
     /**
@@ -222,29 +205,23 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
      * @param varien_object $order
      * @return int
      */
-    public function getRecurringCaptureTotal($lastTranId,$order)
+    public function getRecurringCaptureTotal($lastTransId, $order)
     {
-        $profileInfo = Mage::getModel('sales/recurring_profile')->load($lastTranId, 'reference_id');
+        $profileInfo = Mage::getModel('sales/recurring_profile')->load($lastTransId, 'reference_id');
         $billingAmount = $profileInfo->getBillingAmount();
         $initialAmount = $profileInfo->getInitAmount();
-        $trialAmount = $profileInfo->getTrialBillingAmount();
-        $shippingAmount = $profileInfo->getShippingAmount();
-        $taxAmount = $profileInfo->getTaxAmount();
 
-        if ($initialAmount != '' && $trialAmount != '' && $billingAmount != '') {
-            $amountvalue = round(($trialAmount + $initialAmount + $shippingAmount + $taxAmount), 2);
-        } else if ($trialAmount != '' && $billingAmount != '') {
-            $amountvalue = round(($trialAmount + $shippingAmount + $taxAmount), 2);
-        } else if ($initialAmount != '' && $billingAmount != '') {
-            $amountvalue = round(($initialAmount + $billingAmount + $shippingAmount + $taxAmount), 2);
+        if (!empty($initialAmount) && !empty($billingAmount)) {
+            $amount = round(($initialAmount + $billingAmount
+                        + $profileInfo->getShippingAmount() + $profileInfo->getTaxAmount()), 2);
         } else {
-            $amountvalue = $order->getGrandTotal();
+            $amount = $order->getGrandTotal();
         }
-        $loadTransaction = Mage::helper('novalnet_payment')->loadTransactionStatus($lastTranId)
-                                                           ->setAmount($amountvalue)
-                                                           ->save();
 
-        return $amountvalue;
+        $loadTransaction = Mage::helper('novalnet_payment')->loadTransactionStatus($lastTransId)
+                                                           ->setAmount($amount)
+                                                           ->save();
+        return $amount;
     }
 
     /**

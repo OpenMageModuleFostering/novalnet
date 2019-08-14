@@ -172,7 +172,7 @@ $data = $this->getNovalnetTransactionOverview();
                     <td class="label">
                         <label><?php echo $this->helper('novalnet_payment')->__('Response Data') ?></label><br>
                         <div style="height:250px;overflow:scroll;width:600px;"><strong><?php
-                                $getresponseData = unserialize(base64_decode($data->getResponseData()));
+								$getresponseData = unserialize(base64_decode($data->getResponseData()));                                
                                 echo "<pre>";
                                 print_r($getresponseData);
                                 echo "</pre>";

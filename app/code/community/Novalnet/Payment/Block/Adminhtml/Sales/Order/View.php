@@ -61,7 +61,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
                     $this->_removeButton('order_invoice');
                     $this->_addButton('novalnet_confirm', array(
                         'label' => Mage::helper('novalnet_payment')->__('Novalnet Capture'),
-                        'onclick' => 'setLocation(\'' . $this->getUrl('*/*/novalnetconfirm') . '\')',
+                        'onclick' => 'setLocation(\'' . $this->getUrl('*/novalnetpayment_sales_order/novalnetconfirm') . '\')',
                             ), 0);
                 }
             }

@@ -50,17 +50,17 @@
         </reference>
     </adminhtml_sales_recurring_profile_view>
 
-    <novalnet_payment_adminhtml_sales_order_index>
+    <adminhtml_novalnetpayment_sales_order_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_sales_order" name="novalnet_payment_sales_order" />
         </reference>
-    </novalnet_payment_adminhtml_sales_order_index>
+    </adminhtml_novalnetpayment_sales_order_index>
 
-    <novalnet_payment_adminhtml_sales_recurring_profile_index>
+    <adminhtml_novalnetpayment_sales_recurring_profile_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_recurring_profile" name="novalnet_payment_adminhtml_recurring_profile" />
         </reference>
-    </novalnet_payment_adminhtml_sales_recurring_profile_index>
+    </adminhtml_novalnetpayment_sales_recurring_profile_index>
 
     <!--
     Sales Order View
@@ -100,62 +100,61 @@
     <!--
     Novalnet transaction
     -->
-    <novalnet_payment_adminhtml_transaction_index>
+    <adminhtml_novalnetpayment_transaction_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_transaction" name="novalnet_payment_transaction" />
         </reference>
-    </novalnet_payment_adminhtml_transaction_index>
+    </adminhtml_novalnetpayment_transaction_index>
 
     <!--
     Novalnet transaction view
     -->
-    <novalnet_payment_adminhtml_transaction_view>
+    <adminhtml_novalnetpayment_transaction_view>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_transaction_view" name="novalnet_payment_transaction_view" template="novalnet/transaction/view/form.phtml">
             </block>
         </reference>
-    </novalnet_payment_adminhtml_transaction_view>
+    </adminhtml_novalnetpayment_transaction_view>
 
     <!--
     Novalnet transaction overview
     -->
-    <novalnet_payment_adminhtml_transactionoverview_index>
+    <adminhtml_novalnetpayment_transactionoverview_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_transactionoverview" name="novalnet_payment_transactionoverview" />
         </reference>
-    </novalnet_payment_adminhtml_transactionoverview_index>
+    </adminhtml_novalnetpayment_transactionoverview_index>
 
     <!--
     Novalnet transaction overview view form
     -->
-    <novalnet_payment_adminhtml_transactionoverview_view>
+    <adminhtml_novalnetpayment_transactionoverview_view>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_transactionoverview_view" name="novalnet_payment_transactionoverview_view" template="novalnet/transaction/overview/view/form.phtml"/>
         </reference>
-    </novalnet_payment_adminhtml_transactionoverview_view>
+    </adminhtml_novalnetpayment_transactionoverview_view>
 
     <!-- Global Configuration -->
 
-    <novalnet_payment_adminhtml_configuration_wizard_page_index>
-        <update handle="novalnet_payment_adminhtml_configuration_wizard_page_view" />
+    <adminhtml_novalnetpayment_configuration_wizard_page_index>
+        <update handle="adminhtml_novalnetpayment_configuration_wizard_page_view" />
         <reference name="novalnet.config.wizard.page.view">
             <block type="adminhtml/system_config_switcher"
                    name="novalnet.config.wizard.page.switcher"
                    before="-"
                    template="novalnet/payment/configuration/store_switcher.phtml" />
-
         </reference>
-    </novalnet_payment_adminhtml_configuration_wizard_page_index>
+    </adminhtml_novalnetpayment_configuration_wizard_page_index>
 
-    <novalnet_payment_adminhtml_configuration_wizard_page_view>
+    <adminhtml_novalnetpayment_configuration_wizard_page_view>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_configuration_wizard_page_view"
                    name="novalnet.config.wizard.page.view"
                    template="novalnet/payment/configuration/viewcontainer.phtml" />
         </reference>
-    </novalnet_payment_adminhtml_configuration_wizard_page_view>
+    </adminhtml_novalnetpayment_configuration_wizard_page_view>
 
-    <novalnet_payment_adminhtml_configuration_wizard_page_generalglobal>
+    <adminhtml_novalnetpayment_configuration_wizard_page_generalglobal>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_configuration_wizard_page_edit"
                    name="novalnet.config.wizard.page.edit" template="novalnet/payment/configuration/formcontainer.phtml">
@@ -164,9 +163,9 @@
                 </block>
             </block>
         </reference>
-    </novalnet_payment_adminhtml_configuration_wizard_page_generalglobal>
+    </adminhtml_novalnetpayment_configuration_wizard_page_generalglobal>
 
-    <novalnet_payment_adminhtml_configuration_wizard_page_save>
+    <adminhtml_novalnetpayment_configuration_wizard_page_save>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_configuration_wizard_page_save"
                    name="novalnet.config.wizard.page.save" template="novalnet/payment/configuration/paymentcontainer.phtml">
@@ -175,25 +174,25 @@
             </block>
             </block>
         </reference>
-    </novalnet_payment_adminhtml_configuration_wizard_page_save>
+    </adminhtml_novalnetpayment_configuration_wizard_page_save>
 
     <!--
     Novalnet information index overview
     -->
-    <novalnet_payment_adminhtml_information_module_index>
+    <adminhtml_novalnetpayment_information_module_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_information_module"
                    name="novalnet_payment_information_module" />
         </reference>
-    </novalnet_payment_adminhtml_information_module_index>
+    </adminhtml_novalnetpayment_information_module_index>
 
     <!--
     Novalnet merchant administration
     -->
-    <novalnet_payment_adminhtml_information_novalnetmerchantadmin_index>
+    <adminhtml_novalnetpayment_information_novalnetmerchantadmin_index>
         <reference name="content">
             <block type="novalnet_payment/adminhtml_information_novalnetmerchantadmin"
                    name="novalnet_payment_information_novalnetmerchantadmin" />
         </reference>
-    </novalnet_payment_adminhtml_information_novalnetmerchantadmin_index>
+    </adminhtml_novalnetpayment_information_novalnetmerchantadmin_index>
 </layout>

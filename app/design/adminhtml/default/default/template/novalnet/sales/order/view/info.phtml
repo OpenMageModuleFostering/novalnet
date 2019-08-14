@@ -131,12 +131,18 @@ $orderStoreDate = $this->formatDate($_order->getCreatedAtStoreDate(), 'medium', 
                     <td class="value"><strong><?php echo $_groupName ?></strong></td>
                 </tr>
                 <?php endif; ?>
-                <?php foreach ($this->getCustomerAccountData() as $data):?>
+                <?php if ($_dob=$this->getOrder()->getCustomerDob()) : ?>
                 <tr>
-                    <td class="label"><label><?php echo $data['label'] ?></label></td>
-                    <td class="value"><strong><?php echo $data['value'] ?></strong></td>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('Date of Birth') ?></label></td>
+                    <td class="value"><strong><?php echo Mage::helper('core')->formatDate($_dob, 'medium') ?></strong></td>
                 </tr>
-                <?php endforeach;?>
+                <?php endif; ?>
+                <?php if ($_taxvat = $_order->getCustomerTaxvat()):?>
+                <tr>
+                    <td class="label"><label><?php echo Mage::helper('sales')->__('TAX/VAT Number') ?></label></td>
+                    <td class="value"><strong><?php echo $this->htmlEscape($_taxvat)?></strong></td>
+                </tr>
+                <?php endif;?>
                 </table>
             </div>
         </div>

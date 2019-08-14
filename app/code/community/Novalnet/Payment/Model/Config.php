@@ -74,8 +74,6 @@ class Novalnet_Payment_Model_Config
     protected $_setonholdPayments = array('novalnetCc', 'novalnetSepa', 'novalnetInvoice');
     protected $_callbackAllowedCountry = array('AT', 'DE', 'CH');
     protected $_paymentOnholdStaus = array('91', '98', '99');
-    protected $_novalnetEncodeParams = array('auth_code', 'product', 'tariff', 'test_mode',
-        'uniqid', 'amount');
     protected $_novalnetHashParams = array('auth_code', 'product', 'tariff', 'amount',
         'test_mode', 'uniqid');
     protected $_fraudCheckPayment = array('novalnetInvoice', 'novalnetSepa');

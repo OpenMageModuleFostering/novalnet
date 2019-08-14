@@ -23,20 +23,20 @@
  * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Adminhtml_TransactionController extends Mage_Adminhtml_Controller_Action
+class Novalnet_Payment_Adminhtml_Novalnetpayment_TransactionoverviewController extends Mage_Adminhtml_Controller_Action
 {
     /**
      * Init layout, menu and breadcrumb
      *
-     * @return Novalnet_Payment_Adminhtml_TransactionController
+     * @return Novalnet_NovalnetIdeal_Adminhtml_TransactionController
      *
      */
     protected function _initAction()
     {
         $this->loadLayout()
             ->setUsedModuleName('novalnet_payment')
-            ->_setActiveMenu('novalnet/transactionstatus')
-            ->_addBreadcrumb($this->__('Novalnet'), $this->__('Transaction'));
+            ->_setActiveMenu('novalnet/transactionoverview')
+            ->_addBreadcrumb($this->__('Novalnet'), $this->__('Transaction Overview'));
 
         return $this;
     }
@@ -52,36 +52,35 @@ class Novalnet_Payment_Adminhtml_TransactionController extends Mage_Adminhtml_Co
     }
 
     /**
-     * Create transaction status block
+     * Create transaction overview block
      *
      */
     public function gridAction()
     {
         $this->getResponse()->setBody(
-                $this->getLayout()->createBlock('novalnet_payment/adminhtml_transaction_grid')->toHtml()
+                $this->getLayout()->createBlock('novalnet_payment/adminhtml_transactionoverview_grid')->toHtml()
         );
     }
 
     /**
-     * View the transaction status information
+     * View the transaction overview information
      *
      */
     public function viewAction()
     {
-        $nnTxnId = $this->getRequest()->getParam('nntxn_id');
-        $transactionStatus = Mage::helper('novalnet_payment')->getModelTransactionStatus()->load($nnTxnId);
+        $nnTxnId = $this->getRequest()->getParam('nnlog_id');
+        $modelTransaction = Mage::helper('novalnet_payment')->getModelTransactionOverview();
+        $transOverview = $modelTransaction->load($nnTxnId);
 
-        if (empty($nnTxnId) || !$transactionStatus->getNnTxnId()) {
+        if (empty($nnTxnId) || !$transOverview->getNnLogId()) {
             $this->_forward('noRoute');
         }
 
-        $this->_title(sprintf("#%s", $transactionStatus->getTransactionNo()));
+        $this->_title(sprintf("#%s", $transOverview->getTransactionId()));
 
-        // @var $transactionStatus Novalnet_Payment_Model_Transactionstatus
-        $modelTransaction = Mage::helper('novalnet_payment')->getModelTransactionStatus();
-        $modelTransaction->loadByTransactionStatusId($transactionStatus);
+        $modelTransaction->loadByOrderLogId($transOverview);
 
-        Mage::register('novalnet_payment_transactionstatus', $modelTransaction);
+        Mage::register('novalnet_payment_transactionoverview', $transOverview);
 
         $this->_initAction();
         $this->renderLayout();

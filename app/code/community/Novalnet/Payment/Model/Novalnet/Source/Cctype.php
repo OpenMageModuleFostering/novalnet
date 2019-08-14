@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Magento
  *
@@ -23,11 +24,31 @@
  * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Model_Novalnet_Source_Cctype extends Mage_Payment_Model_Source_Cctype
+class Novalnet_Payment_Model_Novalnet_Source_Cctype
 {
-    public function getAllowedTypes()
+
+    public function toOptionArray()
     {
-        return array('VI', 'MC', 'AE');
+        $cardTypes = array(
+            'VI' => 'Visa',
+            'MC' => 'MasterCard',
+            'AE' => 'American Express',
+            'TO' => 'Maestro',
+            'T' => 'CartaSi',
+        );
+
+        $allowed = array('AE', 'VI', 'MC', 'TO', 'T');
+        $options = array();
+        foreach ($cardTypes as $code => $name) {
+            if (in_array($code, $allowed) || !count($allowed)) {
+                $options[] = array(
+                    'value' => $code,
+                    'label' => $name
+                );
+            }
+        }
+
+        return $options;
     }
 
 }

@@ -174,7 +174,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         if ($nextPage && array_key_exists('url', $nextPage)) {
             $url = $nextPage['url'];
         } else {
-            $url = '*/adminhtml_configuration_wizard_page/' . $nextPageName;
+            $url = '*/novalnetpayment_configuration_wizard_page/' . $nextPageName;
         }
         return $url;
     }
@@ -358,7 +358,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
                     $customerNo = $visitorData['customer_id']; // Used Only customer id is not assigned in mage session
                 }
                 //Log customer Order details
-                if ($customerNo == "") {
+                if (!$customerNo) {
                     Mage::log($getCustomerSession->getCustomer(), NULL, "Customerid_Missing_" . $getCoreData . ".log");
                     Mage::log("Below are Order Details : ", NULL, "Customerid_Missing_" . $getCoreData . ".log");
                     Mage::log($orderDetails, NULL, "Customerid_Missing_" . $getCoreData . ".log");
@@ -503,7 +503,9 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getEncodedParam($data, $key)
     {
         $data = trim($data);
-        if ($data == '') return'Error: no data';
+        if (!$data) {
+            return'Error: no data';
+        }
         if (!function_exists('base64_decode') or ! function_exists('pack') or ! function_exists('crc32')) {
             return'Error: func n/a';
         }
@@ -530,7 +532,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         if (!function_exists('base64_encode') || !function_exists('pack') || !function_exists('crc32')) {
             return false;
         }
-        $toBeEncoded = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetEncodeParams');
+        $toBeEncoded = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetHashParams');
         foreach ($toBeEncoded as $_value) {
             $data = $fields->$_value;
             if ($this->isEmptyString($data)) {
@@ -559,7 +561,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     public function getDecodedParam($data, $key)
     {
         $data = trim($data);
-        if ($data == '') {
+        if (!$data) {
             return'Error: no data';
         }
         if (!function_exists('base64_decode') || !function_exists('pack') || !function_exists('crc32')) {
@@ -985,21 +987,6 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * Get profile information's
-     *
-     * @return mixed
-     */
-    public function getProfileInfodata()
-    {
-        $profile = Mage::getSingleton('checkout/session')->getOptionprofile();
-        $getBillingPeriod = array_pop($profile);
-        $getCycleInfo = next($getBillingPeriod);
-        $getCycles = array_shift($getCycleInfo);
-        $value = explode(' ', $getCycles);
-        return $value;
-    }
-
-    /**
      * Get the respective payport url
      *
      * @param string $reqType
@@ -1033,7 +1020,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $_order = new Mage_Sales_Model_Order();
         $orderId = Mage::app()->getRequest()->getParam('order_id');
-        if ($orderId == '') {
+        if (!$orderId) {
             $request = Mage::app()->getRequest();
             $invoiceId = $request->getParam('invoice_id');
             $shipmentId = $request->getParam('shipment_id');

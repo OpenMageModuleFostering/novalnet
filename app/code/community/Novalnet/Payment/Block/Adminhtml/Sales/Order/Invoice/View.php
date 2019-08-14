@@ -43,8 +43,8 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View extends Mage_Adm
 
         $amount = $helper->getAmountCollection($sorderId, 1, NULL);
         $callbackTrans = $helper->loadCallbackValue($orderId);
-            $callbackValue = $callbackTrans && $callbackTrans->getCallbackAmount()
-                    != NULL ? $callbackTrans->getCallbackAmount() : '';
+            $callbackValue = ($callbackTrans && $callbackTrans->getCallbackAmount())
+                        ? $callbackTrans->getCallbackAmount() : '';
         if (($payment->getAmountRefunded() < $amount) || ($nominalItem && $payment->getAmountRefunded() < $totalPaid)) {
             $this->_removeButton('print');
             $this->_removeButton('capture');

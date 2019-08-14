@@ -62,7 +62,7 @@ class Novalnet_Payment_Block_Payment_Method_NovalnetRedirect extends Mage_Core_B
                 'key' => $logFormData['key'],
                 'authorize_key' => $authorizeKey
             );
-            if ($paymentCode == Novalnet_Payment_Model_Config::NN_CC && $paymentObj->_getConfigData('active_cc3d')) {
+            if ($paymentCode == Novalnet_Payment_Model_Config::NN_CC && $paymentObj->getNovalnetConfig('active_cc3d')) {
                 $data['ActiveCc3d'] = 1;
             }
             $payment->setAdditionalData(serialize($data))

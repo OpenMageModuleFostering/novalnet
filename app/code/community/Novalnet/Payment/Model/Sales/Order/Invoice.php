@@ -47,7 +47,7 @@ class Novalnet_Payment_Model_Sales_Order_Invoice extends Mage_Sales_Model_Order_
         $countofvalue = $helper->getAmountCollection($this->getOrder()->getId(), NULL, NULL);
         $tidPayment = Mage::app()->getRequest()->getParam('tid_payment');
         if ($paymentCode == Novalnet_Payment_Model_Config::NN_INVOICE && $countofvalue
-                == 0 && $tidPayment == '') {
+                == 0 && !$tidPayment) {
             $this->setState(1);
         } else {
             $this->setState($invoiceState);
@@ -72,7 +72,7 @@ class Novalnet_Payment_Model_Sales_Order_Invoice extends Mage_Sales_Model_Order_
         }
 
         $this->getOrder()->getPayment()->pay($this);
-        if ($captrueAmount != '' && in_array($paymentCode, $invoicePayments) && $countofvalue
+        if ($captrueAmount && in_array($paymentCode, $invoicePayments) && $countofvalue
                 != 0) {
             $amount = $helper->getAmountCollection($this->getOrder()->getId(), 1, NULL);
             $this->getOrder()->setTotalPaid($amount);

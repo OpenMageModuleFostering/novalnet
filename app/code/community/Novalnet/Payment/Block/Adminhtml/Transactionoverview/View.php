@@ -68,7 +68,7 @@ class Novalnet_Payment_Block_Adminhtml_Transactionoverview_View extends Mage_Adm
                 trim($this->getNovalnetTransactionOverview()->getOrderId()));
         if ($order->getPayment()) {
             $paymentMethod = $order->getPayment()->getMethod();
-            $title = Mage::helper("novalnet_payment")->getModel($paymentMethod)->_getConfigData('title');
+            $title = Mage::helper("novalnet_payment")->getModel($paymentMethod)->getNovalnetConfig('title');
         } else {
             $title = '';
         }

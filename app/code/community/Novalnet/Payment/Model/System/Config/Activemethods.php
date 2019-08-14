@@ -45,20 +45,18 @@ class Novalnet_Payment_Model_System_Config_Activemethods
             $scopeId = 0;
         }
 
-        $payments = Mage::getSingleton('payment/config')->getActiveMethods($scopeId);
-        $novalnetPaymentMethods = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetPaymentMethods');
-        foreach ($payments as $paymentCode => $paymentModel) {
+        $novalPaymentMethods = array_keys(Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetPaymentKey'));
 
-            if (preg_match("/novalnet/i", $paymentCode)) {
-                $paymentActive = Mage::getStoreConfig('payment/' . $paymentCode . '/active', $scopeId);
-                if ($paymentActive == true) {
-                    $paymentMethod = Mage::helper('novalnet_payment')->__($novalnetPaymentMethods[$paymentCode]);
-                    $methods[$paymentCode] = array(
-                        'label' => $paymentMethod,
-                        'value' => $paymentCode,
-                    );
-                    $activePayment = true;
-                }
+        foreach($novalPaymentMethods as $paymentCode) {
+
+            $paymentActive = Mage::getStoreConfig('payment/' . $paymentCode . '/active', $scopeId);
+            if ($paymentActive == true) {
+                $paymentTitle = Mage::getStoreConfig('payment/' . $paymentCode . '/title', $scopeId);
+                $methods[$paymentCode] = array(
+                    'label' => $paymentTitle,
+                    'value' => $paymentCode,
+                );
+                $activePayment = true;
             } else {
                 $inactivePayment = true;
             }

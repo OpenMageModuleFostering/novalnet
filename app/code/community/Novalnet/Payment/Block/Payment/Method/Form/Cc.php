@@ -52,7 +52,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
      */
     public function getCallbackConfigData()
     {
-        return $this->getMethod()->_getConfigData('callback');
+        return $this->getMethod()->getNovalnetConfig('callback');
     }
 
     /**
@@ -62,7 +62,13 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
      */
     public function getCcAvailableTypes()
     {
-        $types = $this->_getConfig()->getCcTypes();
+        $types = array(
+            'VI' => 'Visa',
+            'MC' => 'MasterCard',
+            'AE' => 'American Express',
+            'TO' => 'Maestro',
+            'T' => 'CarteSi',
+        );
         $method = $this->getMethod();
         if ($method) {
             $availableTypes = $method->getConfigData('cctypes');
@@ -149,7 +155,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
      */
     public function getUserInfo()
     {
-        return $this->getMethod()->getConfigData('booking_reference');
+        return trim(strip_tags(trim($this->getMethod()->getConfigData('booking_reference'))));
     }
 
 }

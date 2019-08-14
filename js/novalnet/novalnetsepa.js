@@ -30,7 +30,6 @@ function generate_sepa_iban_bic(value)
         unsetHashRelatedElements();
         return false;
     } else {
-        $nnsepa_j('#novalnetSepa_mandate_confirm').attr('disabled', true);
         $nnsepa_j('#novalnetSepa_iban').remove();
         $nnsepa_j('#novalnetSepa_bic').remove();
     }
@@ -81,7 +80,7 @@ function getSepaFormValues()
 {
     var merchantVendor = $nnsepa_j('#process_vendor_id').val();
     var merchantAuthcode = $nnsepa_j('#auth_code').val();
-    var sepaAccountHolder = removeUnwantedSpecialChars($nnsepa_j.trim($nnsepa_j('#novalnetSepa_account_holder').val()));
+    var sepaAccountHolder = removeUnwantedSpecialChars($nnsepa_j.trim($nnsepa_j('#novalnetSepa_account_holder').val()), 'holder');
     var sepaBankCountry = $nnsepa_j('#novalnetSepa_bank_country').val();
     var sepaAccountNumber = removeUnwantedSpecialChars($nnsepa_j.trim($nnsepa_j('#novalnetSepa_account_number').val()));
     var sepaUniqueId = generateUniqueId();
@@ -238,36 +237,25 @@ function getSepaHashResult(response, reqCall)
             if(response.IBAN != '' && response.BIC != '') {
                 $nnsepa_j('<span id="novalnetSepa_iban"></span>').insertAfter($nnsepa_j("#novalnetSepa_account_number"));
                 $nnsepa_j('#novalnetSepa_iban').html('<b>IBAN:</b> '+response.IBAN);
-                $nnsepa_j('#nn_sepa_overlay_iban_tr').show(60);
                 $nnsepa_j('<span id="novalnetSepa_bic"></span>').insertAfter($nnsepa_j("#novalnetSepa_bank_code"));
                 $nnsepa_j('#novalnetSepa_bic').html('<b>BIC:</b> '+response.BIC);
-                $nnsepa_j('#nn_sepa_overlay_bic_tr').show(60);
                 generateSepaHash();
                 return true;
             } else {
                 alert($nnsepa_j('#nn_sepa_validate_error_message').val());
-                $nnsepa_j('#sepa_mandate_overlay_block_first').css("display", "none");
                 $nnsepa_j('#novalnetSepa_mandate_confirm').removeAttr("checked");
                 $nnsepa_j('#novalnetSepa_mandate_confirm').attr('disabled', false);
                 $nnsepa_j('#nnsepa_iban_confirmed').val(0);
-                $nnsepa_j('#nn_sepa_overlay_iban_tr').hide(60);
-                $nnsepa_j('#nn_sepa_overlay_bic_tr').hide(60);
-                closeMandateOverlay(0);
                 return false;
             }
         } else if (reqCall == 'hash_call') {
             var sepaUniqueId = generateUniqueId();
             $nnsepa_j('#result_sepa_hash').val(response.sepa_hash);
             $nnsepa_j('#result_sepa_hash').attr('disabled',false);
-            $nnsepa_j('#result_mandate_ref').val(response.mandate_ref);
-            $nnsepa_j('#result_mandate_ref').attr('disabled',false);
-            $nnsepa_j('#result_mandate_date').val(response.mandate_date);
-            $nnsepa_j('#result_mandate_date').attr('disabled',false);
             $nnsepa_j('#result_mandate_unique').val(sepaUniqueId);
             $nnsepa_j('#result_mandate_unique').attr('disabled',false);
             $nnsepa_j('#nnsepa_iban_confirmed').val(1);
             $nnsepa_j('#nnsepa_iban_confirmed').attr('disabled',false);
-            showMandateOverlay();
         } else if (reqCall == 'refill_call') {
             var params = response.hash_string+"&";
             params = params.split("=");
@@ -304,93 +292,21 @@ function unsetHashRelatedElements()
     $nnsepa_j('#sepabic').val('');
     $nnsepa_j('#result_mandate_unique').val('');
     $nnsepa_j('#result_sepa_hash').val('');
-    $nnsepa_j('#result_mandate_date').val('');
-    $nnsepa_j('#result_mandate_ref').val('');
     $nnsepa_j('#novalnetSepa_iban').remove();
     $nnsepa_j('#novalnetSepa_bic').remove();
     $nnsepa_j('#nnsepa_iban_confirmed').val(0);
     $nnsepa_j('#novalnetSepa_mandate_confirm').removeAttr("checked");
 }
 
-function showMandateOverlay()
-{
-    $nnsepa_j('.bgCover').css({
-        display: 'block',
-        width: $nnsepa_j(document).width(),
-        height: $nnsepa_j(document).height()
-    });
-    $nnsepa_j('.bgCover').css({opacity: 0}).animate({opacity: 0.5, backgroundColor: '#878787'});
-    $nnsepa_j('#sepa_overlay_iban_span').html(removeUnwantedSpecialChars($nnsepa_j('#sepaiban').val()));
-    $nnsepa_j('#sepa_overlay_bic_span').html(removeUnwantedSpecialChars($nnsepa_j('#sepabic').val()));
-    if ($nnsepa_j('#sepaiban').val() != '' && $nnsepa_j('#sepabic').val() != '') {
-        $nnsepa_j('#label_iban').css('display', 'table-row');
-        $nnsepa_j('#label_bic').css('display', 'table-row');
-    }
-
-    if (isNaN($nnsepa_j('#novalnetSepa_account_number').val()) && $nnsepa_j('#novalnetSepa_bank_code').val() == '') {
-        $nnsepa_j('#sepa_overlay_iban_span').html(removeUnwantedSpecialChars($nnsepa_j('#novalnetSepa_account_number').val()));
-        $nnsepa_j('#nn_sepa_overlay_bic_tr').hide(60);
-    } else if (isNaN($nnsepa_j('#novalnetSepa_account_number').val()) && isNaN($nnsepa_j('#novalnetSepa_bank_code').val())) {
-        $nnsepa_j('#sepa_overlay_iban_span').html(removeUnwantedSpecialChars($nnsepa_j('#novalnetSepa_account_number').val()));
-        $nnsepa_j('#sepa_overlay_bic_span').html(removeUnwantedSpecialChars($nnsepa_j('#novalnetSepa_bank_code').val()));
-    }
-
-    $nnsepa_j('#sepa_overlay_payee_span').html('Novalnet AG');
-    $nnsepa_j('#sepa_overlay_creditoridentificationnumber_span').html('DE53ZZZ00000004253');
-    $nnsepa_j('#sepa_overlay_enduserfullname_span').html(removeUnwantedSpecialChars($nnsepa_j('#novalnetSepa_account_holder').val()));
-    $nnsepa_j('#sepa_overlay_enduserfullname_span1').html(removeUnwantedSpecialChars($nnsepa_j('#novalnetSepa_account_holder').val()));
-    $nnsepa_j('#sepa_overlay_endusercountry_span').html($nnsepa_j('#novalnetSepa_bank_country').val());
-    $nnsepa_j('#sepa_overlay_mandatedate_span').html(normalizeDate($nnsepa_j('#result_mandate_date').val()));
-    $nnsepa_j('#sepa_overlay_mandatereference_span').html($nnsepa_j('#result_mandate_ref').val());
-    $nnsepa_j('#sepa_mandate_overlay_block_first').css({display: 'none', position: 'fixed'});
-    $nnsepa_j('#sepa_mandate_overlay_block').css({display: 'block', position: 'fixed'});
-
-    if ($nnsepa_j(window).width() < 650) {
-        $nnsepa_j('#sepa_mandate_overlay_block').css({left: ($nnsepa_j(window).width() / 2), top: ($nnsepa_j(window).height() / 2), width: 0, height: 0}).animate({left: (($nnsepa_j(window).width() - ($nnsepa_j(window).width() - 10)) / 2), top: 5, width: ($nnsepa_j(window).width() - 10), height: ($nnsepa_j(window).height() - 10)});
-        $nnsepa_j('#overlay_window_block_body').css({'height': ($nnsepa_j(window).height() - 95)});
-    } else {
-        $nnsepa_j('#sepa_mandate_overlay_block').css({left: (($nnsepa_j(window).height() - (490 / 2))), top: (($nnsepa_j(window).height() - 490) / 2), width: (600), height: (490)});
-        $nnsepa_j('#overlay_window_block_body').css({'height': (400)});
-    }
-
-    return true;
-}
-
-function normalizeDate(input)
-{
-    var parts = input.split('-');
-    return(parts[2] + '.' + parts[1] + '.' + parts[0]);
-}
-
-function closeMandateOverlay(mandate)
-{
-    $nnsepa_j('#sepa_mandate_overlay_block').hide(60);
-    $nnsepa_j('.bgCover').css({display: 'none'});
-    return true;
-}
-
-function mandate_confirm_btn_submit()
-{
-    $nnsepa_j('#novalnetSepa_mandate_confirm').attr('disabled', false);
-    $nnsepa_j('#nnsepa_iban_confirmed').val(1);
-    closeMandateOverlay(0);
-}
-
-function mandate_cancel_btn_submit()
-{
-    $nnsepa_j('#nnsepa_iban_confirmed').val(0);
-    $nnsepa_j('#novalnetSepa_mandate_confirm').removeAttr("checked");
-    $nnsepa_j('#novalnetSepa_mandate_confirm').attr('disabled', false);
-    closeMandateOverlay(0);
-    $nnsepa_j('#novalnetSepa_iban').remove();
-    $nnsepa_j('#novalnetSepa_bic').remove();
-}
-
-function removeUnwantedSpecialChars(value)
+function removeUnwantedSpecialChars(value, req)
 {
     if (value != 'undefined' || value != '') {
         value.replace(/^\s+|\s+$/g, '');
-        return value.replace(/[\/\\|\]\[|#@,+()`'$~%.":;*?<>!^{}=_-]/g,'');
+        if (req != 'undefined' && req == 'holder') {
+            return value.replace(/[\/\\|\]\[|#@,+()`'$~%.":;*?<>!^{}=_]/g,'');
+        } else {
+            return value.replace(/[\/\\|\]\[|#@,+()`'$~%.":;*?<>!^{}=_-]/g,'');
+        }
     }
 }
 
@@ -398,7 +314,7 @@ function ibanbicValidate(event)
 {
     var keycode = ('which' in event) ? event.which : event.keyCode;
     var reg = /^(?:[A-Za-z0-9]+$)/;
-    if(event.target.id == 'novalnetSepa_account_holder') var reg = /^(?:[A-Za-z0-9&\s]+$)/;
+    if(event.target.id == 'novalnetSepa_account_holder') var reg = /^(?:[A-Za-z0-9&\s-]+$)/;
     return (reg.test(String.fromCharCode(keycode)) || keycode == 0 || keycode == 8 || (event.ctrlKey == true && keycode == 114))? true : false;
 }
 
@@ -427,13 +343,25 @@ function getSepaHttpProtocol()
     return urlPrefix + "://payport.novalnet.de/sepa_iban";
 }
 
-sepaRefillcall();
 $nnsepa_j(document).ready(function() {
+    sepaRefillcall();
+
     Ajax.Responders.register({ onComplete: function() {
-        if (Ajax.activeRequestCount == 0 && $nnsepa_j('input[name="payment[method]"]:checked').val() == 'novalnetSepa'
-            && $nnsepa_j('#nnsepa_iban_confirmed').val() == 0) {
-            sepaRefillcall();
+        if (Ajax.activeRequestCount == 0) {
+            if ($nnsepa_j('input[name="payment[method]"]:checked').val() == 'novalnetSepa'
+                && $nnsepa_j('#nnsepa_iban_confirmed').val() == 0) {
+                sepaRefillcall();
+            }
+            return true;
         }
       }
     });
+
+    $nnsepa_j(document).on('click', '#co-payment-form input[type="radio"]', function(event) {
+       if (this.value == "novalnetSepa") {
+           $nnsepa_j(this).addClass('active');
+           sepaRefillcall();
+       }
+    });
 });
+

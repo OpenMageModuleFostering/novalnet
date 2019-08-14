@@ -41,16 +41,11 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             $session->getQuote()->setIsActive(true)->save();
             $redirectActionFlag = $paymentObj->getCode() . '_redirectAction';
 
-            if ($payment->getAdditionalInformation($redirectActionFlag)
-                        != 1) {
+            if ($payment->getAdditionalInformation($redirectActionFlag) != 1
+                && $session->getLastRealOrderId() && $items) {
                 $payment->setAdditionalInformation($redirectActionFlag, 1);
-                if ($session->getLastRealOrderId() && $items) {
-                    $state = Mage_Sales_Model_Order::STATE_HOLDED; //set State,Status to HOLD
-                    $status = Mage_Sales_Model_Order::STATE_HOLDED;
-                    $order->setState($state, $status, $this->_getNovalnetHelper()->__('Customer was redirected to Novalnet'), false)->save();
-                } else {
-                    $this->_redirect('checkout/cart');
-                }
+                $status = $state = Mage_Sales_Model_Order::STATE_HOLDED; //set State,Status to HOLD
+                $order->setState($state, $status, $this->_getNovalnetHelper()->__('Customer was redirected to Novalnet'), false)->save();
                 $this->getResponse()->setBody(
                         $this->getLayout()
                                 ->createBlock(Novalnet_Payment_Model_Config::NOVALNET_REDIRECT_BLOCK)
@@ -111,7 +106,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             $payment->setAdditionalInformation($errorActionFlag, 1);
             $dataObj = new Varien_Object($response);
             $paymentObj->saveCancelledOrder($dataObj, $payment);
-            $statusMessage = ($dataObj->getStatusText() != NULL) ? $dataObj->getStatusText()
+            $statusMessage = ($dataObj->getStatusText()) ? $dataObj->getStatusText()
                         : $dataObj->getStatusDesc();
             $helper->getCoresession()->addError($statusMessage);
         }
@@ -121,7 +116,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     }
 
     /**
-     * Recieve server response for Novalnet direct payment methods.
+     * Receive server response for Novalnet direct payment methods.
      *
      * Redirects to success or failure page.
      */
@@ -159,9 +154,9 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             $paymentObj->unsetFormMethodSession();
             // unset payment request and response values
             $paymentObj->unsetPaymentReqResData();
-        $actionUrl = $error !== false ? 'checkout/onepage/failure' : 'checkout/onepage/success';
+            $actionUrl = $error !== false ? 'checkout/onepage/failure' : 'checkout/onepage/success';
         } else {
-        $actionUrl = 'checkout/cart';
+            $actionUrl = 'checkout/cart';
         }
 
         $this->_redirect($actionUrl);
@@ -242,7 +237,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 $status = true;
             } else {
                 $paymentObj->saveCancelledOrder($dataObj, $payment);
-                $statusMessage = ($dataObj->getStatusText() != NULL) ? $dataObj->getStatusText()
+                $statusMessage = ($dataObj->getStatusText()) ? $dataObj->getStatusText()
                             : $dataObj->getStatusDesc();
                 $helper->getCoresession()->addError($statusMessage);
                 $status = false;
@@ -283,13 +278,13 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         }
         $payment->save();
 
-        $setOrderAfterStatus = $paymentObj->_getConfigData('order_status_after_payment')
-                    ? $paymentObj->_getConfigData('order_status_after_payment')
+        $setOrderAfterStatus = $paymentObj->getNovalnetConfig('order_status_after_payment')
+                    ? $paymentObj->getNovalnetConfig('order_status_after_payment')
                     : Mage_Sales_Model_Order::STATE_PROCESSING; // If after status is empty set default status
         if ($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL && $response['status']
         == Novalnet_Payment_Model_Config::PAYPAL_PENDING_CODE) {
-            $setOrderAfterStatus = $paymentObj->_getConfigData('order_status')
-                                    ? $paymentObj->_getConfigData('order_status') : Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
+            $setOrderAfterStatus = $paymentObj->getNovalnetConfig('order_status')
+                                    ? $paymentObj->getNovalnetConfig('order_status') : Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
         }
         $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $setOrderAfterStatus, $helper->__('Customer successfully returned from Novalnet'), true
         )->save();
@@ -444,7 +439,7 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $serverResponse = ($paymentObj->getCode() != Novalnet_Payment_Model_Config::NN_CC)
                             ? $this->_getNovalnetHelper()->getDecodedParam($response['test_mode'], $authorizeKey)
                             : $response['test_mode'];
-        $shopMode = $paymentObj->_getConfigData('live_mode');
+        $shopMode = $paymentObj->getNovalnetConfig('live_mode');
         $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
                         && $shopMode == 0)) ? 1 : 0 );
         return $testMode;

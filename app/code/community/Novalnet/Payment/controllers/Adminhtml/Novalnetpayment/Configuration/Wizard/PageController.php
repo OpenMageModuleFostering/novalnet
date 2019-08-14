@@ -23,7 +23,7 @@
  * @copyright  Copyright (c) Novalnet AG. (https://www.novalnet.de)
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Novalnet_Payment_Adminhtml_Configuration_Wizard_PageController extends Mage_Adminhtml_Controller_Action
+class Novalnet_Payment_Adminhtml_Novalnetpayment_Configuration_Wizard_PageController extends Mage_Adminhtml_Controller_Action
 {
     /**
      * Init layout, menu and breadcrumb

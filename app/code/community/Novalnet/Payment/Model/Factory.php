@@ -36,7 +36,7 @@ class Novalnet_Payment_Model_Factory
      */
     public function captureResponseSave($amount, $loadTransStatus, $transStatus, $payment, $lastTranId)
     {
-        if ($amount != '') {
+        if ($amount) {
             $loadTransStatus->setTransactionStatus(Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED)
                     ->setAmount($amount)
                     ->save();
@@ -66,7 +66,6 @@ class Novalnet_Payment_Model_Factory
     /**
      * Call Transation status refund and void
      *
-     * @param Mage_Checkout_Model_Session $helper
      * @param int $getTid
      * @param varien_object $payment
      * @param int $amountAfterRefund
@@ -76,9 +75,10 @@ class Novalnet_Payment_Model_Factory
      * @param array $response
      * @return mixed
      */
-    public function callTransactionStatus($helper, $getTid, $payment, $amountAfterRefund, $call, $refundTid
+    public function callTransactionStatus($getTid, $payment, $amountAfterRefund, $call, $refundTid
     = NULL, $customerId = NULL, $response = NULL)
     {
+        $helper = Mage::helper('novalnet_payment');
         $paymentObj = $payment->getMethodInstance();
         $getTransactionStatus = $paymentObj->doNovalnetStatusCall($getTid, $payment, Novalnet_Payment_Model_Config::TRANS_STATUS, NULL, NULL);
         $amount = $helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW');
@@ -137,12 +137,16 @@ class Novalnet_Payment_Model_Factory
      * @param varien_object $infoObject
      * @param int $orderId
      * @param int $amount
-     * @param Mage_Checkout_Model_Session $helper
      * @param int $livemode
      */
-    public function requestParams($request, $infoObject, $orderId, $amount, $helper, $livemode)
+    public function requestParams($request, $infoObject, $orderId, $amount, $livemode)
     {
+        $helper = Mage::helper('novalnet_payment');
         $billing = $infoObject->getBillingAddress();
+        $shipping = $infoObject->getShippingAddress();
+        $company = $billing->getCompany() ? $billing->getCompany() : ($shipping->getCompany() ? $shipping->getCompany() : '');
+        $email = $billing->getEmail() ? $billing->getEmail() : $infoObject->getCustomerEmail();
+        $request = $company ? $request->setCompany($company) : $request;
         $request->setTestMode($livemode)
                 ->setAmount($amount)
                 ->setCurrency($infoObject->getBaseCurrencyCode())
@@ -155,13 +159,14 @@ class Novalnet_Payment_Model_Factory
                 ->setCity($billing->getCity())
                 ->setZip($billing->getPostcode())
                 ->setCountry($billing->getCountry())
+                ->setCountryCode($billing->getCountry())
                 ->setLanguage(strtoupper($helper->getDefaultLanguage()))
                 ->setLang(strtoupper($helper->getDefaultLanguage()))
                 ->setTel($billing->getTelephone())
                 ->setFax($billing->getFax())
                 ->setRemoteIp($helper->getRealIpAddr())
                 ->setGender('u')
-                ->setEmail($infoObject->getCustomerEmail())
+                ->setEmail($email)
                 ->setOrderNo($orderId)
                 ->setSystemUrl(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB))
                 ->setSystemIp($helper->getServerAddr())
@@ -175,34 +180,30 @@ class Novalnet_Payment_Model_Factory
      * Set Request profile params
      *
      * @param varien_object $request
-     * @param Novalnet_Payment_Helper_Data $helper
+     * @param mixed $subsequentPeriod
+     * @return null
      */
-    public function requestProfileParams($request, $helper)
+    public function requestProfileParams($request, $subsequentPeriod)
     {
-        $profileInfo = $helper->getProfileInfodata();
-        $periodUnit = $profileInfo[1];
-        $periodFrequency = $profileInfo[0];
-        $regularAmount = $helper->getFormatedAmount($helper->getCheckoutSession()->getNnRegularAmount());
-        $day = $helper->__('Day');
-        $month = $helper->__('Month');
-        $year = $helper->__('Year');
-        $week = $helper->__('Week');
-        $two = $helper->__('Two');
+        $helper = Mage::helper('novalnet_payment');
+        $checkoutSession = $helper->getCheckoutSession();
+        $periodUnit = $checkoutSession->getNnPeriodUnit();
+        $periodFrequency = $checkoutSession->getNnPeriodFrequency();
+        $periodUnitFormat = array("day" => "d", "month" => "m", "year" => "y");
 
-        $periodUnitFormat = array($day => "d", $month => "m", $year => "y");
-
-        if ($periodUnit == $two || $periodUnit == 'Two') {
-            $tariffPeriod2 = "14d";
-        } else if ($periodUnit == $week || $periodUnit == 'Week') {
-            $tariffPeriod2 = ($periodFrequency * 7) . "d";
+        if ($periodUnit == "semi_month") {
+            $tariffPeriod = "14d";
+        } elseif ($periodUnit == "week") {
+            $tariffPeriod = ($periodFrequency * 7) . "d";
         } else {
-            $tariffPeriod2 = $periodFrequency . $periodUnitFormat[$periodUnit];
+            $tariffPeriod = $periodFrequency . $periodUnitFormat[$periodUnit];
         }
 
-        $request->setTariffPeriod($tariffPeriod2)
-                ->setTariffPeriod2($tariffPeriod2)
+        $subsequentPeriod = $subsequentPeriod ? $subsequentPeriod : $tariffPeriod;
+        $regularAmount = $helper->getFormatedAmount($helper->getCheckoutSession()->getNnRegularAmount());
+        $request->setTariffPeriod($tariffPeriod)
+                ->setTariffPeriod2($subsequentPeriod)
                 ->setTariffPeriod2Amount($regularAmount);
-
     }
 
     /**
@@ -307,20 +308,19 @@ class Novalnet_Payment_Model_Factory
         $refundIban = $getParamRequest->getParam('refund_payment_type_iban');
         $refundBic = $getParamRequest->getParam('refund_payment_type_bic');
         $refundRef = $getParamRequest->getParam('nn_refund_ref');
+        $refundType = $getParamRequest->getParam('refund_payment_type');
 
-        if ($refundIban !='' && $refundBic == '') {
+        if ($refundType == 'SEPA' && (!$refundIban || !$refundBic)) {
             Mage::throwException($helper->__('Please enter valid account details'));
-        } else if ($refundIban =='' && $refundBic != '') {
-            Mage::throwException($helper->__('Please enter valid account details'));
-        } else if ($refundRef && !$helper->checkIsValid($refundRef)) {
+        } elseif ($refundRef && !$helper->checkIsValid($refundRef)) {
             Mage::throwException($helper->__('Please enter valid account details'));
         }
 
-        if ($refundRef != NULL) {
+        if ($refundRef) {
             $request->setRefundRef($refundRef);
         }
 
-        if ($refundIban !='' && $refundBic != '') {
+        if ($refundIban && $refundBic) {
             $request->setAccountHolder($refundAccountholder)
                     ->setIban($refundIban)
                     ->setBic($refundBic);
@@ -360,12 +360,12 @@ class Novalnet_Payment_Model_Factory
      * @param string $currency
      * @param int $getTid
      * @param varien_object $payment
-     * @param Novalnet_Payment_Helper_Data $helper
      * @param int $refundAmount
      * @return int
      */
-    public function checkNovalnetCardAmount($currency, $getTid, $payment, $helper, $refundAmount)
+    public function checkNovalnetCardAmount($currency, $getTid, $payment, $refundAmount)
     {
+        $helper = Mage::helper('novalnet_payment');
         $paymentObj = $payment->getMethodInstance();
         $statusCallSub = $paymentObj->doNovalnetStatusCall($getTid,$payment);
         $respnseCode = $statusCallSub->getStatus();

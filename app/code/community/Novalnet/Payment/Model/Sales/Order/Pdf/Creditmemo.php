@@ -106,7 +106,7 @@ class Novalnet_Payment_Model_Sales_Order_Pdf_Creditmemo extends Mage_Sales_Model
         $currencySymbol = Mage::app()->getLocale()->currency($currencyCode)->getSymbol();
         $lineBlock['lines'][] = array(
                     array(
-                        'text'      => Mage::helper('sales')->__('Novalnet Refunded Amount').':',
+                        'text'      => Mage::helper('sales')->__('Novalnet refunded Amount').':',
                         'feed'      => 475,
                         'align'     => 'right',
                         'font_size' => 10,

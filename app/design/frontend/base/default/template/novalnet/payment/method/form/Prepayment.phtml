@@ -26,7 +26,7 @@
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
 ?>
-<fieldset class="form-list">
+<ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
     <!-- PAYMENT LOGO -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
@@ -35,23 +35,21 @@ $helper = Mage::helper('novalnet_payment');
         </a>
     </div>
     <!-- PAYMENT LOGO -->
-    <ul id="payment_form_<?php echo $code ?>" style="display:none">
-        <!--{{{ PAYMENT DESCRIPTION  -->
+    <!--{{{ PAYMENT DESCRIPTION  -->
+    <li>
+        <?php echo $this->__('Invoice/Prepayment payment description') ?>
+    </li>
+    <?php if ($this->getUserInfo()): ?>
         <li>
-            <?php echo $this->__('Invoice/Prepayment payment description') ?>
+            <?php echo $this->getUserInfo() ?>
         </li>
-        <?php if ($this->getUserInfo()): ?>
-            <li>
-                <?php echo $this->getUserInfo() ?>
-            </li>
-        <?php endif ?>
-        <?php if ($this->getLiveMode() == 0): ?>
-            <li>
-                <div style="font-weight:bold;color:red;font-size:12px;">
-                    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
-                </div>
-            </li>
-        <?php endif ?>
-        <!--}}} PAYMENT DESCRIPTION  -->
-    </ul>
-</fieldset>
+    <?php endif ?>
+    <?php if ($this->getLiveMode() == 0): ?>
+        <li>
+            <div style="font-weight:bold;color:red;font-size:12px;">
+                <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!--}}} PAYMENT DESCRIPTION  -->
+</ul>

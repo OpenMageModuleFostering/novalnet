@@ -111,7 +111,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
      */
     public function getTabUrl()
     {
-        return $this->getUrl('novalnet_payment/adminhtml_sales_order/transactionStatusGrid', array(
+        return $this->getUrl('adminhtml/novalnetpayment_sales_order/transactionStatusGrid', array(
                     '_current' => true
                         )
         );
@@ -124,7 +124,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
      */
     public function getGridUrl()
     {
-        return $this->getUrl('novalnet_payment/adminhtml_sales_order/transactionStatusGrid', array(
+        return $this->getUrl('adminhtml/novalnetpayment_sales_order/transactionStatusGrid', array(
                     '_current' => true
                         )
         );
@@ -137,7 +137,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View_Tab_TransactionStatus ex
      */
     public function getRowUrl($row)
     {
-        return $this->getUrl('novalnet_payment/adminhtml_transaction/view', array(
+        return $this->getUrl('adminhtml/novalnetpayment_transaction/view', array(
                     'nntxn_id' => $row->getId()
                         )
         );

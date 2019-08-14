@@ -68,7 +68,7 @@ class Novalnet_Payment_Model_Sales_Order_Payment extends Mage_Sales_Model_Order_
             }
         }
         $status = true;
-        $setOrderAfterStatus = $paymentObj->_getConfigData('order_status') ? $paymentObj->_getConfigData('order_status')
+        $setOrderAfterStatus = $paymentObj->getNovalnetConfig('order_status') ? $paymentObj->getNovalnetConfig('order_status')
                     : Mage_Sales_Model_Order::STATE_PROCESSING; // If after status is empty set default status
         $state = Mage_Sales_Model_Order::STATE_PROCESSING;
         $payment->setTransactionId($txnId)
@@ -120,7 +120,7 @@ class Novalnet_Payment_Model_Sales_Order_Payment extends Mage_Sales_Model_Order_
         $storeId = $order->getStoreId();
         $payment = $order->getPayment();
         $paymentObj = $payment->getMethodInstance();
-        $setOrderAfterStatus = $paymentObj->_getConfigData('void_status',true,$storeId);
+        $setOrderAfterStatus = $paymentObj->getNovalnetConfig('void_status',true,$storeId);
         $authTransaction = $this->getAuthorizationTransaction();
         $this->_generateTransactionId(Mage_Sales_Model_Order_Payment_Transaction::TYPE_VOID, $authTransaction);
         $this->setShouldCloseParentTransaction(true);

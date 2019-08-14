@@ -53,7 +53,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Bl
      */
     public function getCallbackConfigData()
     {
-        return $this->getMethod()->_getConfigData('callback');
+        return $this->getMethod()->getNovalnetConfig('callback');
     }
 
     /**
@@ -63,7 +63,7 @@ class Novalnet_Payment_Block_Payment_Method_Form_Invoice extends Mage_Payment_Bl
      */
     public function getUserInfo()
     {
-        return $this->getMethod()->getConfigData('booking_reference');
+        return trim(strip_tags(trim($this->getMethod()->getConfigData('booking_reference'))));
     }
 
 }

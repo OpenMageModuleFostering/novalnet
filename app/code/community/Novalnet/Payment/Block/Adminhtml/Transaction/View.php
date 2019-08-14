@@ -83,7 +83,7 @@ class Novalnet_Payment_Block_Adminhtml_Transaction_View extends Mage_Adminhtml_B
     {
         $transactionStatus = $this->getNovalnetTransactionStatus();
         $title = Mage::helper("novalnet_payment")->getModel(
-                        $transactionStatus->getPaymentName())->_getConfigData('title');
+                        $transactionStatus->getPaymentName())->getNovalnetConfig('title');
         return $title;
     }
 

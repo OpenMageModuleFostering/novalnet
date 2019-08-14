@@ -65,7 +65,7 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
             //$paymentname
             $helper = Mage::helper('novalnet_payment');
             $checkTidExist = $sepaparentTid ? $sepaparentTid : $parentTid;
-            if ($checkTidExist == '') {
+            if (!$checkTidExist) {
                 $checkTidExist = $payment->getLastTransId();
             }
             if (preg_match("/refund/i", $checkTidExist)) {
@@ -100,7 +100,7 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
                         <br />
                         <div><?php echo $this->__('Novalnet transaction amount') ?>:&nbsp;<input class="validate-date required-entry" type="text" id="amount_changed" name="amount_changed" value="<?php echo $amount; ?>" onkeypress="return novalnetAllowNumeric(event)"; style="width:4em" /> &nbsp;&nbsp;
                             <button type="button" title="<?php echo $this->__('Amount Changed button') ?>" class="button" onclick="amount_changed('<?php
-                            echo Mage::helper('adminhtml')->getUrl('*/*/amountupdate', array(
+                            echo Mage::helper('adminhtml')->getUrl('*/novalnetpayment_sales_order/amountupdate', array(
                                 'order_id' => $_order->getId()))
                             ?>', 2,'<?php echo $this->__('Enter the valid amount'); ?>');"><span><span><?php echo $this->__('Amount Changed button') ?></span></span></button><br /><br />
 
@@ -110,7 +110,7 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
                 </div>
                 <?php
             } else if ($status == 100 && in_array($paymentname, $invoicepayment)
-                    && ($paid == 1 || $paid == '')) {
+                    && ($paid == 1 || !$paid)) {
                         $amount = $statusCall->getAmount();
                         $date = $statusCall->getInvoiceDueDate();
                 ?>
@@ -128,9 +128,9 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
 
             <tr><td colspan=2>
             <button type="button" title="<?php echo $this->__('Amount Changed button') ?>" class="button" onclick="amount_changed('<?php
-                            echo Mage::helper('adminhtml')->getUrl('*/*/amountupdate', array(
+                            echo Mage::helper('adminhtml')->getUrl('*/novalnetpayment_sales_order/amountupdate', array(
                                 'order_id' => $_order->getId()))
-                            ?>', '<?php echo $paid; ?>','<?php echo $this->__('Enter the valid amount'); ?>','<?php echo $this->__('Enter the amount or invoice duedate'); ?>','<?php echo $this->__('Invoice duedate is invalid'); ?>');"><span><span><?php echo $this->__('Amount Changed button') ?></span></span></button></td></tr>
+                            ?>', '<?php echo $paid; ?>','<?php echo $this->__('Enter the valid amount'); ?>','<?php echo $this->__('Enter the amount or invoice duedate'); ?>','<?php echo $this->__('Invoice duedate is invalid'); ?>','<?php echo $this->__('Invalid due date'); ?>');"><span><span><?php echo $this->__('Amount Changed button') ?></span></span></button></td></tr>
             </table>
                     </fieldset>
                 </div>
@@ -266,7 +266,7 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
         return dArr[2]+ "." +dArr[1]+ "." +dArr[0]; //ex out: "18/01/10"
         }
 
-        function amount_changed(url, one,lang,lang1,lang2) {
+        function amount_changed(url, one,lang,lang1,lang2,lang3) {
 
             var amountchanged = document.getElementById('amount_changed').value;
             var paymentcode = '<?php echo $paymentname; ?>';
@@ -274,22 +274,38 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
             if (one == 1 || paymentcode == 'novalnetPrepayment') {
                 var invoice_duedate = document.getElementById('invoice_duedate').value;
                 invoicedate = invoice_duedate.length;
+                var rx_date_pattern = /^(\d{4})(\/|-)(\d{1,2})(\/|-)(\d{1,2})$/;
+                var dt_array = invoice_duedate.match(rx_date_pattern);
+                var dt_month = dt_array[3];
+                var dt_day   = dt_array[5];
+                var dt_year  = dt_array[1];
             }
 
 
-            if ((one == 1 || paymentcode == 'novalnetPrepayment') && invoice_duedate == '' && amountchanged == '') {
+            if ((one == 1 || paymentcode == 'novalnetPrepayment') && !invoice_duedate && !amountchanged) {
                 alert(lang1);
                 return false;
             }
             //return false;
-            if (amountchanged == '' || amountchanged <= 0 || isNaN(amountchanged)) {
+            if (!amountchanged || amountchanged <= 0 || isNaN(amountchanged)) {
                 alert(lang);
                 return false;
             }
-            if ((one == 1 || paymentcode == 'novalnetPrepayment') && invoice_duedate != '' && !invoice_duedate.match(/^[0-9]{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])/)) {
+            if ((one == 1 || paymentcode == 'novalnetPrepayment') && invoice_duedate && !invoice_duedate.match(/^[0-9]{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])/)) {
                 Translator.add('Invoice duedate is invalid', '<?php echo $this->__('Invoice duedate is invalid'); ?>');
                 alert(Translator.translate(lang2));
                 return false;
+            } else if ((dt_month==4 || dt_month==6 || dt_month==9 || dt_month==11) && dt_day ==31) {
+                Translator.add('Invalid due date', '<?php echo $this->__('Invalid due date'); ?>');
+                alert(Translator.translate(lang3));
+                return false;
+            } else if (dt_month == 2) {
+                var is_leap = (dt_year % 4 == 0 && (dt_year % 100 != 0 || dt_year % 400 == 0));
+                if (dt_day > 29 || (dt_day ==29 && !is_leap)) {
+                    Translator.add('Invalid due date', '<?php echo $this->__('Invalid due date'); ?>');
+                    alert(Translator.translate(lang3));
+                    return false;
+                }
             } else if ((one == 1 || paymentcode == 'novalnetPrepayment') && invoicedate > 10) {
                 alert(Translator.translate(lang2));
                 return false;

@@ -86,9 +86,9 @@ class Novalnet_Payment_Model_Observer
         } else {
             $baseurl = Mage::getUrl('', array('_secure' => true));
         }
-        $currentlUrl = Mage::helper('core/url')->getCurrentUrl();
+        $currentUrl = Mage::helper('core/url')->getCurrentUrl();
         $block = $observer->getEvent()->getBlock();
-        if ("head" == $block->getNameInLayout() && $currentlUrl != $baseurl) {
+        if ("head" == $block->getNameInLayout() && $currentUrl != $baseurl) {
             foreach (Mage::helper('novalnet_payment/AssignData')->getFiles() as $file) {
                 $block->addJs(Mage::helper('novalnet_payment/AssignData')->getJQueryPath($file));
             }
@@ -123,9 +123,29 @@ class Novalnet_Payment_Model_Observer
         $paymentObj = $payment->getMethodInstance();
         $paymentCode = $paymentObj->getCode();
         if (preg_match("/novalnet/i", $paymentCode)) {
-            $setOrderAfterStatus = $paymentObj->_getConfigData('order_status',true,$storeId);
+            $setOrderAfterStatus = $paymentObj->getNovalnetConfig('order_status',true,$storeId);
             $setOrderAfterStatus = $setOrderAfterStatus ? $setOrderAfterStatus : Mage_Sales_Model_Order::STATE_PROCESSING;
             $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $setOrderAfterStatus, Mage::helper('novalnet_payment')->__('Invoice Created Successfully'), true)->save();
+        }
+    }
+
+    /**
+     * Get recurring product custom option values
+     *
+     * @param null
+     * @return null
+     */
+    public function getProfilePeriodValues(Varien_Event_Observer $observer) {
+        $quote = $observer->getEvent()->getCart()->getQuote();
+
+        foreach($quote->getAllItems() as $items) {
+            if($items->getProduct()->isRecurring()) {
+                $recurringProfile = $items->getProduct()->getRecurringProfile();
+                $profileInfo = array('period_unit' => $recurringProfile['period_unit'],
+                                     'period_frequency' => $recurringProfile['period_frequency']);
+                Mage::getSingleton('checkout/session')->setNnPeriodUnit($recurringProfile['period_unit'])
+                                                      ->setNnPeriodFrequency($recurringProfile['period_frequency']);
+            }
         }
     }
 }

@@ -36,11 +36,11 @@ function cchashcall()
         return false;
     }
 
-    var ccParams = {'ccType':'cc_type', 'ccHolder':'cc_owner', 'ccNo':'cc_number', 'ccExpMonth':'expiration', 'ccExpYear':'expiration_yr'};
+    var ccParams = {'ccHolder':'cc_owner', 'ccNo':'cc_number', 'ccExpMonth':'expiration', 'ccExpYear':'expiration_yr'};
 
     var isNotEmpty = true;
     $nncc_j.each(ccParams, function( key, value ) {
-        if (key == 'ccHolder' && (/[\/\\|\]\[|#,+()$@~%.`'":;*?<>!^{}=_-]/g).test($nncc_j('#novalnetCc_'+value).val())) {
+        if (key == 'ccHolder' && (/[\/\\|\]\[|#,+()$@~%.`'":;*?<>!^{}=_]/g).test($nncc_j('#novalnetCc_'+value).val())) {
             alert($nncc_j('#nn_cc_validate_error_message').val());
             isNotEmpty = false;
             return isNotEmpty;
@@ -61,8 +61,9 @@ function cchashcall()
 
         $nncc_j('#cc_loading').show();
         var ccUniqueId = generateUniqueId();
+        var ccNum = ccParams['ccNo'].replace(/\s+/g, '');
 
-        var ccPayportParams = {"noval_cc_exp_month" : ccParams['ccExpMonth'], "noval_cc_exp_year" : ccParams['ccExpYear'], "noval_cc_holder" : ccParams['ccHolder'], "noval_cc_no" : ccParams['ccNo'], "noval_cc_type" : ccParams['ccType'], "unique_id": ccUniqueId, "vendor_authcode" : merchantAuthcode,"vendor_id" : merchantVendor};
+        var ccPayportParams = {"noval_cc_exp_month" : ccParams['ccExpMonth'], "noval_cc_exp_year" : ccParams['ccExpYear'], "noval_cc_holder" : ccParams['ccHolder'], "noval_cc_no" : ccNum, "noval_cc_type" : "VI", "unique_id": ccUniqueId, "vendor_authcode" : merchantAuthcode,"vendor_id" : merchantVendor};
 
         ccPayportParams = $nncc_j.param(ccPayportParams);
 
@@ -135,7 +136,6 @@ function getCcHashResult(response, reqCall)
             $nncc_j('#novalnetCc_cc_number').val(arrayResult.cc_no);
             $nncc_j('#novalnetCc_expiration').val(arrayResult.cc_exp_month);
             $nncc_j('#novalnetCc_expiration_yr').val(arrayResult.cc_exp_year);
-            $nncc_j('#novalnetCc_cc_type').val(arrayResult.cc_type);
             $nncc_j('#novalnet_cc_hash').val(response.pan_hash);
         }
     } else {
@@ -187,10 +187,9 @@ function getCcHttpProtocol()
 function isNumberKey(evt, allowspace)
 {
     var charCode = (evt.which) ? evt.which : evt.keyCode;
-
     if (String.fromCharCode(evt.which) == '.' || String.fromCharCode(evt.which) == "'" || String.fromCharCode(evt.which) == '#') return false;
 
-    if ((charCode == 32 && allowspace == true) || (charCode == 35 || charCode == 116 || charCode == 36 || charCode == 37 || charCode == 39 || charCode == 46) && evt.shiftKey == false) {
+    if ((charCode == 32 && allowspace == true) || (charCode == 35 || charCode == 36 || charCode == 37 || charCode == 39 || charCode == 46) && evt.shiftKey == false) {
         return true;
     } else if (evt.ctrlKey == true && charCode == 114) {
         return true;
@@ -201,6 +200,13 @@ function isNumberKey(evt, allowspace)
     }
 
     return true;
+}
+
+function accHolderValidate(event)
+{
+    var keycode = ('which' in event) ? event.which : event.keyCode;
+    var reg = /^(?:[A-Za-z0-9&\s-]+$)/;
+    return (reg.test(String.fromCharCode(keycode)) || keycode == 0 || keycode == 8 || (event.ctrlKey == true && keycode == 114))? true : false;
 }
 
 function generateUniqueId()

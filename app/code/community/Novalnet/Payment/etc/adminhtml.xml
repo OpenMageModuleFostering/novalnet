@@ -34,12 +34,12 @@
                 <sales_order module="novalnet_payment">
                     <title>Orders</title>
                     <sort_order>1</sort_order>
-                    <action>novalnet_payment/adminhtml_sales_order</action>
+                    <action>adminhtml/novalnetpayment_sales_order</action>
                 </sales_order>
                 <sales_recurring module="novalnet_payment">
                     <title>Recurring Profiles</title>
                     <sort_order>2</sort_order>
-                    <action>novalnet_payment/adminhtml_sales_recurring_profile</action>
+                    <action>adminhtml/novalnetpayment_sales_recurring_profile</action>
                 </sales_recurring>
                 <transaction module="novalnet_payment">
                     <title>Novalnet Transactions</title>
@@ -48,12 +48,12 @@
                         <transactionStatus module="novalnet_payment">
                             <title>Novalnet Transactions Overview</title>
                             <sort_order>1</sort_order>
-                            <action>novalnet_payment/adminhtml_transaction</action>
+                            <action>adminhtml/novalnetpayment_transaction</action>
                         </transactionStatus>
                         <transactionOverivew module="novalnet_payment">
                             <title>Novalnet Transactions Log</title>
                             <sort_order>2</sort_order>
-                            <action>novalnet_payment/adminhtml_transactionoverview</action>
+                            <action>adminhtml/novalnetpayment_transactionoverview</action>
                         </transactionOverivew>
                     </children>
                 </transaction>
@@ -65,7 +65,7 @@
                 <configuration_wizard module="novalnet_payment">
                     <title>Configuration-wizard</title>
                     <sort_order>5</sort_order>
-                    <action>novalnet_payment/adminhtml_configuration_wizard_page</action>
+                    <action>adminhtml/novalnetpayment_configuration_wizard_page</action>
                 </configuration_wizard>
                 <configuration module="novalnet_payment">
                     <title>Configuration</title>
@@ -90,19 +90,19 @@
                         <novalnetmerchantadmin module="novalnet_payment">
                             <title>Novalnet Merchant Admin</title>
                             <sort_order>1</sort_order>
-                            <action>novalnet_payment/adminhtml_information_novalnetmerchantadmin/</action>
+                            <action>adminhtml/novalnetpayment_information_novalnetmerchantadmin/</action>
                         </novalnetmerchantadmin>
                         <information module="novalnet_payment">
                             <title>Novalnet Magento Module</title>
                             <sort_order>2</sort_order>
-                            <action>novalnet_payment/adminhtml_information_module/</action>
+                            <action>adminhtml/novalnetpayment_information_module/</action>
                         </information>
                     </children>
                 </information>
             </children>
         </novalnet>
     </menu>
-    <!-- Access control-->
+    <!-- Access control list-->
     <acl>
         <resources>
             <admin>

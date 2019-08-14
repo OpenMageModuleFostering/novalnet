@@ -45,7 +45,7 @@ $helper = Mage::helper('novalnet_payment');
                 <?php echo $this->getUserInfo() ?>
             </li>
         <?php endif ?>
-        <?php if ($this->getMethod()->_getConfigData('live_mode', true) == 0): ?>
+        <?php if ($this->getMethod()->getNovalnetConfig('live_mode', true) == 0): ?>
             <li>
                 <div style="font-weight:bold;color:red;font-size:12px;">
                     <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>

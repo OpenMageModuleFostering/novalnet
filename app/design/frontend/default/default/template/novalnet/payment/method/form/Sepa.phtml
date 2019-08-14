@@ -26,12 +26,13 @@
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
 $assignDatahelper = Mage::helper('novalnet_payment/AssignData');
-$sepaRefill = $this->getMethod()->_getConfigData('auto_refill', true);
+$sepaRefill = $this->getMethod()->getNovalnetConfig('auto_refill', true);
 $sepaPaymentRefill = $this->getMethod()->getConfigData('sepa_payment_refill');
 $refillValues = $assignDatahelper->getCheckout()->getRefilldatavalues();
-$refillMethod = ($sepaRefill && $refillValues != '' && $code == $refillValues->getMethod());
+$refillMethod = ($sepaRefill && $refillValues && $code == $refillValues->getMethod());
 // get quote billing address
-$billingaddress = Mage::getSingleton('checkout/session')->getQuote()->getBillingAddress();
+$checkoutSession = Mage::getSingleton('checkout/session');
+$billingaddress = $checkoutSession->getQuote()->getBillingAddress();
 $telephoneNumber = ($this->getCallbackConfigData() == 1 && $billingaddress->getTelephone())
            ? $billingaddress->getTelephone() : '' ;
 $street = $billingaddress->getStreet();
@@ -43,8 +44,12 @@ if ($sepaPaymentRefill && $customerlogin) {
 } else if ($sepaRefill) {
     $panhash = $assignDatahelper->getCheckout()->getSepaHash();
 }
+
+$panhash = (($sepaPaymentRefill || $sepaRefill) && $panhash) ? $panhash : '';
+$vendorId = $checkoutSession->getNnVendor() ? $checkoutSession->getNnVendor() : trim($this->getMethod()->getNovalnetConfig('merchant_id', true));
+$authCode = $checkoutSession->getNnAuthcode() ? $checkoutSession->getNnAuthcode() : trim($this->getMethod()->getNovalnetConfig('auth_code', true));
 ?>
-<fieldset class="form-list" id="fieldset_<?php echo $code ?>">
+<ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
     <!--{{{ Payment Logo -->
     <div>
         <a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;">
@@ -57,231 +62,126 @@ if ($sepaPaymentRefill && $customerlogin) {
     </div>
     <!--}}} Payment Logo -->
     <!--{{{ Novalnet SEPA Form -->
-    <ul id="payment_form_<?php echo $code ?>" style="display:none">
-        <div class="nnsepaloader" id='sepa_loading' style='display:none;'></div>
+    <div class="nnsepaloader" id='sepa_loading' style='display:none;'></div>
+    <li>
+        <?php echo $this->__('Your account will be debited upon the order submission'); ?>
+    </li>
+    <?php if ($this->getUserInfo()): ?>
         <li>
-            <?php echo $this->__('Your account will be debited upon the order submission'); ?>
+            <?php echo $this->getUserInfo() ?>
         </li>
-        <?php if ($this->getUserInfo()): ?>
-            <li>
-                <?php echo $this->getUserInfo() ?>
-            </li>
-        <?php endif ?>
-        <?php if (Mage::helper('novalnet_payment')->getModel('novalnetSepa')->_getConfigData('live_mode', true) == 0): ?>
-            <li>
-                <div style="font-weight:bold;color:red;font-size:12px;">
-                    <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
-                </div>
-            </li>
-        <?php endif ?>
+    <?php endif ?>
+    <?php if (Mage::helper('novalnet_payment')->getModel('novalnetSepa')->getNovalnetConfig('live_mode', true) == 0): ?>
+        <li>
+            <div style="font-weight:bold;color:red;font-size:12px;">
+                <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
+            </div>
+        </li>
+    <?php endif ?>
 
-        <li class="fields">
-            <div class="field">
-                <label style="float:none;" for="<?php echo $code ?>_account_holder"><?php echo $this->__('Account Holder') ?><span class="required">*</span></label><br/>
-                <div class="input-box">
-                    <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $code ?>_account_holder" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements();" name="payment[account_holder]" autocomplete="off" value="<?php echo $billingaddress->getFirstname() . ' ' . $billingaddress->getLastname(); ?>" />
-                </div>
-            </div>
-        </li>
-        <li class="fields">
-            <div class="field">
-                <label style="float:none;" for="<?php echo $code ?>_bank_country"><?php echo $this->__('NN Country') ?><span class="required">*</span></label><br />
-                <div class="input-box">
-                    <?php
-                    $_countries = Mage::getResourceModel('directory/country_collection')
-                            ->loadData()
-                            ->toOptionArray(false)
-                    ?>
-                    <?php if (count($_countries) > 0): ?>
-                        <select id="<?php echo $code ?>_bank_country" onchange="unsetHashRelatedElements()" class="required-entry">
-                            <?php
-                            foreach ($_countries as $_country):
-                                if (in_array($billingaddress->getCountryId(), $_country)) {
-                                    ?>
-                                    <option selected value="<?php echo $_country['value'] ?>"><?php echo $_country['label'] ?>
-                                    </option>
-                                <?php } else { ?>
-                                    <option value="<?php echo $_country['value'] ?>">
-                                        <?php echo $_country['label'] ?>
-                                    </option>
-                                <?php } ?>
-                            <?php endforeach; ?>
-                        </select><br/>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </li>
-        <li class="fields">
-            <div class="field">
-                <label style="float:none;" for="<?php echo $code ?>_account_number"><?php echo $this->__('IBAN or Account number') ?><span class="required">*</span></label><br/>
-                <div class="input-box">
-                    <input type="text" id="<?php echo $code ?>_account_number" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements();" title="<?php echo $this->__('IBAN or Account number') ?>" class="required-entry input-text" autocomplete="off" value="" />
-                </div>
-            </div>
-        </li>
-
-        <li class="fields">
-            <div class="field">
-                <label style="float:none;" for="<?php echo $code ?>_bank_code"><?php echo $this->__('BIC or Bank code') ?><span class="required">*</span></label><br/>
-                <div class="input-box">
-                    <input type="text" id="<?php echo $code ?>_bank_code" title="<?php echo $this->__('BIC or Bank code') ?>" class="input-text" autocomplete="off" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements()" value="" />
-                </div>
-            </div>
-        </li>
-
-        <li class="fields">
-            <div class="field">
-                <div class="input-box">
-                    <input type="checkbox" id="<?php echo $code ?>_mandate_confirm" title="<?php echo $this->__('confirm') ?>" class="required-entry" onclick="generate_sepa_iban_bic(this, '<?php echo $this->__('Your account details are invalid') ?>', '<?php echo $this->__('Basic parameter not valid') ?>')"/>
-                    <label style="float:none;" ><?php echo $this->__('NN Confirm') ?><span class="required"></span></label><br/>
-                </div>
-            </div>
-        </li>
-        <!--{{{ CallbackType-->
-        <?php if ($this->isCallbackTypeCall()): ?>
-            <!--{{{ PIN by Callback-->
+    <li>
+        <label for="<?php echo $code ?>_account_holder" class="required"><em>*</em><?php echo $this->__('Account Holder') ?></label>
+        <div class="input-box">
+            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $code ?>_account_holder" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements();" name="payment[account_holder]" autocomplete="off" value="<?php echo $billingaddress->getFirstname() . ' ' . $billingaddress->getLastname(); ?>" />
+        </div>
+    </li>
+    <li>
+        <label for="<?php echo $code ?>_bank_country" class="required"><em>*</em><?php echo $this->__('NN Country') ?></label>
+        <div class="input-box">
             <?php
-            if ($this->getCallbackConfigData() != 3):
-                ?>
-                <li>
-                    <label style="float:none;" for="<?php echo $code ?>_callback_tel">
-                    <div class="input-box">
-                        <?php
-                        if ($this->getCallbackConfigData() == 2):
+            $_countries = Mage::getResourceModel('directory/country_collection')
+                    ->loadData()
+                    ->toOptionArray(false)
+            ?>
+            <?php if (count($_countries) > 0): ?>
+                <select id="<?php echo $code ?>_bank_country" onchange="unsetHashRelatedElements()" class="required-entry">
+                    <?php
+                    foreach ($_countries as $_country):
+                        if (in_array($billingaddress->getCountryId(), $_country)) {
                             ?>
-                            <?php echo $this->__('Mobile phone number'); ?>
-                        <?php else: ?>
-                            <?php echo $this->__('NN Mobile Number'); ?>
-                        <?php endif; ?>
-                        <span class="required"></span></label><br/>
-                        <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text validate-number" value="<?php
-                        echo $telephoneNumber; ?>"/>
-                    </div>
-                </li>
-                <li>
-                    <div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;width:400px;">
-                        <?php echo $this->__('Note for pin by sms and callback') ?>
-                    </div>
-                    <label style="float:none;" for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required">*</span></label><br/>
-                    <div class="input-box">
-                        <input onchange="document.getElementById('new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
-                        <input id="new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
-                        <label style="float:none;" for="new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
-                    </div>
-                </li>
-                <!--}}} PIN by Callback-->
-                <!--{{{ Reply by Email-->
-                <?php
-            elseif ($this->getCallbackConfigData() == 3):
-                ?>
-                <li>
-                    <label style="float:none;" for="<?php echo $code ?>_callback_email"><?php echo $this->__('E-mail Address') ?><span class="required">*</span></label><br/>
-                    <div class="input-box">
-                        <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php
-                        echo $billingaddress->getEmail(); ?>"/>
-                    </div>
-                </li>
-            <?php endif ?>
-            <!--}}} Reply by Email-->
+                            <option selected value="<?php echo $_country['value'] ?>"><?php echo $_country['label'] ?>
+                            </option>
+                        <?php } else { ?>
+                            <option value="<?php echo $_country['value'] ?>">
+                                <?php echo $_country['label'] ?>
+                            </option>
+                        <?php } ?>
+                    <?php endforeach; ?>
+                </select><br/>
+            <?php endif; ?>
+        </div>
+    </li>
+    <li>
+        <label for="<?php echo $code ?>_account_number" class="required"><em>*</em><?php echo $this->__('IBAN or Account number') ?></label>
+        <div class="input-box">
+            <input type="text" id="<?php echo $code ?>_account_number" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements();" title="<?php echo $this->__('IBAN or Account number') ?>" class="required-entry input-text" autocomplete="off" value="" />
+        </div>
+    </li>
+
+    <li>
+        <label for="<?php echo $code ?>_bank_code" class="required"><em>*</em><?php echo $this->__('BIC or Bank code') ?></label>
+        <div class="input-box">
+            <input type="text" id="<?php echo $code ?>_bank_code" title="<?php echo $this->__('BIC or Bank code') ?>" class="input-text" autocomplete="off" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements()" value="" />
+        </div>
+    </li>
+
+    <li>
+        <div class="input-box">
+            <input type="checkbox" id="<?php echo $code ?>_mandate_confirm" title="<?php echo $this->__('confirm') ?>" class="required-entry" onclick="generate_sepa_iban_bic(this, '<?php echo $this->__('Your account details are invalid') ?>', '<?php echo $this->__('Basic parameter not valid') ?>')"/>
+            <label class="required" style="float:none;"><?php echo $this->__('NN Confirm') ?></label>
+        </div>
+    </li>
+    <!--{{{ CallbackType-->
+    <?php if ($this->isCallbackTypeCall()): ?>
+        <!--{{{ PIN by Callback-->
+        <?php if ($this->getCallbackConfigData() != 3): ?>
+            <li>
+                <label for="<?php echo $code ?>_callback_tel" class="required"><em>*</em>
+                    <?php if ($this->getCallbackConfigData() == 2): ?>
+                        <?php echo $this->__('Mobile phone number'); ?>
+                    <?php else: ?>
+                        <?php echo $this->__('NN Mobile Number'); ?>
+                    <?php endif; ?>
+                </label>
+                <div class="input-box">
+                    <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text validate-number" value="<?php echo $telephoneNumber; ?>"/>
+                </div>
+            </li>
+            <li>
+                <div class="nncallbacknote">
+                    <?php echo $this->__('Note for pin by sms and callback') ?>
+                </div>
+                <label for="<?php echo $code ?>_callback_pin" class="required"><em>*</em><?php echo $this->__('PIN') ?></label>
+                <div class="input-box">
+                    <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+                    <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
+                    <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
+                </div>
+            </li>
+            <!--}}} PIN by Callback-->
+            <!--{{{ Reply by Email-->
+            <?php elseif ($this->getCallbackConfigData() == 3): ?>
+            <li>
+                <label for="<?php echo $code ?>_callback_email" class="required"><em>*</em><?php echo $this->__('E-mail Address') ?></label>
+                <div class="input-box">
+                    <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php echo $billingaddress->getEmail(); ?>"/>
+                </div>
+            </li>
         <?php endif ?>
-        <!--}}} CallbackType-->
-        <!-- Mandate overlay START-->
-        <li>
-            <div class="bgCover">&nbsp;</div>
-            <div id='sepa_mandate_overlay_block_first' style='display:none;' class='nnsepaloader'>
-            </div>
-            <div id='sepa_mandate_overlay_block' style='display:none;' class='overlay_window_block'>
-                <div class='nn_header'>
-                    <h1><?php echo $this->__('SEPA Direct Debit Mandate Confirmation') ?></h1>
-                </div>
-                <div class='body_div' id='overlay_window_block_body' style="height: 400px;">
-                    <p>
-                    <table>
-                        <tr>
-                            <td><?php echo $this->__('Creditor') ?></td><td>:</td><td><span id='sepa_overlay_payee_span'>&nbsp;</span></td>
-                        </tr>
-                        <tr>
-                            <td><?php echo $this->__('Credit Identification Number') ?></td><td>:</td><td><span id='sepa_overlay_creditoridentificationnumber_span'>&nbsp;</span></td>
-                        </tr>
-                        <tr>
-                            <td><?php echo $this->__('Mandate Reference') ?></td><td>:</td><td><span id='sepa_overlay_mandatereference_span'>&nbsp;</span></td>
-                        </tr>
-                    </table><br/>
-                    <?php echo $this->__('SEPA Confirm paragraph') ?>
-
-                    <br/>       <br/>
-                    <?php echo $this->__('SEPA Confirm note') ?>
-                    <br/>       <br/>
-                    <table>
-                        <tr>
-                            <td><?php echo $this->__('Name of the payee') ?></td><td>:</td><td><span id='sepa_overlay_enduserfullname_span'>&nbsp;</span></td>
-                        </tr>
-                        <?php if($billingaddress->getCompany()) { ?>
-                        <tr>
-                            <td><?php echo $this->__('Company name') ?></td><td>:</td><td><?php echo $billingaddress->getCompany(); ?></td>
-                        </tr>
-                        <?php } ?>
-                        <tr>
-                            <td><?php echo $this->__('NN Address') ?></td><td>:</td><td><?php echo $street[0]; ?></td>
-                        </tr>
-                        <?php if(isset($street[1]) && $street[1]) { ?>
-                        <tr>
-                            <td><?php echo $this->__('NN Street') ?></td><td>:</td><td><?php echo $street[1]; ?></td>
-                        </tr>
-                        <?php }?>
-                        <tr>
-                            <td><?php echo $this->__('Zip Code And City') ?></td><td>:</td><td><?php echo $billingaddress->getPostcode(); ?><span id='sepa_overlay_enduserzipcode_span'>&nbsp;</span> <?php echo $billingaddress->getCity(); ?></td>
-                        </tr>
-                        <tr>
-                            <td><?php echo $this->__('Country') ?></td><td>:</td><td><span id='sepa_overlay_endusercountry_span'>&nbsp;</span></td>
-                        </tr>
-                        <?php if($billingaddress->getEmail()) { ?>
-                        <tr>
-                            <td><?php echo $this->__('Email') ?></td><td>:</td><td><?php echo $billingaddress->getEmail(); ?></td>
-                        </tr>
-                        <?php } ?>
-                        <tr id='nn_sepa_overlay_iban_tr'>
-                            <td><?php echo $this->__('IBAN') ?></td><td>:</td><td><span id='sepa_overlay_iban_span'>&nbsp;</span></td>
-                        </tr>
-                        <tr id='nn_sepa_overlay_bic_tr'>
-                            <td><?php echo $this->__('BIC') ?></td><td>:</td><td><span id='sepa_overlay_bic_span'>&nbsp;</span></td>
-                        </tr>
-
-                    </table>
-                    <br/>
-                    <?php echo $billingaddress->getCity(); ?>, <span id='sepa_overlay_mandatedate_span'>&nbsp;</span>, <span id='sepa_overlay_enduserfullname_span1'>&nbsp;</span>
-                    </p>
-                </div>
-                <div class='nn_footer'>
-                    <input style="width: 30%" type='button' id='mandate_confirm_btn' name='mandate_confirm_btn' onclick="mandate_confirm_btn_submit()" value=<?php echo $this->__('conirm_mandate') ?> class='mandate_confirm_btn' />
-                    <input style="width: 30%" type='button' id='mandate_cancel_btn' name='mandate_cancel_btn' onclick="mandate_cancel_btn_submit()" value=<?php echo $this->__('cancel') ?> class='mandate_confirm_btn' />
-                    <img src='<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>logo.png' width=120 alt='Novalnet AG' style='float:right;' />
-                </div>
-            </div>
-        </li>
-        <!-- Mandate overlay END-->
-    </ul>
-
-    <input type="hidden" id="process_vendor_id" value="<?php echo trim($this->getMethod()->_getConfigData('merchant_id', true)) ?>"/>
-    <input type="hidden" id="auth_code" value="<?php echo trim($this->getMethod()->_getConfigData('auth_code', true)) ?>"/>
+        <!--}}} Reply by Email-->
+    <?php endif ?>
+    <!--}}} CallbackType-->
+    <input id="process_vendor_id" type="hidden" value="<?php echo $vendorId ?>"/>
+    <input id="auth_code" type="hidden" value="<?php echo $authCode ?>"/>
     <input id="sepaiban" type="hidden" value="">
     <input id="sepabic" type="hidden" value="">
     <input id="sepa_payment_id" type="hidden" value="37">
-    <input id="novalnet_sepa_owner" type="hidden" value="">
-    <input id="result_mandate_date" type="hidden" value="">
-    <input id="result_mandate_ref" type="hidden" value="">
     <input id="result_mandate_unique" type="hidden" value="" name="result_mandate_unique">
     <input id="nnsepa_iban_confirmed" type="hidden" value="0" name="nnsepa_iban_confirmed">
-    <input type="hidden" id="nn_sepa_merchant_validate_error_message" value="<?php echo $this->__('Basic parameter not valid') . '!'; ?>" />
-    <input type="hidden" id="nn_sepa_validate_error_message" value="<?php echo $this->__('Your account details are invalid') . '!'; ?>" />
-    <input id="result_sepa_hash" type="hidden" value="<?php
-    if (($sepaPaymentRefill || $sepaRefill) && $panhash != '') {
-        echo $panhash;
-    } else {
-        $panhash = '';
-    }
-    ?>" name="result_sepa_hash">
-</fieldset>
+    <input id="nn_sepa_merchant_validate_error_message" type="hidden" value="<?php echo $this->__('Basic parameter not valid') . '!'; ?>" />
+    <input id="nn_sepa_validate_error_message" type="hidden" value="<?php echo $this->__('Your account details are invalid') . '!'; ?>" />
+    <input id="result_sepa_hash" type="hidden" value="<?php echo $panhash; ?>" name="result_sepa_hash">
+</ul>
 <style>
 .nnsepaloader {
   position: fixed;
@@ -293,81 +193,14 @@ if ($sepaPaymentRefill && $customerlogin) {
   background: url('<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif') 50% 50% no-repeat;
 }
 
-.bgCover { background:#878787; position:fixed; left:0; top:0; display:none; overflow:hidden; z-index:1000; }
-#sepa_mandate_overlay_block
-{
-    font-size:12px;
-    color:#555555;
-    background-color:#fff;
-}
-
-.overlay_window_block {
-    background-color:#ffffff;
-    border-radius:5px;
-    border:1px solid #a1a1a1;
-    z-index:1000;
-}
-.overlay_window_block .nn_footer{
-    bottom:0px;
-    position:absolute;
-    height:37px;
-    width:100%;
-}
-.overlay_window_block .nn_header{
-    top:0px;
-    height:25px;
-    border-bottom:1px solid #878787;
-    padding:5px;
-}
-.overlay_window_block .body_div{
-    padding:5px;
-    overflow-y:scroll;
-}
-.mandate_confirm_btn{
-    border:1px solid #0080C9;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-    padding: 6px;
-    text-decoration:none;
-    display:inline-block;
-    text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
-    font-weight:bold;
-    color: #FFFFFF;
-    width:40%;
-    cursor:pointer;
-    margin-left:2px;
-    margin-top:3px;
-    float:left;
-    margin-bottom:0px;
-    background-color: #0080C9; background-image: -webkit-gradient(linear, left top, left bottom, from(#0080C9), to(#0080C9));
-    background-image: -webkit-linear-gradient(top, #0080C9, #0080C9);
-    background-image: -moz-linear-gradient(top, #0080C9, #0080C9);
-    background-image: -ms-linear-gradient(top, #0080C9, #0080C9);
-    background-image: -o-linear-gradient(top, #0080C9, #0080C9);
-    background-image: linear-gradient(to bottom, #0080C9, #0080C9);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#0080C9, endColorstr=#0080C9);
-}
-
-.mandate_confirm_btn:hover{
-    border:1px solid #878787;
-    background-color: #878787; background-image: -webkit-gradient(linear, left top, left bottom, from(#878787), to(#878787));
-    background-image: -webkit-linear-gradient(top, #878787, #878787);
-    background-image: -moz-linear-gradient(top, #878787, #878787);
-    background-image: -ms-linear-gradient(top, #878787, #878787);
-    background-image: -o-linear-gradient(top, #878787, #878787);
-    background-image: linear-gradient(to bottom, #878787, #878787);filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#878787, endColorstr=#878787);
-}
-
-#sepa_mandate_overlay_block h1
-{
-    color: #00669D;
-    font-size:14px;
-    font-weight:bold;
-    text-transform:none;
-    margin:0;
-}
-
-table td{
-    padding : 2px;
+.nncallbacknote {
+  font-weight:bold;
+  font-size:11px;
+  color:gray;
+  border:1px solid #BFBFBF;
+  background:#FEFFBF;
+  padding:10px;
+  margin-top:10px;
+  width:400px;
 }
 </style>

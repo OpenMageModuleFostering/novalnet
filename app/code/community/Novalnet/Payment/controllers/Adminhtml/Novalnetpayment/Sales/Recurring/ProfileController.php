@@ -26,7 +26,7 @@
 
 require_once 'Mage' . DS . 'Adminhtml'. DS . 'controllers' . DS . 'Sales' . DS . 'Recurring' . DS . 'ProfileController.php';
 
-class Novalnet_Payment_Adminhtml_Sales_Recurring_ProfileController extends Mage_Adminhtml_Sales_Recurring_ProfileController
+class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_Recurring_ProfileController extends Mage_Adminhtml_Sales_Recurring_ProfileController
 {
    /**
      * Recurring profiles list
