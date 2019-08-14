@@ -50,26 +50,31 @@ class Novalnet_Payment_CcController extends Mage_Core_Controller_Front_Action
         $authorizeKey = $paymentObj->loadAffAccDetail();
         $paymentRequest = $helper->getCheckoutSession()->getPaymentReqData();
 
-        // Get Vendor configuration values from payport request
-        $authCode = $helper->getDecodedParam($paymentRequest->getVendorAuthcode(), $authorizeKey);
-        $productId = $helper->getDecodedParam($paymentRequest->getProductId(), $authorizeKey);
-        $tariffId = $helper->getDecodedParam($paymentRequest->getTariffId(), $authorizeKey);
+        if(!$payment->getLastTransId()) {
+            // Get Vendor configuration values from payport request
+            $authCode = $helper->getDecodedParam($paymentRequest->getVendorAuthcode(), $authorizeKey);
+            $productId = $helper->getDecodedParam($paymentRequest->getProductId(), $authorizeKey);
+            $tariffId = $helper->getDecodedParam($paymentRequest->getTariffId(), $authorizeKey);
 
-        // Payment additional data
-        $data = array('vendor' => $paymentRequest->getVendorId(),
-                'auth_code' => $authCode,
-                'product' => $productId,
-                'tariff' => $tariffId,
-                'key' => $paymentRequest->getKey(),
-                'authorize_key' => $authorizeKey
-            );
+            // Payment additional data
+            $data = array('vendor' => $paymentRequest->getVendorId(),
+                    'auth_code' => $authCode,
+                    'product' => $productId,
+                    'tariff' => $tariffId,
+                    'key' => $paymentRequest->getKey(),
+                    'authorize_key' => $authorizeKey
+                );
 
-        $payment->setAdditionalData(serialize($data))->save();
-        $status = $state = Mage_Sales_Model_Order::STATE_HOLDED; //set State,Status to HOLD
-        $order->setState($state, $status, $helper->__('Customer was redirected to Novalnet'), false)->save();
+            $payment->setAdditionalData(serialize($data))->save();
+            $status = $state = Mage_Sales_Model_Order::STATE_HOLDED; //set State,Status to HOLD
+            $order->setState($state, $status, $helper->__('Customer was redirected to Novalnet'), false)->save();
+            $helper->getCheckoutSession()->unsRecurringProfileNumber(); //unset recurring profile data
 
-        //Now showing it with rendering of layout
-        $this->renderLayout();
+            //Now showing it with rendering of layout
+            $this->renderLayout();
+        } else {
+            $this->_redirect('checkout/cart');
+        }
     }
 
     /**

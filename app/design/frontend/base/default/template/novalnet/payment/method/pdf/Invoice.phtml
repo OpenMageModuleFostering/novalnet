@@ -56,7 +56,8 @@ endif;
             echo nl2br($this->getAdditionalData('NnNote'));
         else:
             $note = explode('|', $this->getAdditionalData('NnNote'));
-            echo '<br><b>' . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG') . '</b></br>';
+            echo '<br>' . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG');
+            ?> {{pdf_row_separator}} <?php
             foreach ($note as $noteValue):
                 list($text, $value) = explode(':', $noteValue);
                 echo $this->__($text) . ' : ' . $value
@@ -83,10 +84,10 @@ endif;
                 if (preg_match("/Order No&/i", $value)):
                     list($referenceTxt, $value) = explode('&', $value);
                     str_replace('&', '', $referenceTxt);
-                    echo $this->__($text) . ' : ' . '<b>' . $this->__($referenceTxt) . ' ' . $value . '</b></br>';
+                    echo $this->__($text) . ' : ' . $this->__($referenceTxt) . ' ' . $value . '</br>';
                 else:
                     if ($text == 'NN_Reference_desc1' || $text == 'NN_Reference_desc2'):
-                        echo '<b>' . $this->__($text) . '</b></br>';
+                        echo $this->__($text) . '</br>';
                     else:
                         echo $this->__($text) . ' : ' . $value
                         ?> {{pdf_row_separator}} <?php

@@ -148,4 +148,28 @@ class Novalnet_Payment_Model_Observer
             }
         }
     }
+
+    /**
+     * Update redirect url for paypal recurring product
+     *
+     * @param null
+     * @return null
+     */
+    public function updateRecurringUrl(Varien_Event_Observer $observer)
+    {
+        $quote = $observer->getEvent()->getQuote();
+        $paymentCode = $quote->getPayment()->getMethodInstance()->getCode();
+        $helper = Mage::helper('novalnet_payment');
+        $profile = Mage::getSingleton('checkout/session')->getLastRecurringProfileIds();
+        $recurringProfile = (!empty($profile)) ? array_filter($profile) : '';
+        $subRedirectPayments = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('subscriptionRedirectPayments');
+        if(!empty($recurringProfile) && in_array($paymentCode, $subRedirectPayments)) {
+            $orderId = $helper->getCheckoutSession()->getRecurringOrderId();
+            $actionUrl = ($paymentCode == Novalnet_Payment_Model_Config::NN_CC)
+                         ? $helper->getUrl(Novalnet_Payment_Model_Config::CC_IFRAME_URL)
+                         : $helper->getUrl(Novalnet_Payment_Model_Config::GATEWAY_REDIRECT_URL);
+            $helper->getCheckoutSession()->setLastRealOrderId($orderId)
+                                         ->setRedirectUrl($actionUrl);
+        }
+    }
 }

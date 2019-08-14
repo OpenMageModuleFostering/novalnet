@@ -31,7 +31,6 @@ $currentTime = $this->getAdditionalData('voidCreateAt');
 $captureTime = $this->getAdditionalData('CaptureCreateAt');
 $nextCycleId = $this->getAdditionalData('NnSepaParentTid') ? $this->getAdditionalData('NnSepaParentTid') : $this->getAdditionalData('NnTid');
 $nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
-$recurringOrder = $this->getAdditionalData('NnRecurringOrder') ? true : false;
 ?>
 <?php if ($_info): ?>
     <?php
@@ -51,14 +50,14 @@ $recurringOrder = $this->getAdditionalData('NnRecurringOrder') ? true : false;
         endforeach;
     endif;
     ?>
-    <?php if (!preg_match("/invoice|creditmemo|shipment|callback_novalnet2magento/i", $currentUrl) || $recurringOrder): ?>
+    <?php if (!preg_match("/invoice|creditmemo|shipment|callback_novalnet2magento/i", $currentUrl)): ?>
         <?php
         if (strlen($this->getAdditionalData('NnNote'))):
             if (strstr($this->getAdditionalData('NnNote'), 'br')):
                 echo '<br>' . ($this->getAdditionalData('NnNote'));
             else:
                 $note = explode('|', $this->getAdditionalData('NnNote'));
-                echo '<br><b>' . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG') . '</b>';
+                echo '<br>' . $this->__('Please transfer the invoice amount with the following information to our payment provider Novalnet AG');
                 foreach ($note as $noteValue):
                     list($text, $value) = explode(':', $noteValue);
                     echo '<br>' . $this->__($text) . ' : ' . $value;
@@ -84,10 +83,10 @@ $recurringOrder = $this->getAdditionalData('NnRecurringOrder') ? true : false;
                     if (preg_match("/Order No&/i", $value)):
                         list($referenceTxt, $value) = explode('&', $value);
                         str_replace('&', '', $referenceTxt);
-                        echo '<br>' . $this->__($text) . ' : ' . '<b>' . $this->__($referenceTxt) . ' ' . $value . '</b>';
+                        echo '<br>' . $this->__($text) . ' : ' . $this->__($referenceTxt) . ' ' . $value;
                     else:
                         if ($text == 'NN_Reference_desc1' || $text == 'NN_Reference_desc2'):
-                            echo '<br><b>' . $this->__($text) . '</b>';
+                            echo '<br>' . $this->__($text);
                         else:
                             echo '<br>' . $this->__($text) . ' : ' . $value;
                         endif;

@@ -43,7 +43,10 @@ class Novalnet_Payment_Block_Payment_Method_NovalnetRedirect extends Mage_Core_B
                     ->setMethod(Novalnet_Payment_Model_Config::NOVALNET_RETURN_METHOD)
                     ->setUseContainer(true);
 
-            $getFormData = $paymentObj->buildRequest()->getData();
+            $checkoutSession = $helper->getCheckoutSession();
+            $profileId = $checkoutSession->getRecurringProfileNumber();
+            $getFormData = (!empty($profileId)
+                            ? $checkoutSession->getPaymentReqData()->getData() : $paymentObj->buildRequest()->getData());
             foreach ($getFormData as $field => $value) {
                 $form->addField($field, 'hidden', array('name' => $field, 'value' => $value));
             }
@@ -70,6 +73,8 @@ class Novalnet_Payment_Block_Payment_Method_NovalnetRedirect extends Mage_Core_B
                     ->setRequestData(serialize($getFormData))
                     ->setCreatedDate($helper->getCurrentDateTime())
                     ->save();
+
+            $checkoutSession->unsRecurringProfileNumber(); //unset recurring profile data
 
             // IE & Firefox will not submit form if the form is full of hidden fileds.
             $form->addField('continue', 'submit', array('name' => 'Continue', 'value' => $this->__('Continue')));

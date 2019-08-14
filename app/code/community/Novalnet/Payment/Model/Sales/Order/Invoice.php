@@ -86,7 +86,6 @@ class Novalnet_Payment_Model_Sales_Order_Invoice extends Mage_Sales_Model_Order_
             $amount = $helper->getModelRecurring()->getRecurringCaptureTotal($lastTranId,$this->getOrder());
             $this->getOrder()->setTotalPaid($amount);
             $this->getOrder()->setBaseTotalPaid($amount);
-
         } else {
             $this->getOrder()->setTotalPaid($this->getOrder()->getTotalPaid() + $this->getGrandTotal());
             $this->getOrder()->setBaseTotalPaid(

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Magento
  *
@@ -48,7 +47,7 @@ class Novalnet_Payment_Model_Callbackscript
             'novalnetinvoice' => array('INVOICE_START', 'INVOICE_CREDIT', 'SUBSCRIPTION_STOP'),
             'novalnetprepayment' => array('INVOICE_START', 'INVOICE_CREDIT', 'SUBSCRIPTION_STOP'),
             'novalnetideal' => array('IDEAL'),
-            'novalnetpaypal' => array('PAYPAL', 'PAYPAL_BOOKBACK'),
+            'novalnetpaypal' => array('PAYPAL', 'PAYPAL_BOOKBACK', 'SUBSCRIPTION_STOP'),
             'novalneteps' => array('EPS'),
             'novalnetgiropay' => array('GIROPAY'),
             'novalnetbanktransfer' => array('ONLINE_TRANSFER', 'REFUND_BY_BANK_TRANSFER_EU'),
@@ -56,7 +55,7 @@ class Novalnet_Payment_Model_Callbackscript
                 'DEBT_COLLECTION_SEPA', 'CREDIT_ENTRY_SEPA'));
         $this->invoiceAllowed = array('INVOICE_CREDIT', 'INVOICE_START');
         $this->recurringAllowed = array('INVOICE_CREDIT', 'INVOICE_START', 'CREDITCARD',
-            'DIRECT_DEBIT_SEPA', 'SUBSCRIPTION_STOP');
+            'DIRECT_DEBIT_SEPA', 'SUBSCRIPTION_STOP', 'PAYPAL');
 
         /** @Array Type of payment available - Level : 0 */
         $this->paymentTypes = array('INVOICE_START', 'PAYPAL', 'ONLINE_TRANSFER',
@@ -154,12 +153,6 @@ class Novalnet_Payment_Model_Callbackscript
                         $paymentObj->_vendorId = ($getResponseData['vendor']) ? $getResponseData['vendor'] : $paymentObj->getNovalnetConfig('merchant_id', true, $storeId);
                         $paymentObj->_authCode = ($getResponseData['auth_code']) ? $getResponseData['auth_code'] : $paymentObj->getNovalnetConfig('auth_code', true, $storeId);
                         $paymentObj->_productId = ($getResponseData['product']) ? $getResponseData['product'] : $paymentObj->getNovalnetConfig('product_id', true, $storeId);
-                        // Get Admin Transaction status via API
-                        if ($this->recurring) {
-                            $paymentTid = $response['signup_tid'];
-                        } else {
-                            $paymentTid = (in_array($response['payment_type'], $this->chargebacks)) ? $response['tid_payment'] : (in_array($response['payment_type'], $this->invoiceAllowed)) ? $response['tid_payment'] : $response['tid'];
-                        }
                         $checkTidExist = $payment->getLastTransId();
                         $this->paymentTypeValidation($order);
                         if (!empty($this->orderNo) && $order->getIncrementId() == $this->orderNo && empty($checkTidExist)) {
@@ -169,7 +162,6 @@ class Novalnet_Payment_Model_Callbackscript
                                 $order->unhold()->save();
                             }
 
-                            $redirectPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayments');
                             $serverResponseMode = $response['test_mode'];
                             $shopMode = $paymentObj->getNovalnetConfig('live_mode', '', $storeId);
                             $testMode = ((isset($serverResponseMode) && $serverResponseMode == 1) || (isset($shopMode) && $shopMode == 0)) ? 1 : 0;
@@ -186,22 +178,20 @@ class Novalnet_Payment_Model_Callbackscript
                             // Payment process based on response status
                             if ($payment->getAdditionalInformation($paymentObj->getCode() . '_successAction') != 1) {
                                 $payment->setAdditionalInformation($paymentObj->getCode() . '_successAction', 1);
-                                if ($order->canInvoice() && $this->request['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED && in_array($this->request['tid_status'], array(100,99,98,91,90)) ) {
-                                    $payment->setTransactionId($txnId) // Add capture text to make the new transaction
-                                            ->setParentTransactionId(null)
-                                            ->setIsTransactionClosed(true)
+                                $payment->setTransactionId($txnId)
                                             ->setLastTransId($txnId)
-                                            ->capture(null)
-                                            ->save();
-                                } else {
-                                    $payment->setTransactionId($txnId)
-                                            ->setLastTransId($txnId)
-                                            ->setParentTransactionId(null)
-                                            ->save();
+                                            ->setParentTransactionId(null);
+                                if ($order->canInvoice()
+                                && $this->request['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
+                                && $this->request['tid_status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED ) {
+                                    $payment->setIsTransactionClosed(true)
+                                            ->capture(null);
                                 }
+                                $payment->save();
                                 $onHoldStatus = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('paymentOnholdStaus');
                                 array_push($onHoldStatus, '100', '90');
                                if (in_array($this->request['status'], $onHoldStatus) && in_array($this->request['tid_status'], array(100,99,98,91,90)) ) {
+                                    $this->callbackRegisterRecurring($payment, 'Success');
                                     $orderStatus = $this->getOrderStatus($order);
                                     $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, $orderStatus, $helper->__('Customer successfully returned from Novalnet'), true
                                     )->save();
@@ -210,6 +200,7 @@ class Novalnet_Payment_Model_Callbackscript
                                     $payment->setStatus(Mage_Sales_Model_Order::STATE_CANCELED)
                                     ->setIsTransactionClosed(true)
                                     ->save();
+                                    $this->callbackRegisterRecurring($payment);
                                     $paymentObj->saveCancelledOrder($dataObj, $payment);
                                     $this->showDebug("Novalnet callback received. Transaction status not valid");
                                 }
@@ -434,7 +425,7 @@ class Novalnet_Payment_Model_Callbackscript
             }
         }
 
-        if ($request['payment_type'] == 'INVOICE_CREDIT' && !empty($request['status']) && 100 != $request['status']) {
+        if ($request['payment_type'] == 'INVOICE_CREDIT' && !empty($request['status']) && Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED != $request['status']) {
             $this->showDebug('Novalnet callback received. Callback Script executed already. Refer Order :' . $this->orderNo);
         }
 
@@ -513,7 +504,7 @@ class Novalnet_Payment_Model_Callbackscript
             $data = unserialize($payment->getAdditionalData());
             $currency = $this->currency;
             if ($this->level == 1) { //level 1 payments - Type of Chargebacks
-                if ($request['status'] == 100 && $request['tid_status'] == 100) {
+                if ($request['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED && $request['tid_status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
                     // Update callback comments for Chargebacks
                     if (in_array($this->request['payment_type'], $this->chargebacks)) {
                         $bookBack = array('CREDITCARD_BOOKBACK', 'REFUND_BY_BANK_TRANSFER_EU', 'PAYPAL_BOOKBACK');
@@ -522,7 +513,7 @@ class Novalnet_Payment_Model_Callbackscript
                             $script = 'Novalnet callback received. Refund/Bookback executed successfully for the TID: ' . $tId . ' amount: ' . ($request['amount'])
                                 / 100 . ' ' . $currency . " on " . date('Y-m-d H:i:s') . '. The subsequent TID: ' . $request['tid'];
                         } else {
-                            $script = 'Novalnet Callback script received. Chargeback executed sucessfully for the TID ' . $tId . ' amount ' . ($request['amount']) / 100 . ' ' . $currency . " on " . $this->currentTime . '. The subsequent TID: ' . $request['tid'];
+                            $script = 'Novalnet callback received. Chargeback executed successfully for the TID ' . $tId . ' amount ' . ($request['amount']) / 100 . ' ' . $currency . " on " . $this->currentTime . '. The subsequent TID: ' . $request['tid'];
                         }
                         $this->emailBody = $script;
                         $this->saveAdditionalInfo($payment, $data, $script, $order);
@@ -540,16 +531,17 @@ class Novalnet_Payment_Model_Callbackscript
 
             $invoice = $order->getInvoiceCollection()->getFirstItem();
             $paid = $invoice->getState();
-            $subsPaymentType = array('DIRECT_DEBIT_SEPA', 'INVOICE_START');
+            $subsPaymentType = array('DIRECT_DEBIT_SEPA', 'INVOICE_START', 'CREDITCARD', 'PAYPAL');
             if ($this->level == 0 || $this->level == 2) {
                 if($this->recurring && in_array($this->request['payment_type'], $subsPaymentType)) {
-                    if(!empty($request['tid_status']) && !empty($request['status']) && in_array($request['tid_status'], array('91', '98', '99', '100') )) {
-                        if (!empty($this->request['signup_tid']) && $this->request['subs_billing'] == 1 && $request['status'] == 100 ) {
+                    if(!empty($request['tid_status']) && !empty($request['status']) && in_array($request['tid_status'], array(90, 91, 98, 99, 100) )) {
+                        if (!empty($this->request['signup_tid']) && $request['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED ) {
                                 $recurringProfileId = $this->getProfileInformation($request);
                                 $periodMaxCycles = $recurringProfileId->getPeriodMaxCycles();
                                 $profileId = $recurringProfileId->getId();
                                 $helper = $this->_getNovalnetHelper();
-                                if (!$this->request['paid_until']) {
+                                $next_charging_date = isset($this->request['next_subs_cycle']) ? $this->request['next_subs_cycle'] : $this->request['paid_until'] ;
+                                if (!$next_charging_date) {
                                     $this->showDebug("Novalnet callback received. Subscription Suspended. Refer Order :" . $this->orderNo);
                                 }
 
@@ -565,7 +557,7 @@ class Novalnet_Payment_Model_Callbackscript
                                 $this->createOrder($order, $script, $data, $payment, $profileId);
                                 return true;
                             } else {
-                                    $request['termination_reason'] = $request['status_message'];
+                                    $request['termination_reason'] = (!empty($request['status_text']) ? $request['status_text'] : (!empty($request['status_message']) ? $request['status_message'] : $request['status_desc']));
                                     $this->subscriptionCancel($request);
                                     return true;
                             }
@@ -573,35 +565,36 @@ class Novalnet_Payment_Model_Callbackscript
                                 $this->showDebug("Novalnet callback received. Status is not valid.");
                         }
                     }
-                   if((isset($request['status']) && $request['status'] == 100) && (isset($request['tid_status']) && $request['tid_status'] == 100) ) {
+                   if((isset($request['status']) && $request['status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) && (isset($request['tid_status']) && $request['tid_status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) ) {
                     $saveInvoice = '';
                         $saveInvoice = $this->saveInvoice($order, $nominalItem, $paid);
                     if ($invoice) {
-                        if ($saveInvoice && $request['payment_type'] == 'INVOICE_CREDIT') {
+                        if ($saveInvoice && in_array($request['payment_type'], array('INVOICE_CREDIT', 'PAYPAL'))) {
                                 $order->setState($state, true, 'Novalnet callback set state ' . $state . ' for Order-ID = ' . $this->orderNo);
                                 $order->addStatusToHistory($status, 'Novalnet callback added order status ' . $status);
                                 $this->emailBody .= 'Novalnet callback set state to ' . $state . $this->lineBreak;
                                 $this->emailBody .= 'Novalnet callback set status to ' . $status . ' ... ' . $this->lineBreak;
                                 $order->save();
 
-                                $transMode = (version_compare($helper->getMagentoVersion(), '1.6', '<')) ? false : true;
                                 if (in_array($request['payment_type'], $this->invoiceAllowed)) {
                                     if ($nominalItem) {
                                         $tidPayment = isset($request['signup_tid']) && $request['signup_tid'] && $request['subs_billing'] ? trim($request['signup_tid']) : trim($request['tid_payment']);
                                     } else {
                                         $tidPayment = trim($request['tid']);
                                     }
-                                    $payment->setTransactionId($tidPayment)
-                                            ->setIsTransactionClosed($transMode);
-                                    $transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
-                                    $transaction->setParentTxnId(null)
-                                            ->save();
                                     $amount = $this->_getNovalnetHelper()->getFormatedAmount($request['amount'], 'RAW');
                                     $currency = $this->currency;
                                     $script = 'Novalnet Callback Script executed successfully for the TID: ' . $request['tid_payment'] . ' with amount ' . $amount . ' ' . $currency . ' on ' . $this->currentTime . '. Please refer PAID transaction in our Novalnet Merchant Administration with the TID: ' . $request['tid'];
                                 } else {
+                                    $tidPayment = trim($request['tid']);
                                     $script = 'Novalnet Callback Script executed successfully on ' . $this->currentTime;
                                 }
+                                $transMode = (version_compare($helper->getMagentoVersion(), '1.6', '<')) ? false : true;
+                                $payment->setTransactionId($tidPayment)
+                                        ->setIsTransactionClosed($transMode);
+                                $transaction = $payment->addTransaction(Mage_Sales_Model_Order_Payment_Transaction::TYPE_CAPTURE, null, false);
+                                $transaction->setParentTxnId(null)
+                                            ->save();
                                 $this->saveAdditionalInfo($payment, $data, $script, $order);
                                 $changeAmount = $helper->getAmountCollection($order->getId(), 1, NULL);
                                 if ($changeAmount) {
@@ -672,15 +665,6 @@ class Novalnet_Payment_Model_Callbackscript
                             ->addObject($invoice)
                             ->addObject($invoice->getOrder())
                             ->save();
-                    $orderStatus = $this->getOrderStatus($order);
-                    $order->setState($orderStatus, true)->save();
-                    if ($this->recurring || $nominalItem) {
-                        $profileInfo = $this->getProfileInformation($request);
-                        if ($profileInfo->getState() != 'canceled') {
-                            $profileInfo->setState('active');
-                            $profileInfo->save();
-                        }
-                    }
 
                     $amount = $helper->getFormatedAmount($request['amount'], 'RAW');
                     if (in_array($request['payment_type'], $this->invoiceAllowed)) {
@@ -756,6 +740,23 @@ class Novalnet_Payment_Model_Callbackscript
                 $profileInfo->save();
             }
         }
+    }
+
+    /**
+     * Save order status invoice payment
+     *
+     * @param none
+     * @return none
+     */
+    private function _updateOrderStatus($order)
+    {
+        $orderStatus = $this->getOrderStatus($order); // Get order status
+        $state = Mage_Sales_Model_Order::STATE_PROCESSING;
+        $order->setState($state, true, 'Novalnet callback set state ' . $state . ' for Order-ID = ' . $this->orderNo);
+        $order->addStatusToHistory($orderStatus, 'Novalnet callback added order status ' . $orderStatus);
+        $this->emailBody .= 'Novalnet callback set state to ' . $state . $this->lineBreak;
+        $this->emailBody .= 'Novalnet callback set status to ' . $orderStatus . ' ... ' . $this->lineBreak;
+        $order->save();
     }
 
     /**
@@ -865,7 +866,7 @@ class Novalnet_Payment_Model_Callbackscript
     {
         $helper = $this->_getNovalnetHelper();
         $script = 'Novalnet Callback script received. Subscription has been stopped for the TID:' . $request['signup_tid'] . " on " . $this->currentTime;
-        $script .= '<br>Reason for Cancellation: ' . $request['termination_reason'];
+        $script .= '<br>Subscription has been canceled due to: ' . $request['termination_reason'];
         $this->emailBody = $script;
         $recurringProfileId = $this->getProfileInformation($request);
         $orderNumber = $helper->getModelRecurring()->getRecurringOrderNo($recurringProfileId);
@@ -949,13 +950,13 @@ class Novalnet_Payment_Model_Callbackscript
         $redirectPayment = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayments');
         array_push($redirectPayment, Novalnet_Payment_Model_Config::NN_PREPAYMENT, Novalnet_Payment_Model_Config::NN_INVOICE, Novalnet_Payment_Model_Config::NN_CC);
 
-        $status = $paymentObj->getNovalnetConfig('order_status', '', $storeId);
+        $status = $paymentObj->getConfigData('order_status', '', $storeId);
         if ($paymentObj->getCode() && in_array($paymentObj->getCode(), $redirectPayment)) {
-            $status = $paymentObj->getNovalnetConfig('order_status_after_payment', '', $storeId);
+            $status = $paymentObj->getConfigData('order_status_after_payment', '', $storeId);
         }
 
-        if ($paymentObj->getCode() && $paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL && ($this->request['status'] == Novalnet_Payment_Model_Config::PAYPAL_PENDING_CODE)) {
-            $status = $paymentObj->getNovalnetConfig('order_status', '', $storeId) ? $paymentObj->getNovalnetConfig('order_status', '', $storeId) : Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
+        if ($paymentObj->getCode() && $paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL && ($this->request['tid_status'] == Novalnet_Payment_Model_Config::PAYPAL_PENDING_CODE)) {
+            $status = $paymentObj->getConfigData('order_status', '', $storeId) ? $paymentObj->getConfigData('order_status', '', $storeId) : Mage_Sales_Model_Order::STATE_PENDING_PAYMENT;
         }
 
         if (!$status) {
@@ -1110,14 +1111,13 @@ class Novalnet_Payment_Model_Callbackscript
         if ($this->recurring || $nominalItem) {
             $profileInfo = $this->getProfileInformation($request);
             $billingAmount = $profileInfo->getBillingAmount();
-            $initialAmount = $profileInfo->getInitAmount();
         }
 
         $changeAmount = $this->_getNovalnetHelper()->getAmountCollection($order->getId(), 1, NULL);
         if ($changeAmount) {
             $amountvalue = $changeAmount;
-        } elseif (($this->recurring || $nominalItem) && ($initialAmount && $billingAmount)) {
-            $amountvalue = round(($initialAmount + $billingAmount + $profileInfo->getShippingAmount()
+        } elseif (($this->recurring || $nominalItem) && ($billingAmount)) {
+            $amountvalue = round(($billingAmount + $profileInfo->getShippingAmount()
                     + $profileInfo->getTaxAmount()), 2);
         } else {
             $amountvalue = $order->getGrandTotal();
@@ -1190,6 +1190,10 @@ class Novalnet_Payment_Model_Callbackscript
     {
         $request = $this->request;
         $orgTid = $this->requestTid($request);
+
+        if(empty($orgTid)) { // Check whether the original/parent transaction id exists
+            return false;
+        }
 
         $tablePrefix = Mage::getConfig()->getTablePrefix();
         if (in_array($request['payment_type'], $this->chargebacks)) {
@@ -1276,14 +1280,17 @@ class Novalnet_Payment_Model_Callbackscript
         $orderNew = $this->setOrderItemsDetails($order, $orderNew);
         $payment = $orderNew->getPayment();
         $paymentObj = $payment->getMethodInstance();
-        $setOrderAfterStatus = $paymentObj->getConfigData('order_status', $storeId);
+        $setOrderAfterStatus = ($this->request['tid_status'] == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
+                                && !in_array($this->request['payment_type'], $this->invoiceAllowed))
+                                ? $paymentObj->getConfigData('order_status_after_payment', $storeId)
+                                : $paymentObj->getConfigData('order_status', $storeId);
         $setOrderAfterStatus = $setOrderAfterStatus ? $setOrderAfterStatus : Mage_Sales_Model_Order::STATE_PROCESSING;
         $orderNew->addStatusToHistory($setOrderAfterStatus, $helper->__('Novalnet Recurring Callback script Executed Successfully'), false);
         $tid = trim($this->request['tid']);
         $orderNew->save();
         $newOrderId = $orderNew->getId();
         $parentOrderNo = $this->getOrderIdByTransId() ? $this->getOrderIdByTransId() : $orderNew->getIncrementId();
-        $script .= $comments = ' Recurring Payment for order id : ' . $parentOrderNo . '<br>';
+        $script .= $comments = ' Reference Order No : ' . $parentOrderNo . '<br>';
         $next_charging_date = isset($this->request['next_subs_cycle']) ? $this->request['next_subs_cycle'] : $this->request['paid_until'] ;
         $script .= $nextDate = !$this->endTime ? '<br>Next charging date is: ' . $next_charging_date . '<br>' : '';
         $this->emailBody = $script;
@@ -1580,6 +1587,37 @@ class Novalnet_Payment_Model_Callbackscript
         }
         if ($die) {
             die;
+        }
+    }
+
+    /**
+     * Register recurring profile data
+     *
+     * @param varien_object $payment
+     * @param string $status
+     */
+    public function callbackRegisterRecurring($payment, $status = NULL)
+    {
+        $response = $this->request;
+        $additionalData = unserialize($payment->getAdditionalData());
+        $profileId = (!empty($response['profile_id']) ? $response['profile_id']
+                    : ((!empty($response['input5']) && $response['input5'] == 'profile_id') ? $response['inputval5'] : ''));
+        if($profileId) {
+            $profile = Mage::getModel('sales/recurring_profile')
+                                    ->load($profileId, 'profile_id');
+            if ($status == 'Success') {
+                $profile->setState(Mage_Sales_Model_Recurring_Profile::STATE_ACTIVE);
+                $data['paidUntil'] = !empty($response['next_subs_cycle']) ? $response['next_subs_cycle'] : $response['paid_until'];
+                $data = $additionalData ? array_merge($additionalData, $data) : $data;
+                $payment->setPreparedMessage($response['status'])
+                        ->setAdditionalInformation('subs_id', $response['subs_id'])
+                        ->setAdditionalData(serialize($data))
+                        ->save();
+            } else {
+                $profile->setState(Mage_Sales_Model_Recurring_Profile::STATE_CANCELED);
+            }
+            $profile->setReferenceId($response['tid'])
+                    ->save();
         }
     }
 

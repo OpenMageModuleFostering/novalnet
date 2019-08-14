@@ -127,8 +127,8 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                                     ? false : true;
                         $loadTransStatus->setTransactionStatus($responseCodeApproved)
                                 ->save();
-            $data = unserialize($payment->getAdditionalData());
-            $data['captureTid'] = $lastTranId;
+                        $data = unserialize($payment->getAdditionalData());
+                        $data['captureTid'] = $lastTranId;
                         $data['CaptureCreateAt'] = Mage::getModel('core/date')->date('Y-m-d H:i:s');
                         $payment->setAdditionalData(serialize($data))
                                         ->save();
@@ -144,18 +144,18 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                                     ->save();
                         }
                     }
-            $this->setOrderStatus($order, 'confirmStatus');
-                $customerId = $payment->getOrder()->getCustomerId();
-                    $paymentObj->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
-                }
-                if ($responseStatus != $responseCodeApproved) {
-                    $this->_getSession()->addSuccess(
-                            $this->__('There was an error in refund request. Status Code : ' . $responseStatus)
-                    );
-                } else {
-                    $this->_getSession()->addSuccess(
-                            $this->__('The order has been updated.')
-                    );
+                    $this->setOrderStatus($order, 'confirmStatus');
+                        $customerId = $payment->getOrder()->getCustomerId();
+                            $paymentObj->logNovalnetTransactionData($request, $response, $payment->getLastTransId(), $customerId, $storeId);
+                    if ($responseStatus != $responseCodeApproved) {
+                        $this->_getSession()->addSuccess(
+                                $this->__('There was an error in refund request. Status Code : ' . $responseStatus)
+                        );
+                    } else {
+                        $this->_getSession()->addSuccess(
+                                $this->__('The order has been updated.')
+                        );
+                    }
                 }
             } catch (Mage_Core_Exception $e) {
                 $this->_getSession()->addError($e->getMessage());
@@ -213,7 +213,6 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
         $order = $this->_initOrder();
         $helper = Mage::helper('novalnet_payment');
         $incrementId = $order->getIncrementId();
-        $currency = $order->getOrderCurrencyCode();
         $callbackTrans = $helper->loadCallbackValue($incrementId);
         $callbackValue = $callbackTrans && $callbackTrans->getCallbackAmount() ? ($callbackTrans->getCallbackAmount() / 100) : '';
 
@@ -246,16 +245,16 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
 
                     $amountChanged = $rawAmount;
                     $loadTransStatus = $helper->loadTransactionStatus($lastTranId);
-                    $transStatus = $loadTransStatus->getTransactionStatus();                    
+                    $transStatus = $loadTransStatus->getTransactionStatus();
                     if (!in_array(NULL, $request->toArray()) && !empty($transStatus)) {
                         $buildNovalnetParam = http_build_query($request->getData());
                         $payportUrl = $helper->getPayportUrl('paygate');
                         $dataHelper =  Mage::helper('novalnet_payment/AssignData');
                         $response = $dataHelper->setRawCallRequest($buildNovalnetParam, $payportUrl, $paymentObj);
                         if ($response->getStatus() == $responseCodeApproved) {
-							// set transaction amount
-							$loadTransStatus->setAmount($amountChanged)
-										    ->save();
+                            // set transaction amount
+                            $loadTransStatus->setAmount($amountChanged)
+                                            ->save();
                             // make capture transaction open for lower versions to make refund
                             if (version_compare($helper->getMagentoVersion(), '1.6', '<')) {
                                 $payment->setIsTransactionClosed(false)
@@ -268,15 +267,16 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                                 if ($invoiceDuedate) {
                                     $note = explode('|',$data['NnNote']);
                                     $formatDate = Mage::helper('core')->formatDate($invoiceDuedate);
-                                    $note[0] = 'Due Date: <b><span id="due_date">'.$formatDate.'</span></b>';
+                                    $note[0] = 'Due Date: ' . $formatDate;
                                     $data['NnNote'] = implode('|',$note);
+                                    $data['NnDueDate'] = 'Due Date: <span id="due_date">' . $formatDate . '</span>';
                                 }
                                 $data['NnNoteAmount'] = $dataHelper->getBankDetailsAmount($amountChanged);
                                 $payment->setAdditionalData(serialize($data))
                                         ->save();
                                 $modNovalamountchanged->setInvoiceDuedate($invoiceDuedate);
                             }
-                            $countAmount = $helper->getAmountCollection($orderId, NULL, NULL);                            
+                            $countAmount = $helper->getAmountCollection($orderId, NULL, NULL);
                             $modNovalamountchanged = $countAmount ? $helper->getModelAmountchanged()->load($orderId, 'order_id')
                                         : $helper->getModelAmountchanged();
                             $modNovalamountchanged->setOrderId($orderId)
@@ -307,7 +307,7 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                             }
                         } else {
                             Mage::throwException($response->getStatusDesc());
-                        }             
+                        }
                         $customerId = $order->getCustomerId();
                         $paymentObj->logNovalnetTransactionData($request, $response, $lastTranId, $customerId, $storeId);
                         $this->_getSession()->addSuccess(

@@ -27,11 +27,14 @@ $_info = $this->getInfo();
 $transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $_info->getLastTransId();
 $helper = Mage::helper('novalnet_payment');
 $currentTime = $this->getAdditionalData('voidCreateAt');
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
 if ($_info):
     ?>
     <?php if ($this->getAdditionalData('NnTestOrder')) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
     <?php echo $this->htmlEscape($this->getMethod()->getTitle()) ?>{{pdf_row_separator}}
     <?php if ($transactionId) echo $this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId)) . '<br /><br>' ?>{{pdf_row_separator}}
+    <?php if ($nextCycleDate) echo $this->__('Next Payment Date is: %s', $nextCycleDate) . '<br /><br>' ?>{{pdf_row_separator}}
+    <?php if ($this->getAdditionalData('subsCancelReason')) echo $this->__('Subscription Cancellation: %s', $this->getAdditionalData('subsCancelReason')) . '<br /><br>' ?>{{pdf_row_separator}}
     <?php if ($this->getAdditionalData('voidTid')) echo $this->__('The transaction has been canceled on %s', $currentTime) . '<br><br>' ?>{{pdf_row_separator}}
     <?php
 	if ($this->getAdditionalData('refunded_tid')):

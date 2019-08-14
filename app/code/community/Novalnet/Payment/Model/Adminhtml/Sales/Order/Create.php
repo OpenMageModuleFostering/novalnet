@@ -65,7 +65,7 @@ class Novalnet_Payment_Model_Adminhtml_Sales_Order_Create extends Mage_Adminhtml
             $paymentObj = $payment->getMethodInstance();
             $request = $this->getSession()->getPaymentReqData();
             $response = $paymentObj->postRequest($request);
-            $status = $paymentObj->validateNovalnetResponse($payment, $response);
+            $paymentObj->validateNovalnetResponse($payment, $response);
             $this->getSession()->unsPaymentReqData()
                                ->unsPaymentResData();
         }

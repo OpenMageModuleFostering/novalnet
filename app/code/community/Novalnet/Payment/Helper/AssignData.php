@@ -37,7 +37,6 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
      */
     protected $_files = array(
         'novalnetJquery.js',
-        'novalnetcc.js',
         'novalnetsepa.js'
     );
 
@@ -83,7 +82,7 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                             ->setNnCallbackPinNovalnetSepa(trim($data->getCallbackPin()))
                             ->setNnNewCallbackPinNovalnetSepa($data->getNewCallbackPin())
                             ->setSepaDuedate($this->getModel($paymentCode)->getNovalnetConfig('sepa_due_date'))
-							->setCallbackPinValidationFlag(true);
+                            ->setCallbackPinValidationFlag(true);
                     $this->getCheckout()->setSepaHash($this->novalnetCardDetails('result_sepa_hash'))
                             ->setSepaUniqueId($this->novalnetCardDetails('result_mandate_unique'))
                             ->setNnPaymentCode($paymentCode);
@@ -92,7 +91,7 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                     $infoInstance->setNnCallbackTelNovalnetInvoice($data->getCallbackTel())
                             ->setNnCallbackPinNovalnetInvoice(trim($data->getCallbackPin()))
                             ->setNnNewCallbackPinNovalnetInvoice($data->getNewCallbackPin())
-							->setCallbackPinValidationFlag(true);
+                            ->setCallbackPinValidationFlag(true);
                     $this->getCheckout()->setNnPaymentCode($paymentCode);
                     break;
             }
@@ -114,6 +113,8 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                 $sepaHolder = $paymentInfo['account_holder'];
                 $sepaDueDate = $infoInstance->getSepaDuedate();
                 $callbackVal = $this->getModel($paymentCode)->getNovalnetConfig('callback');
+                $infoObject = ($infoInstance->getOrder()) ? $infoInstance->getOrder() : $infoInstance->getQuote();
+                $countryCode = strtoupper($infoObject->getBillingAddress()->getCountryId());
 
                 if (strlen($sepaDueDate) > 0 && ($sepaDueDate < 7 || !$this->checkIsNumeric($sepaDueDate))) {
                     Mage::throwException($this->__('SEPA Due date is not valid') . '!');
@@ -125,13 +126,13 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                     Mage::throwException($this->__('Your account details are invalid') . '!');
                 } elseif ($this->checkCallbackAmount($paymentCode)
                         && $callbackVal == '1' && !$infoInstance->getNnCallbackTelNovalnetSepa()
-                        && !$this->checkIsAdmin()) {
+                        && $this->isCallbackTypeAllowed($countryCode)) {
                     Mage::throwException($this->__('Please enter your telephone number') . '!');
                 } elseif ($this->checkCallbackAmount($paymentCode)
                         && $callbackVal == '2' && !$infoInstance->getNnCallbackTelNovalnetSepa()
-                        && !$this->checkIsAdmin()) {
+                        && $this->isCallbackTypeAllowed($countryCode)) {
                     Mage::throwException($this->__('Please enter your mobile number') . '!');
-                } 
+                }
                 break;
             case Novalnet_Payment_Model_Config::NN_INVOICE:
             case Novalnet_Payment_Model_Config::NN_PREPAYMENT:
@@ -140,7 +141,7 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
                 $paymentRefThree = $this->getModel($paymentCode)->getNovalnetConfig('payment_ref_three');
 
                 if (!$paymentRefOne && !$paymentRefTwo && !$paymentRefThree) {
-                    Mage::throwException('Payment reference is missing or invalid');
+                    Mage::throwException($this->__('Payment reference is missing or invalid') . '!');
                 }
                 break;
             case Novalnet_Payment_Model_Config::NN_CC:
@@ -333,11 +334,11 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
         $dueDate = $result->getDueDate();
         $note = NULL;
         $note .= $dueDate
-                ? 'Due Date: <b><span id="due_date">' . Mage::helper('core')->formatDate($dueDate) . '</span></b>|NN Account Holder: <b>NOVALNET AG</b>'
-                : 'NN Account Holder: <b>NOVALNET AG</b>';
-        $note .= '|IBAN: <b> ' . $result->getInvoiceIban() . '</b>';
-        $note .= '|BIC: <b>' . $result->getInvoiceBic() . '</b>';
-        $note .= '|NN_Bank: <b>' . $result->getInvoiceBankname() . ' ' . trim($result->getInvoiceBankplace()) . '</b>';
+                ? 'Due Date: ' . Mage::helper('core')->formatDate($dueDate) . '|NN Account Holder: NOVALNET AG'
+                : 'NN Account Holder: NOVALNET AG';
+        $note .= '|IBAN: ' . $result->getInvoiceIban();
+        $note .= '|BIC: ' . $result->getInvoiceBic();
+        $note .= '|NN_Bank: ' . $result->getInvoiceBankname() . ' ' . trim($result->getInvoiceBankplace());
         return $note;
     }
 
@@ -349,7 +350,7 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
      */
     public function getBankDetailsAmount($amount)
     {
-        return 'NN_Amount: <b>' . Mage::helper('core')->currency($amount, true, false) . '</b>';
+        return 'NN_Amount: ' . Mage::helper('core')->currency($amount, true, false);
     }
 
 
@@ -384,12 +385,12 @@ class Novalnet_Payment_Helper_AssignData extends Novalnet_Payment_Helper_Data
         $i = 0;
         if (!empty($paymentRefOne)) {
             $i = ($refCount == 1) ? '' : $i + 1;
-            $note .= "|NN_Reference$i:<b>BNR-$productId-$orderNo</b>";
+            $note .= "|NN_Reference$i:BNR-$productId-$orderNo";
         }
 
         if (!empty($paymentRefTwo)) {
             $i = ($refCount == 1) ? '' : $i + 1;
-            $note .= "|NN_Reference$i:<b>TID $tid</b>";
+            $note .= "|NN_Reference$i:TID $tid";
         }
 
         if (!empty($paymentRefThree)) {

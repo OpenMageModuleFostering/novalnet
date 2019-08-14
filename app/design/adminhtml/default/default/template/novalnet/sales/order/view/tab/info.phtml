@@ -31,9 +31,11 @@ $paymentObj = $payment->getMethodInstance();
 $data = unserialize($payment->getAdditionalData());
 $parentTid =   isset($data['NnTid']) ? $data['NnTid'] : '';
 $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '';
-preg_match('|<span id="due_date">(.+?)</span>|s', $this->getPaymentHtml(), $match);
-if($match) {
-	$due_date = date("Y-m-d", strtotime($match['1'] .' +1 day'));
+if(!empty($data['NnDueDate'])) {
+    preg_match('|<span id="due_date">(.+?)</span>|s', $data['NnDueDate'], $match);
+}
+if(!empty($match)) {
+    $due_date = date("Y-m-d", strtotime($match['1'] .' +1 day'));
 }
 ?>
 <div>
@@ -113,7 +115,7 @@ if($match) {
             } else if ($status == 100 && in_array($paymentname, $invoicepayment)
                     && ($paid == 1 || !$paid)) {
                         $amount = $helper->getFormatedAmount($update_details->getAmount());
-                        $date = $due_date;
+                        $date = !empty($due_date) ? $due_date : '';
                 ?>
                 <div class="entry-edit">
                     <div class="entry-edit-head">
@@ -124,7 +126,7 @@ if($match) {
             <tr><td><span style='width:50%;'><?php echo $this->__('Novalnet transaction amount') ?>:&nbsp;</span></td>
             <td><input class="validate-date required-entry" type="text" id="amount_changed" name="amount_changed" value="<?php echo $amount; ?>" onkeypress="return novalnetAllowNumeric(event)"; style="width:6em" /></td></tr>
 
-                            <tr><td><?php echo $this->__('Invoice Due Date') ?>:</td><td><input class="validate-date" type="text" id="invoice_duedate" name="invoice_duedate" value="<?php echo $date; ?>" style="width:6em" /></td>
+                            <tr><td><?php echo $this->__('Invoice Due Date') ?>:</td><td><input class="validate-date" type="text" id="invoice_duedate" name="invoice_duedate" value="<?php echo $date; ?>" style="width:6em" readonly /></td>
                             </tr>
 
             <tr><td colspan=2>

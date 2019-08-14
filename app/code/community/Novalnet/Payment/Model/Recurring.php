@@ -49,6 +49,7 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
         $quote = $checkoutSession->getQuote();
         $paymentObj = $quote->getPayment()->getMethodInstance();
         $paymentCode = $quote->getPayment()->getMethod();
+        $subRedirectPayments = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('subscriptionRedirectPayments');
 
         if ($checkoutSession->getNominalRequest() && $checkoutSession->getNominalResponse()) {
             $paymentObj->validateCallbackProcess(ucfirst($paymentCode));
@@ -56,6 +57,11 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
             $result = $checkoutSession->getNominalResponse();
         } else {
             $request = $this->_buildRecurringRequest($profile, $paymentObj);
+            if (in_array($paymentCode, $subRedirectPayments)) {
+                $checkoutSession->setPaymentReqData($request);
+                $this->_registerRecurringProfile($profile);
+                return true;
+            }
             $result = $paymentObj->postRequest($request);
         }
 
@@ -71,7 +77,7 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
                 $paymentObj->sepaPaymentRefill();
             }
 
-            $ipnRequest = Mage::getModel('novalnet_payment/ipn')->processIpnRequest($this->_buildPostBackRequestForRecurring($request,$profile, $result, $paymentObj), new Varien_Http_Adapter_Curl(), $request, $result);
+            Mage::getModel('novalnet_payment/ipn')->processIpnRequest($this->_buildPostBackRequestForRecurring($request,$profile, $result, $paymentObj), new Varien_Http_Adapter_Curl(), $request, $result);
             // unset form payment method session
             $paymentObj->unsetFormMethodSession();
             // unset payment request and response values
@@ -153,7 +159,9 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
         $subsequentPeriod = !empty($period) ? $period : $tariffPeriod;
         $request->setTariffPeriod($tariffPeriod)
                 ->setTariffPeriod2($subsequentPeriod)
-                ->setTariffPeriod2Amount($originalAmount);
+                ->setTariffPeriod2Amount($originalAmount)
+                ->setInput5('profile_id')
+                ->setInputval5($profile->getId());
 
         return $request;
     }
@@ -202,7 +210,7 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
     /**
      * Get recurring capture total amount
      *
-     * @param int $lastTranId
+     * @param int $lastTransId
      * @param varien_object $order
      * @return int
      */
@@ -210,18 +218,17 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
     {
         $profileInfo = Mage::getModel('sales/recurring_profile')->load($lastTransId, 'reference_id');
         $billingAmount = $profileInfo->getBillingAmount();
-        $initialAmount = $profileInfo->getInitAmount();
 
-        if (!empty($initialAmount) && !empty($billingAmount)) {
-            $amount = round(($initialAmount + $billingAmount
+        if (!empty($billingAmount)) {
+            $amount = round(($billingAmount
                         + $profileInfo->getShippingAmount() + $profileInfo->getTaxAmount()), 2);
         } else {
             $amount = $order->getGrandTotal();
         }
 
-        $loadTransaction = Mage::helper('novalnet_payment')->loadTransactionStatus($lastTransId)
-                                                           ->setAmount($amount)
-                                                           ->save();
+        Mage::helper('novalnet_payment')->loadTransactionStatus($lastTransId)
+                                        ->setAmount($amount)
+                                        ->save();
         return $amount;
     }
 
@@ -252,5 +259,27 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
 
         Mage::getSingleton('checkout/session')->unsNnRegularAmount()
                                               ->unsNnRowAmount();
+    }
+
+    /**
+     * Register recurring profile and create order
+     *
+     * @param Mage_Payment_Model_Recurring_Profile $profile
+     */
+    protected function _registerRecurringProfile(Mage_Payment_Model_Recurring_Profile $profile)
+    {
+        $productItemInfo = new Varien_Object;
+        $productItemInfo->setPaymentType(Mage_Sales_Model_Recurring_Profile::PAYMENT_TYPE_REGULAR);
+        $productItemInfo->setTaxAmount($profile->getTaxAmount());
+        $productItemInfo->setShippingAmount($profile->getShippingAmount());
+        $productItemInfo->setPrice($profile->getBillingAmount());
+        $order = $profile->createOrder($productItemInfo);
+        $order->save();
+
+        $profile->addOrderRelation($order->getId());
+        $checkoutSession = Mage::helper('novalnet_payment')->getCheckoutSession();
+        $checkoutSession->setRecurringOrderId($order->getIncrementId())
+                        ->setRecurringProfileNumber($profile->getId());
+        return true;
     }
 }

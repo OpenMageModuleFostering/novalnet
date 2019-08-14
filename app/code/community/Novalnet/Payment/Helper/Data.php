@@ -487,10 +487,10 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         $exludedGroupes = trim($userGroupId);
         if (strlen($exludedGroupes)) {
             $exludedGroupes = explode(',', $exludedGroupes);
-            $custGrpId = $this->getCustomerSession()->getCustomerGroupId();     
+            $custGrpId = $this->getCustomerSession()->getCustomerGroupId();
             if ($this->checkIsAdmin()) {
-				$custGrpId = $this->getAdminCheckoutSession()->getQuote()->getCustomerId();       
-			}			
+                $custGrpId = $this->getAdminCheckoutSession()->getQuote()->getCustomerId();
+            }
             return !in_array($custGrpId, $exludedGroupes);
         }
         return true;
@@ -854,7 +854,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Check the email id is valid
      *
-     * @param mixed $value
+     * @param mixed $emailId
      * @return boolean
      */
     public function validateEmail($emailId)

@@ -31,44 +31,42 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View extends Mage_Adm
         parent::__construct();
         $helper = Mage::helper('novalnet_payment');
         $order = $this->getInvoice()->getOrder();
+        $payment = $order->getPayment();
+        $paymentMethod = $payment->getMethodInstance()->getCode();
+        $sorderId = $order->getId();
+        $amount = $helper->getAmountCollection($sorderId, 1, NULL);
         $nominalItem = $helper->checkNominalItem($order->getAllItems());
         $totalPaid  = $order->getTotalPaid();
+        $getTid = $helper->makeValidNumber($payment->getLastTransId());
+        $getTransactionStatus = $helper->loadTransactionStatus($getTid);
 
-        $payment = $order->getPayment();
-        $orderRefundAmount = $payment->getAmountRefunded();
-        $paymentMethod = $payment->getMethodInstance()->getCode();
-        $orderId = $order->getIncrementId();
-        $sorderId = $order->getId();
-        $refundedAmount = $helper->getFormatedAmount($payment->getAmountRefunded());
+        // Allow only for Novalnet payment methods
+            if (preg_match("/novalnet/i", $paymentMethod)
+                && $paymentMethod == Novalnet_Payment_Model_Config::NN_INVOICE) {
+                $this->_removeButton('print');
+                $this->_removeButton('capture');
 
-        $amount = $helper->getAmountCollection($sorderId, 1, NULL);
-        $callbackTrans = $helper->loadCallbackValue($orderId);
-            $callbackValue = ($callbackTrans && $callbackTrans->getCallbackAmount())
-                        ? $callbackTrans->getCallbackAmount() : '';
-        if (($payment->getAmountRefunded() < $amount) || ($nominalItem && $payment->getAmountRefunded() < $totalPaid)) {
-            $this->_removeButton('print');
-            $this->_removeButton('capture');
-            if ($paymentMethod == Novalnet_Payment_Model_Config::NN_INVOICE && $callbackValue && $callbackValue > (string) $refundedAmount) {
+                if ($this->getInvoice()->getOrder()->canCreditmemo()) {
+                    if (($payment->canRefundPartialPerInvoice()
+                        && $this->getInvoice()->canRefund()
+                        && $payment->getAmountPaid() > $payment->getAmountRefunded())
+                        || ($payment->canRefund() && !$this->getInvoice()->getIsUsedForRefund())) {
+                        $this->getCreditMemoButton();
+                    }
+                }
+                if ($this->getInvoice()->getId()) {
+                    $this->getPrintButton();
+                }
+            }
+
+            if (($payment->getAmountRefunded() < $amount) || ($nominalItem && $payment->getAmountRefunded() < $totalPaid)) {
+                $this->_removeButton('print');
+                $this->_removeButton('capture');
                 $this->getCreditMemoButton();
-            }else if($paymentMethod != Novalnet_Payment_Model_Config::NN_INVOICE){
-                    $this->getCreditMemoButton();
+                if ($this->getInvoice()->getId()) {
+                    $this->getPrintButton();
+                }
             }
-            if ($this->getInvoice()->getId()) {
-                $this->getPrintButton();
-            }
-        } else if (preg_match("/novalnet/i", $paymentMethod) && $paymentMethod == Novalnet_Payment_Model_Config::NN_INVOICE && !$amount && $orderRefundAmount < $totalPaid) {
-            $this->_removeButton('print');
-            $this->_removeButton('capture');
-
-            if ($callbackValue && $callbackValue > (string) $refundedAmount) {
-                $this->getCreditMemoButton();
-            }
-            if ($this->getInvoice()->getId()) {
-                $this->getPrintButton();
-            }
-        }else if($paymentMethod == Novalnet_Payment_Model_Config::NN_INVOICE && !$callbackValue){
-            $this->_removeButton('capture');
-        }
     }
 
     /**
@@ -77,7 +75,6 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_Invoice_View extends Mage_Adm
      */
     private function getCreditMemoButton()
     {
-
         $this->_addButton('capture', array(// capture?
                     'label' => Mage::helper('sales')->__('Credit Memo'),
                     'class' => 'go',

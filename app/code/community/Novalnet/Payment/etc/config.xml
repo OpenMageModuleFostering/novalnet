@@ -29,7 +29,7 @@
     <modules>
         <Novalnet_Payment>
             <!-- declare module's version information for database updates -->
-            <version>10.2.0</version>
+            <version>10.2.1</version>
         </Novalnet_Payment>
     </modules>
 
@@ -233,6 +233,15 @@
                     </novalnet_payment_cart_save_after>
                 </observers>
             </checkout_cart_save_after>
+            <checkout_submit_all_after>
+                <observers>
+                    <novalnet_payment_recurring_redirect_url>
+                        <type>singleton</type>
+                        <class>Novalnet_Payment_Model_Observer</class>
+                        <method>updateRecurringUrl</method>
+                    </novalnet_payment_recurring_redirect_url>
+                </observers>
+            </checkout_submit_all_after>
         </events>
     </global>
 

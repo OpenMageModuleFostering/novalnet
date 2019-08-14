@@ -328,7 +328,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetCc/title</config_path>
                             <validate>required-entry</validate>
@@ -505,7 +505,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetSepa/title</config_path>
                             <validate>required-entry</validate>
@@ -684,7 +684,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetInvoice/title</config_path>
                             <validate>required-entry</validate>
@@ -881,7 +881,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetPrepayment/title</config_path>
                             <validate>required-entry</validate>
@@ -1067,7 +1067,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetBanktransfer/title</config_path>
                             <validate>required-entry</validate>
@@ -1224,7 +1224,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetPaypal/title</config_path>
                             <validate>required-entry</validate>
@@ -1381,7 +1381,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetIdeal/title</config_path>
                             <validate>required-entry</validate>
@@ -1538,7 +1538,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetEps/title</config_path>
                             <validate>required-entry</validate>
@@ -1695,7 +1695,7 @@
                             <show_in_store>1</show_in_store>
                         </active>
                         <title translate="label">
-                            <label>Title</label>
+                            <label>Novalnet Title</label>
                             <frontend_type>text</frontend_type>
                             <config_path>payment/novalnetGiropay/title</config_path>
                             <validate>required-entry</validate>

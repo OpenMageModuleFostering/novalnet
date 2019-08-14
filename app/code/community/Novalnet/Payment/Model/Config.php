@@ -80,6 +80,7 @@ class Novalnet_Payment_Model_Config
     protected $_novalnetHashParams = array('auth_code', 'product', 'tariff', 'amount',
         'test_mode', 'uniqid');
     protected $_fraudCheckPayment = array('novalnetInvoice', 'novalnetSepa');
+    protected $_subscriptionRedirectPayments = array('novalnetCc', 'novalnetPaypal');
 
     /* ******************************************** */
      /*         NOVALNET CC PARAMS                 */

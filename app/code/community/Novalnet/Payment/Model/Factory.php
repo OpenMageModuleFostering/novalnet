@@ -76,11 +76,11 @@ class Novalnet_Payment_Model_Factory
      */
     public function getTransactionData($getTid, $payment, $amountAfterRefund, $call, $refundTid
     = NULL, $customerId = NULL, $response = NULL)
-    {			
+    {
         $helper = Mage::helper('novalnet_payment');
-        $paymentObj = $payment->getMethodInstance();    	     	   
-        $amount = $helper->getFormatedAmount($response->getAmount(), 'RAW');       
-        if ($call == 1) {	
+        $paymentObj = $payment->getMethodInstance();
+        $amount = $helper->getFormatedAmount($response->getAmount(), 'RAW');
+        if ($call == 1) {
             $loadTransaction = $helper->loadTransactionStatus($getTid);
             $loadTransaction->setTransactionStatus($response->getTidStatus())
                     ->setAmount($amount)
@@ -90,14 +90,14 @@ class Novalnet_Payment_Model_Factory
                     $loadTransaction->setAmount($amountAfterRefund)
                             ->save();
           }
-        } else {	
+        } else {
             if ($refundTid) { // Only log the novalnet transaction which contains TID
                 $response->setStatus($response->getTidStatus());
                 $paymentObj->logNovalnetStatusData($response, $refundTid, $customerId, NULL, $response->getAmount());
             }
-        }      
+        }
         return $response;
-       
+
     }
 
     /**
@@ -128,7 +128,7 @@ class Novalnet_Payment_Model_Factory
                     ->save();
         }
     }
-    
+
     /**
      * Set RequestParams Form
      *
@@ -143,13 +143,14 @@ class Novalnet_Payment_Model_Factory
         $helper = Mage::helper('novalnet_payment');
         $billing = $infoObject->getBillingAddress();
         $shipping = $infoObject->getShippingAddress();
-        if (!$infoObject->getIsVirtual())
-			$company = $billing->getCompany() ? $billing->getCompany() : ($shipping->getCompany() ? $shipping->getCompany() : '');
+        if (!$infoObject->getIsVirtual()) {
+            $company = $billing->getCompany() ? $billing->getCompany() : ($shipping->getCompany() ? $shipping->getCompany() : '');
+        }
         $email = $billing->getEmail() ? $billing->getEmail() : $infoObject->getCustomerEmail();
         $request = $company ? $request->setCompany($company) : $request;
         $vendorScriptUrlConfig = Mage::getStoreConfig('novalnet_global/novalnetsetting/vendor_script_url');
-        $vendorScriptUrl = $vendorScriptUrlConfig ? $vendorScriptUrlConfig : 
-							Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'callback_novalnet2magento.php';
+        $vendorScriptUrl = $vendorScriptUrlConfig ? $vendorScriptUrlConfig :
+                            Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'callback_novalnet2magento.php';
         $request->setTestMode($livemode)
                 ->setAmount($amount)
                 ->setCurrency($infoObject->getBaseCurrencyCode())
@@ -176,7 +177,7 @@ class Novalnet_Payment_Model_Factory
                 ->setSystemVersion($helper->getMagentoVersion() . '-' . $helper->getNovalnetVersion())
                 ->setNotifyUrl($vendorScriptUrl)
                 ->setInput1('order_id')
-                ->setInputval1($orderId);        
+                ->setInputval1($orderId);
     }
 
     /**

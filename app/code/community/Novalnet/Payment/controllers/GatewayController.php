@@ -106,8 +106,20 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             $payment->setAdditionalInformation($errorActionFlag, 1);
             $dataObj = new Varien_Object($response);
             $paymentObj->saveCancelledOrder($dataObj, $payment);
-            $statusMessage = ($dataObj->getStatusText()) ? $dataObj->getStatusText()
-                        : $dataObj->getStatusDesc();
+            $profileId = (!empty($response['profile_id'])
+                            ? $response['profile_id']
+                            : ((!empty($response['input5']) && $response['input5'] == 'profile_id') ? $response['inputval5'] : ''));
+            if ($profileId) {
+                $recurringProfile = $this->loadRecurringProfile($profileId);
+                $recurringProfile->setState(Mage_Sales_Model_Recurring_Profile::STATE_CANCELED)
+                                ->setReferenceId($dataObj->getTid())
+                                ->save();
+                $this->unsetRecurringData(); //unset recurring order id and profile id
+                $this->_getCheckout()->setLastOrderId($order->getId());
+            }
+            $statusMessage = $dataObj->getStatusMessage() ? $dataObj->getStatusMessage()
+                    : ($dataObj->getStatusDesc() ? $dataObj->getStatusDesc() : ($dataObj->getStatusText()
+                    ? $dataObj->getStatusText() : $helper->__('Payment was not successfull')));
             $helper->getCoresession()->addError($statusMessage);
         }
 
@@ -205,6 +217,13 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 return false;
             }
 
+            $profileId = (!empty($response['profile_id'])
+                            ? $response['profile_id']
+                            : ((!empty($response['input5']) && $response['input5'] == 'profile_id') ? $response['inputval5'] : ''));
+            if ($profileId) {
+                $recurringProfile = $this->loadRecurringProfile($profileId);
+            }
+
             //success
             if (($paymentObj->getCode() == Novalnet_Payment_Model_Config::NN_PAYPAL
                     && $response['status'] == Novalnet_Payment_Model_Config::PAYPAL_PENDING_CODE)
@@ -213,7 +232,19 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 $testMode = $this->setNovalnetMode($paymentObj,$response,$authorizeKey);
                 $data['NnTestOrder'] = $testMode;
                 $data['NnTid'] = $response['tid'];
-                $amount = is_numeric($response['amount']) ? $response['amount'] : $helper->getDecodedParam($response['amount'], $authorizeKey);
+                if (!empty($profileId)) {
+                    $recurringProfile->setState(Mage_Sales_Model_Recurring_Profile::STATE_ACTIVE)
+                             ->setReferenceId($response['tid'])
+                             ->save();
+
+                    $recurringAmount = round(($recurringProfile->getBillingAmount() + $recurringProfile->getShippingAmount() + $recurringProfile->getTaxAmount()), 2);
+                    $payment->registerCaptureNotification($recurringAmount, 0);
+                    $IpnComment = $helper->__('IPN "%s".', $response['status']);
+                    $payment->setPreparedMessage($IpnComment)
+                            ->setAdditionalInformation('subs_id', $response['subs_id']);
+                    $data['paidUntil'] = !empty($response['next_subs_cycle']) ? $response['next_subs_cycle'] : $response['paid_until'];
+                    $this->unsetRecurringData(); //unset recurring order id and profile id
+                }
 
                 $payment->setStatus(Novalnet_Payment_Model_Payment_Method_Abstract::STATUS_SUCCESS)
                         ->setStatusDescription($helper->__('Payment was successful.'))
@@ -232,8 +263,15 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
                 $status = true;
             } else {
                 $paymentObj->saveCancelledOrder($dataObj, $payment);
-                $statusMessage = ($dataObj->getStatusText()) ? $dataObj->getStatusText()
-                            : $dataObj->getStatusDesc();
+                if (!empty($profileId)) {
+                    $recurringProfile->setState(Mage_Sales_Model_Recurring_Profile::STATE_CANCELED)
+                                ->setReferenceId($response['tid'])
+                                ->save();
+                    $this->unsetRecurringData(); //unset recurring order id and profile id
+                }
+                $statusMessage = $dataObj->getStatusMessage() ? $dataObj->getStatusMessage()
+                    : ($dataObj->getStatusDesc() ? $dataObj->getStatusDesc() : ($dataObj->getStatusText()
+                    ? $dataObj->getStatusText() : $helper->__('Payment was not successfull')));
                 $helper->getCoresession()->addError($statusMessage);
                 $status = false;
             }
@@ -295,13 +333,13 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
             }
         }
 
-        $dataObj = new Varien_Object($response);
         $nnAffId = $helper->getCoresession()->getNnAffId();
-		if ($nnAffId) {
-			$paymentObj->doNovalnetAffUserInfoLog($nnAffId);
-		}
-        $statusText = ($response['status_text']) ? $response['status_text']
-                    : $helper->__('successful');
+        if ($nnAffId) {
+            $paymentObj->doNovalnetAffUserInfoLog($nnAffId);
+        }
+        $statusText = !empty($response['status_message']) ? $response['status_message']
+                    : (!empty($response['status_desc']) ? $response['status_desc'] : (!empty($response['status_text'])
+                    ? $response['status_text'] : $helper->__('successful')));
         $helper->getCoresession()->addSuccess($statusText);
         $order->save();
         $amount = is_numeric($response['amount']) ? $response['amount'] : $helper->getDecodedParam($response['amount'], $authorizeKey);
@@ -337,16 +375,6 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     private function _getOrder()
     {
         return Mage::getModel('sales/order')->loadByIncrementId($this->_getCheckout()->getLastRealOrderId());
-    }
-
-    /**
-     * Get Current payment method instance
-     *
-     * @return payment method instance
-     */
-    private function _getPaymentObject()
-    {
-        return $this->_getOrder()->getPayment()->getMethodInstance();
     }
 
     /**
@@ -398,9 +426,9 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
     /**
      * Set payment status for Novalnet redirect payment methods
      *
-     * @param varien_object $paymentObj
-     * @param array $response
      * @param mixed $authorizeKey
+     * @param array $response
+     * @param varien_object $paymentObj
      * @return array
      */
     private function responseStatus($authorizeKey,$response,$paymentObj)
@@ -426,5 +454,28 @@ class Novalnet_Payment_GatewayController extends Mage_Core_Controller_Front_Acti
         $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
                         && $shopMode == 0)) ? 1 : 0 );
         return $testMode;
+    }
+
+    /**
+     * Unset recurring payment data
+     *
+     * @param null
+     * @return null
+     */
+    private function unsetRecurringData()
+    {
+        $this->_getCheckout()->unsRecurringOrderId();
+    }
+
+    /**
+     * load recurring payment profile
+     *
+     * @param int $profileId
+     * @return varien_object
+     */
+    private function loadRecurringProfile($profileId)
+    {
+        return Mage::getModel('sales/recurring_profile')
+                                ->load($profileId, 'profile_id');
     }
 }

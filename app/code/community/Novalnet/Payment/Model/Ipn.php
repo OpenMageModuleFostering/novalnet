@@ -284,7 +284,6 @@ class Novalnet_Payment_Model_Ipn
     {
         $tid = $this->getRequestData('tid');
         $product = $this->getRequestData('product');
-        $paidAmount = $this->getRequestData('amount');
         $recurringProfile = $this->_recurringProfile;
 
         $billlingAmount = $recurringProfile->getBillingAmount();
@@ -303,7 +302,7 @@ class Novalnet_Payment_Model_Ipn
 
         $order = $recurringProfile->createOrder($productItemInfo);
         $this->_order = $order;
-        $payment = $order->getPayment();         
+        $payment = $order->getPayment();
         $order->save();
         $payment->setAdditionalData($this->getRequestData('additional_data'))
                 ->save();
@@ -318,23 +317,19 @@ class Novalnet_Payment_Model_Ipn
             $payment->setIsTransactionPending(true);
         }
 
-        $reslutStatus = $resultdata->getStatus();
+        $resultStatus = $resultdata->getStatus();
         $recurringProfile->addOrderRelation($order->getId());
-        $this->_helper->getCoresession()->setStatusCode($reslutStatus);
-        $closed = $reslutStatus == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
+        $this->_helper->getCoresession()->setStatusCode($resultStatus);
+        $closed = $resultStatus == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
                     ? 1 : 0;
         $payment->setTransactionId($tid)
                 ->setPreparedMessage($this->_createIpnComment(''))
                 ->setAdditionalInformation('subs_id', $subsId)
-                ->setIsTransactionClosed($closed); 
-        $resultdata->setAmount($order->getGrandTotal());                 
+                ->setIsTransactionClosed($closed);
+        $resultdata->setAmount($order->getGrandTotal());
         $paymentObj->logNovalnetStatusData($resultdata, trim($tid));
         $paymentObj->logNovalnetTransactionData($requestdata, $resultdata, trim($tid), $this->_helper->getCustomerId(), $this->_helper->getMagentoStoreId());
         $payment->registerCaptureNotification($originalPrice, 0);
-        if ($reslutStatus == 100 && $paymentMethod != Novalnet_Payment_Model_Config::NN_PREPAYMENT) {
-            $order->setTotalPaid($paidAmount);
-            $order->setBaseTotalPaid($paidAmount);
-        }
 
         $order->save();
 
@@ -363,8 +358,8 @@ class Novalnet_Payment_Model_Ipn
         // notify customer
         $subscriptionPayments = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('subscriptionPayments');
 
-        if (($reslutStatus != 100 && in_array($paymentMethod, $subscriptionPayments))
-            || ($reslutStatus == 100 && $paymentMethod == Novalnet_Payment_Model_Config::NN_PREPAYMENT)) {
+        if (($resultStatus != 100 && in_array($paymentMethod, $subscriptionPayments))
+            || ($resultStatus == 100 && $paymentMethod == Novalnet_Payment_Model_Config::NN_PREPAYMENT)) {
             if (!$order->getEmailSent() && $order->getId()) {
                             $order->sendNewOrderEmail()
                                     ->setEmailSent(true)
@@ -372,7 +367,7 @@ class Novalnet_Payment_Model_Ipn
             }
         } else if ($invoice = $payment->getCreatedInvoice()) {
             $message = $this->_helper->__('Notified customer about invoice #%s.', $invoice->getIncrementId());
-            $comment = $order->sendNewOrderEmail()->addStatusHistoryComment($message)
+            $order->sendNewOrderEmail()->addStatusHistoryComment($message)
                     ->setIsCustomerNotified(true)
                     ->save();
         }
