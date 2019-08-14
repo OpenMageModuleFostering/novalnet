@@ -240,7 +240,6 @@ else
 					$testmode_str='test_mode';
 					
 					$assignmodel=new Mage_Novalnet_Model_NovalnetCc();
-					$dataObj=importHashData($dataObj);
 					
 					$authcode_enc_val=importEncodeData($dataObj,$authcode_str);
 				    $product_enc_val=importEncodeData($dataObj,$product_str);
@@ -249,6 +248,7 @@ else
 				    $amt_enc_val=importEncodeData($dataObj,$amt_str);
 					$testmode_enc_val=importEncodeData($dataObj,$testmode_str);
 					
+					$dataObj=importHashData($dataObj);
 					
 				}
 				else

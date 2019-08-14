@@ -34,7 +34,7 @@ Credit Card Type: %s,Kreditkartentyp: %s
 Expiration Date: %s/%s,Gültig bis: %s/%s
 Credit Card Types,Mögliche Kreditkarten
 The amount will be booked immediately from your credit card<BR>with <B>%s</B> note.,Der Betrag wird sofort von Ihrer Kreditkarte mit dem<BR>Verwendungszweck 
-<B>%s</B> abgebucht.
+<B>%s</B> abgebucht.,
 This is not a valid account number.,Die Kontonummer ist nicht gültig!
 This is not a valid bank sorting code.,Die Bankleitzahl ist nicht gültig!
 Direct Debit,Lastschrift
@@ -47,7 +47,7 @@ Customer successfully returned from Novalnet,Der Kunde kehrte erfolgreich vom No
 Customer was rejected by Novalnet,Der Kunde wurde vom Novalnet Gateway zurückgewiesen
 Prepayment,Vorkasse
 Note: after submitting your order an email with bank transfer data of the Novalnet AG will be sent to you.,Bemerkung: Nach dem Absenden Ihrer Bestellung wird 
-Ihnen eine Email mit den Bankdaten der Novalnet AG  an Sie versendet.
+Ihnen eine Email mit den Bankdaten der Novalnet AG  an Sie versendet.,
 Payment Duration,Zahlbar in Tagen
 --Please Select--,--Bitte wählen--
 Invoice,Rechnung
@@ -60,7 +60,7 @@ Cc,Kreditkarte
 Method,Zahlart
 Due at,Gültig bis
 The Bank details will be emailed to you soon after the completion of checkout process,Die Bankverbindung wird Ihnen nach Abschluss Ihrer Bestellung per E-Mail 
-zugeschickt
+zugeschickt,
 Please transfer the amount to following account,Bitte ueberweisen sie den Betrag auf folgendes Konto
 Account Holder2,Kontoinhaber
 Bank,Bank
@@ -87,7 +87,7 @@ Phonepayment,Per Telefon
 Error,Fehler
 Order Price not found,Bestellsumme nicht gefunden
 Amount below 0.90 Euro and above 10.00 Euro is not accepted,Betraege unter 0.90 Euro und ueber 10.00 Euro koennen nicht verarbeitet werden bzw. werden nicht 
-akzeptiert!
+akzeptiert!,
 Params (aryResponse) missing,Params (aryResponse) fehlt
 Following steps are required to complete the telephone payment process,Folgende Schritte sind noetig um Ihre Zahlung abzuschliessen
 Step,Schritt
@@ -134,10 +134,11 @@ Novalnet Direct Debit German,Novalnet Lastschrift Deutschland
 Novalnet Direct Debit Austria,Novalnet Lastschrift Österreich
 Only for foreign transfers,Nur bei Auslandsüberweisungen
 Please transfer the invoice amount with the following information to our payment provider Novalnet AG,Bitte überweisen Sie den Betrag mit der folgenden 
-Information an unseren Zahlungsdienstleister Novalnet AG
+Information an unseren Zahlungsdienstleister Novalnet AG,
 You will be redirected to Novalnet AG in a few seconds,Sie werden nach ein paar Sekunden auf das Gateway der Novalnet AG umgeleitet
 Customer was redirected to Novalnet,Endkunde wurde auf das Gateway der Novalnet AG umgeleitet
 You will be redirected to Novalnet AG website when you place an order.,Sie werden dann auf das Gateway der Novalnet AG umgeleitet.
-"Minimum Order Total","Mindestwert für Gesamtbestellung"
-"Maximum Order Total","Höchstwert für Gesamtbestellung"
-"Minimum Orders Count","Mindestanzahl an Bestellungen"
+Minimum Order Total,Mindestwert für Gesamtbestellung
+Maximum Order Total,Höchstwert für Gesamtbestellung
+Minimum Orders Count,Mindestanzahl an Bestellungen
+Die Hashfunktionen sind nicht verf&uuml;gbar!,Die Hashfunktionen sind nicht verf&uuml;gbar!

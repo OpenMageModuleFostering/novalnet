@@ -213,7 +213,13 @@ class Novalnet_NovalnetPaypal_NovalnetPaypalController extends Mage_Core_Control
     $h['uniqid']     = $request['uniqid'];   #encoded
 
     if ($request['hash2'] != $this->hash($h, $key)){
-      return false;
+		
+		Mage::getSingleton('core/session')
+			->addError(Mage::helper('novalnetpaypal')->__('Die Hashfunktionen sind nicht verf&uuml;gbar!'));
+		$url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+		Mage::app()->getResponse()->setRedirect($url);
+		Mage::app()->getResponse()->sendResponse();
+		exit;
     }
     return true;
   }

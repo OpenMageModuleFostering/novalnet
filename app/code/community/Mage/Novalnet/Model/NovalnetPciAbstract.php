@@ -282,6 +282,14 @@ class Mage_Novalnet_Model_NovalnetPciAbstract extends Mage_Payment_Model_Method_
 				//echo "ashok aasdfsa "; exit;
 				$status = $this->onFailure($dataObj,$order,$payment,$session);
 			}
+		}else {
+		
+			Mage::getSingleton('core/session')
+                ->addError(Mage::helper('novalnet')->__('Die Hashfunktionen sind nicht verf&uuml;gbar!'));
+            $url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+            Mage::app()->getResponse()->setRedirect($url);
+            Mage::app()->getResponse()->sendResponse();
+			exit;
 		}
 		$session->unsNovalnetRealOrderId();
 		$session->unsNovalnetQuoteId();

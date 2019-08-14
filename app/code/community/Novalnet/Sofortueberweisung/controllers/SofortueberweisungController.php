@@ -240,7 +240,7 @@ class Novalnet_Sofortueberweisung_SofortueberweisungController extends Mage_Core
     }
     #Mage::log(__FUNCTION__.': status='.$status);
     $this->_status = $status;
-    return$status;
+    return $status;
   }
   function hash($h, $key)#$h contains encoded data
   {
@@ -259,7 +259,13 @@ class Novalnet_Sofortueberweisung_SofortueberweisungController extends Mage_Core
     $h['uniqid']     = $request['uniqid'];   #encoded
 
     if ($request['hash2'] != $this->hash($h, $key)){
-      return false;
+		
+		Mage::getSingleton('core/session')
+			->addError(Mage::helper('sofortueberweisung')->__('Die Hashfunktionen sind nicht verf&uuml;gbar!'));
+		$url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+		Mage::app()->getResponse()->setRedirect($url);
+		Mage::app()->getResponse()->sendResponse();
+		exit;
     }
     return true;
   }

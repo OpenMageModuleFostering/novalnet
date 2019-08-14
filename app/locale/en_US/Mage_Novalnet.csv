@@ -124,7 +124,8 @@ Novalnet Direct Debit German,Novalnet Direct Debit German
 Novalnet Direct Debit Austria,Novalnet Direct Debit Austria
 Only for foreign transfers,Only for foreign transfers
 Please transfer the invoice amount with the following information to our payment provider Novalnet AG,Please transfer the invoice amount with the following information to our payment provider Novalnet AG
-"Minimum Order Total","Minimum Order Total"
-"Maximum Order Total","Maximum Order Total"
-"Minimum Orders Count","Minimum Orders Count"
-"Due Date","Due Date"
+Minimum Order Total,Minimum Order Total
+Maximum Order Total,Maximum Order Total
+Minimum Orders Count,Minimum Orders Count
+Due Date,Due Date
+Die Hashfunktionen sind nicht verfügbar!,Check Hash Failed

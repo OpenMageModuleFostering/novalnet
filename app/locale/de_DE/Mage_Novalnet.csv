@@ -127,7 +127,8 @@ Novalnet Direct Debit Austria,Novalnet Lastschrift Österreich,
 Only for foreign transfers,Nur bei Auslandsüberweisungen,
 Please transfer the invoice amount with the following information to our payment provider Novalnet AG,Bitte überweisen Sie den Betrag mit der folgenden Information an unseren Zahlungsdienstleister Novalnet AG,
 Novalnet Paypal Text,"Das Passwort ist auf admin.novalnet.de: Stammdaten - Paymentzugriffsschluessel einzusehen. The password is available at admin.novalnet.de: Stammdaten - Paymentzugriffsschluessel.&lt;br&gt;&lt;b&gt;Bitte unbedingt beachten&lt;/b&gt; auch wenn der Livemodus=0 ist, wird der Bestellbetrag abgebucht, wenn echte Kontodaten eingegeben werden. Das ist durch die Implementierung durch den Anbieter Payment Network AG bedingt.",
-"Minimum Order Total","Mindestwert für Gesamtbestellung"
-"Maximum Order Total","Höchstwert für Gesamtbestellung"
-"Minimum Orders Count","Mindestanzahl an Bestellungen"
-"Due Date","Fälligkeitsdatum"
+Minimum Order Total,Mindestwert für Gesamtbestellung,
+Maximum Order Total,Höchstwert für Gesamtbestellung,
+Minimum Orders Count,Mindestanzahl an Bestellungen,
+Due Date,Fälligkeitsdatum,
+Die Hashfunktionen sind nicht verf�gbar!,Die Hashfunktionen sind nicht verf�gbar!,
