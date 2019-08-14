@@ -106,7 +106,7 @@ if (isset($_SESSION['adminhtml_quote']["customer_id"]))
         </li>
         <?php endif; ?>
         <li>
-        <?php echo $this->__('The amount will be booked immediately from your credit card <BR>with <B>%s</B> note.',$this->getMethod()->getBookingReference());?>
+        <?php echo $this->__('The amount will be booked from your credit card<BR>with <B>%s</B> note.',$this->getMethod()->getBookingReference());?>
         </li>
     </ul>
   </fieldset>

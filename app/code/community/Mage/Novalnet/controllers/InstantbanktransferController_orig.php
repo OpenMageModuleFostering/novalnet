@@ -1,5 +1,5 @@
 <?php
-class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
+class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_Front_Action
 {
     protected function _expireAjax()
     {
@@ -13,7 +13,7 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
      * Redirect Block
      * need to be redeclared
      */
-    protected $_redirectBlockType  = 'novalnet/secure_redirect';#secure_redirect = block/secure/redirect.php
+    protected $_redirectBlockType  = 'novalnet/instantbanktransfer_redirect';#instantbanktransfer_redirect = block/instantbanktransfer/redirect.php
 
     /**
      * Get singleton of Checkout Session Model
@@ -142,6 +142,5 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
 
         return $status;
     }
-
 }
 ?>

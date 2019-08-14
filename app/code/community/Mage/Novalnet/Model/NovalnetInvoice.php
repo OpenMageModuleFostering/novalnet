@@ -108,7 +108,6 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
     }
     public function capture(Varien_Object $payment, $amount)
     {
-		#$this->debug2($payment,'comment.txt');
         $error = false;
         $payment->setAmount($amount);
         $request = $this->_buildRequest($payment);
@@ -161,7 +160,6 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
      */
     protected function _saveObject (Varien_Object $payment)
     {
-		#$this->debug2($payment,'comment2.txt');
         $order = $payment->getOrder();
         if (!empty($order)) {
             $billing = $order->getBillingAddress();
@@ -170,7 +168,6 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
     protected function _buildRequest(Varien_Object $payment)
     {
         $order = $payment->getOrder();
-		#$this->debug2($order->getCustomerNote(),'customer_note.txt');#$order->setCustomerNote($note);
         $due_date_string = $this->getDuedateParam();
         $request = Mage::getModel('novalnet/novalnet_request');
 
@@ -190,14 +187,6 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
         if (!empty($order)) {
             $request->setinput1($order->getIncrementId());
             $billing = $order->getBillingAddress();
-            /*$street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!isset($street[1])){$street[1]='';}
-			if (!isset($street[2])){$street[2]='';}
-            if (!$street[0]){$street[0] = $street[1].$street[2];}
-            if (!$street[0])
-            {
-                Mage::throwException(Mage::helper('novalnet')->__('Street missing'));
-            }*/
             if (!$billing->getStreet(1)){Mage::throwException(Mage::helper('novalnet')->__('Street missing'));}
             if (!empty($billing)) {
                 $request->setfirst_name($billing->getFirstname())
@@ -301,7 +290,6 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 
     public function assignData($data)
     {
-		#$this->debug2($data,'comment.txt');
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
         }

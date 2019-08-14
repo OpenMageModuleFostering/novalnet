@@ -34,6 +34,7 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
 	const RESPONSE_DELIM_CHAR    = '&';
 	const RESPONSE_CODE_APPROVED = 100;
   const KEY                    = 33;
+  var   $password;
 
 	private $_debug = false; #todo: set to false for live system
     /**
@@ -163,6 +164,8 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
     
     public function getFormFields()
     {
+        $this->password = $this->getConfigData('password');
+        $_SESSION['mima'] = $this->password;
         $billing = $this->getOrder()->getBillingAddress();
         $payment = $this->getOrder()->getPayment();
         $fieldsArr = array();
@@ -170,34 +173,45 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
         $paymentInfo = $this->getInfoInstance();
         $order = $this->getOrder();
 
-        $fieldsArr['vendor'] = $this->getConfigData('merchant_id');
-        $fieldsArr['auth_code'] = $this->getConfigData('auth_code');
-        $fieldsArr['key'] = self::KEY;
-        $fieldsArr['product'] = $this->getConfigData('product_id');
-        $fieldsArr['tariff'] = $this->getConfigData('tariff_id');
-        $fieldsArr['amount'] = ($order->getBaseGrandTotal()*100);
-        
-        $fieldsArr['currency'] = $order->getOrderCurrencyCode();
+        $fieldsArr['key']        = self::KEY;
+        $fieldsArr['vendor']     = $this->getConfigData('merchant_id');
+        $fieldsArr['auth_code']  = $this->encode($this->getConfigData('auth_code'),  $this->password);
+        $fieldsArr['product']    = $this->encode($this->getConfigData('product_id'), $this->password);
+        $fieldsArr['tariff']     = $this->encode($this->getConfigData('tariff_id'),  $this->password);
+        $fieldsArr['amount']     = $this->encode(($order->getBaseGrandTotal()*100),  $this->password);
+        $fieldsArr['test_mode']  = $this->encode($this->getConfigData('test_mode'),  $this->password);
+        $fieldsArr['uniqid']     = $this->encode(uniqid(),                           $this->password);
+
+        $hParams['auth_code'] = $fieldsArr['auth_code'];
+        $hParams['product_id']= $fieldsArr['product'];
+        $hParams['tariff']    = $fieldsArr['tariff'];
+        $hParams['amount']    = $fieldsArr['amount'];
+        $hParams['test_mode'] = $fieldsArr['test_mode'];
+        $hParams['uniqid']    = $fieldsArr['uniqid'];
+
+        $fieldsArr['hash']       = $this->hash($hParams, $this->password);
+        $fieldsArr['currency']   = $order->getOrderCurrencyCode();
         $fieldsArr['first_name'] = $billing->getFirstname();
-        $fieldsArr['last_name'] = $billing->getLastname();
-        $fieldsArr['email'] = $this->getOrder()->getCustomerEmail();
-        $fieldsArr['street'] = $billing->getStreet(1);
-        $fieldsArr['search_in_street'] = 1;
-        $fieldsArr['city'] = $billing->getCity();
-        $fieldsArr['zip'] = $billing->getPostcode();
-        $fieldsArr['country_code'] = $billing->getCountry();
-        $fieldsArr['lang'] = $billing->getLang();
-        $fieldsArr['remote_ip'] = $this->getRealIpAddr();
-        $fieldsArr['tel'] = $billing->getTelephone();
-        $fieldsArr['fax'] = $billing->getFax();
-        $fieldsArr['birth_date'] = $order->getRemoteIp();
-        $fieldsArr['session'] = session_id();
-        $fieldsArr['return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#orig
-        $fieldsArr['return_method'] = 'POST';
-        $fieldsArr['error_return_url'] = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));#orig. 
+        $fieldsArr['last_name']  = $billing->getLastname();
+        $fieldsArr['email']      = $this->getOrder()->getCustomerEmail();
+        $fieldsArr['street']     = $billing->getStreet(1);
+        $fieldsArr['search_in_street']    = 1;
+        $fieldsArr['city']                = $billing->getCity();
+        $fieldsArr['zip']                 = $billing->getPostcode();
+        $fieldsArr['country_code']        = $billing->getCountry();
+        $fieldsArr['lang']                = $billing->getLang();
+        $fieldsArr['remote_ip']           = $this->getRealIpAddr();
+        $fieldsArr['tel']                 = $billing->getTelephone();
+        $fieldsArr['fax']                 = $billing->getFax();
+        $fieldsArr['birth_date']          = $order->getRemoteIp();
+        $fieldsArr['session']             = session_id();
+        $fieldsArr['return_url']          = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));
+        $fieldsArr['return_method']       = 'POST';
+        $fieldsArr['error_return_url']    = Mage::getUrl('novalnet/instantbanktransfer/success', array('_instantbanktransfer' => true));
         $fieldsArr['error_return_method'] = 'POST';
-        $fieldsArr['input1'] = 'order_id';
-        $fieldsArr['inputval1'] = $paymentInfo->getOrder()->getRealOrderId();
+        $fieldsArr['input1']              = 'order_id';
+        $fieldsArr['inputval1']           = $paymentInfo->getOrder()->getRealOrderId();
+        $fieldsArr['user_variable_0']     = str_replace(array('http://', 'www.'), array('', ''), $_SERVER['SERVER_NAME']);
 
 		#on Clicking onto <Weiter> after choice of payment type
       /*
@@ -280,4 +294,66 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
 		fwrite($fh, "<hr />\n");
 		fclose($fh);
 	}
+  function encode($data, $key)
+  {
+    $data = trim($data);
+    if ($data == '') return'Error: no data';
+    if (!function_exists('base64_decode') or !function_exists('pack') or !function_exists('crc32')){return'Error: func n/a';}
+
+    try {
+      $crc = sprintf('%u', crc32($data));# %u is a must for ccrc32 returns a signed value
+      $data = $crc."|".$data;
+      $data = bin2hex($data.$key);
+      $data = strrev(base64_encode($data));
+    }catch (Exception $e){
+      echo('Error: '.$e);
+    }
+    return $data;
+  }
+  function decode($data, $key)
+  {
+    $data = trim($data);
+    if ($data == '') {return'Error: no data';}
+    if (!function_exists('base64_decode') or !function_exists('pack') or !function_exists('crc32')){return'Error: func n/a';}
+
+    try {
+      $data =  base64_decode(strrev($data));
+      $data = pack("H".strlen($data), $data);
+      $data = substr($data, 0, stripos($data, $key));
+      $pos = strpos($data, "|");
+      if ($pos === false){
+        return("Error: CKSum not found!");
+      }
+      $crc = substr($data, 0, $pos);
+      $value = trim(substr($data, $pos+1));
+      if ($crc !=  sprintf('%u', crc32($value))){
+        return("Error; CKSum invalid!");
+      }
+      return $value;
+    }catch (Exception $e){
+      echo('Error: '.$e);
+    }
+  }
+  function hash($h, $key)#$h contains encoded data
+  {
+    if (!$h) return'Error: no data';
+    if (!function_exists('md5')){return'Error: func n/a';}
+    #Mage::throwException(Mage::helper('novalnet')->__("$h[auth_code].$h[product_id].$h[tariff].$h[amount].$h[test_mode].$h[uniqid].strrev($key)").'!');
+    return md5($h['auth_code'].$h['product_id'].$h['tariff'].$h['amount'].$h['test_mode'].$h['uniqid'].strrev($key));
+  }
+  function checkHash($request, $key)
+  {
+    if (!$request) return false; #'Error: no data';
+    $h['auth_code']  = $request['auth_code'];#encoded
+    $h['product_id'] = $request['product'];#encoded
+    $h['tariff']     = $request['tariff'];#encoded
+    $h['amount']     = $request['amount'];#encoded
+    $h['test_mode']  = $request['test_mode'];#encoded
+    $h['uniqid']     = $request['uniqid'];#encoded
+
+    if ($request['hash2'] != $this->hash($h, $key)){
+      return false;
+    }
+    return true;
+  }
 }

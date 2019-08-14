@@ -104,5 +104,6 @@
 "Instant Bank Transfer","Sofortüberweisung"
 "Customer successfully returned from Novalnet","Besteller von Novalnet erfolgreich zurückgeleitet"
 "Customer was redirected to Novalnet","Besteller zu Novalnet umgeleitet"
-"Customer abortet payment process","Besteller hat den Bezahlvorgang abgebrochen"
+"Customer aborted payment process","Besteller hat den Bezahlvorgang abgebrochen"
 "Customer was rejected by Novalnet","Besteller von Novalnet abgelehnt"
+"Password","Passwort"
