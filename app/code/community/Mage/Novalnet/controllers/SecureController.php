@@ -13,7 +13,7 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
      * Redirect Block
      * need to be redeclared
      */
-    protected $_redirectBlockType  = 'novalnet/secure_redirect';#secure_redirect = block/secure/redirect.php
+    protected $_redirectBlockType  = 'novalnet/secure_redirect';
 
     /**
      * Get singleton of Checkout Session Model
@@ -24,6 +24,11 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
     {
         return Mage::getSingleton('checkout/session');
     }
+	
+	private function _getConfigData($var)
+	{
+		return Mage::getModel( 'novalnet/novalnetSecure' )->getConfigData( $var );
+	}
 
     /**
      * when customer select novalnet payment method
@@ -31,25 +36,25 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
     public function redirectAction()
     {
         $session = $this->getCheckout();
-        $session->setNovalnetQuoteId($session->getQuoteId());
-        $session->setNovalnetRealOrderId($session->getLastRealOrderId());
-
-        $order = Mage::getModel('sales/order');
-        $order->loadByIncrementId($session->getLastRealOrderId());
-        $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer was redirected to Novalnet.'));
-        $order->save();
-
-        #update order status to pending
-        $_SESSION['status_zh']    = $order->getStatus();
-        $this->setOrderStatus($session->getLastRealOrderId(), 'pending');
-        $this->getResponse()->setBody(
-            $this->getLayout()
-                ->createBlock($this->_redirectBlockType)
-                ->setOrder($order)
-                ->toHtml()
-        );
-
-        $session->unsQuoteId();
+		$session->setNovalnetQuoteId($session->getQuoteId())
+				->setNovalnetRealOrderId($session->getLastRealOrderId());
+		
+		$order = Mage::getModel('sales/order')
+					->loadByIncrementId($session->getLastRealOrderId());
+		$order->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT)
+			  ->addStatusToHistory(
+				Mage_Sales_Model_Order::STATE_HOLDED, #$order->getStatus(),
+				Mage::helper('novalnet')->__('Customer was redirected to Novalnet'),
+				true
+			  )->save();
+		
+		$this->getResponse()->setBody(
+			$this->getLayout()
+				->createBlock($this->_redirectBlockType)
+				->setOrder($order)
+				->toHtml()
+		);
+		$session->unsQuoteId();
     }
 
     /**
@@ -57,166 +62,99 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
      */
     public function  successAction()
     {
-      global$response;
-        $status = $this->_checkReturnedPost();
-
-        $session = $this->getCheckout();
-
-        $session->unsNovalnetRealOrderId();
-        $session->setQuoteId($session->getNovalnetQuoteId(true));
-        $session->getQuote()->setIsActive(false)->save();
-
-        $order = Mage::getModel('sales/order');
-        $order->load($this->getCheckout()->getLastOrderId());
-        if($order->getId()) {
-            $order->sendNewOrderEmail();
-        }
-
-        if ($status) {
-            $this->setOrderStatus($response['inputval1'], $_SESSION['status_zh']);#new
-            unset($_SESSION['status_zh']);
-            $this->_redirect('checkout/onepage/success');
-        } else {
-            #$this->_redirect('*/*/failure');#orig
-            #$this->_redirect('checkout/onepage/failure');#ok, but not so good; $this->_redirect('*/*/failure');
-            $this->deleteOrder($increment_id = $response['inputval1']);#new
-            $this->_redirect('checkout/cart');#new; ok
-
-        }
+		if ($this->_checkReturnedPost()) {
+			$this->_redirect('checkout/onepage/success');
+		} else {
+			$this->_redirect('checkout/onepage/failure');
+		}
     }
-
-    /**
-     * Display failure page if error
-     *
-     */
-    public function failureAction()
-    {
-        if (!$this->getCheckout()->getNovalnetErrorMessage()) {
-            $this->norouteAction();
-            return;
-        }
-
-        $this->getCheckout()->clear();
-
-        $this->loadLayout();
-        $this->renderLayout();
-    }
-
+	
     /**
      * Checking POST variables.
      * Creating invoice if payment was successfull or cancel order if payment was declined
      */
     protected function _checkReturnedPost()
     {
-      global$response;
-        if (!$this->getRequest()->isPost()) {
-            $this->norouteAction();
-            return;
-        }
-        $status = true;
-        $response = $this->getRequest()->getPost();
-        //error_log(print_r($response,true),3,'/tmp/magento_response.log');
-
-        $order = Mage::getModel('sales/order');
-        $order->loadByIncrementId($response['inputval1']);
-        $payment = $order->getPayment();
-        $paymentInst = $payment->getMethodInstance();
-      
-        $paymentInst->setResponse($response);
-
-        if ($response['status'] == 100 ) {
-
-           // if ($order->canInvoice()) {
-                $invoice = $order->prepareInvoice();
-                $invoice->register()->capture();
-                Mage::getModel('core/resource_transaction')
-                    ->addObject($invoice)
-                    ->addObject($invoice->getOrder())
-                    ->save();
-
-                $paymentInst->setTransactionId($response['tid']);
-                $payment->setLastTransId($response['tid']);
-                $payment->setCcTransId($response['tid']);
-                $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer successfully returned from Novalnet'));
-
-                $note = $order->getCustomerNote();
-                if ($note){
-                  $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
-                }
-                if ( $response['test_mode']) {
-                  $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
-                }
-                $order->setCustomerNote($note);
-                $order->setCustomerNoteNotify(true);
-                $order->setComment($note);
-            //}
-        } else {
-            $paymentInst->setTransactionId($response['tid']);
-            $payment->setLastTransId($response['tid']);
-            $payment->setCcTransId($response['tid']);
-            $order->cancel();
-            $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer was rejected by Novalnet'));
-            $status = false;
-            $this->getCheckout()->setNovalnetErrorMessage($response['status_text']);
-        }
-
-        $order->save();
-
-        return $status;
-    }
-  private function debug2($object, $filename, $debug)
-	{
-		if (!$debug){return;}
-		$fh = fopen("/tmp/$filename", 'a+');
-		if (gettype($object) == 'object' or gettype($object) == 'array'){
-			fwrite($fh, serialize($object));
-		}else{
-			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		$status  = false;
+		if (!$this->getRequest()->isPost()) {
+			$this->norouteAction();
+			return $status;
 		}
-		fwrite($fh, "<hr />\n");
-		fclose($fh);
-	}
-  private function deleteOrder($increment_id)
-  {
-      $conn = Mage::getSingleton('core/resource')->getConnection('core_write');
-      #$conn   = Mage::getResourceSingleton('core/resource')->getConnection('core_write');
-      $query  = "select entity_id from sales_order_entity where increment_id='$increment_id';";
-      if ($result = $conn->query($query))
-      {
-          if ($rows = $result->fetch(PDO::FETCH_ASSOC))
-          {
-              $order_id = $row['entity_id'];
-              $query    = "delete from sales_order_entity where entity_id='$order_id' or parent_id='$order_id';";
-              $conn->query($query);
-          }
-      }
-      $query = "delete from sales_order where increment_id='$increment_id';";
-      $conn = Mage::getSingleton('core/resource')->getConnection('core_write');
-      $conn->query($query);
-  }
-  function setOrderStatus($orderId, $status){
-    #$status = 'pending';
-    $sql = "select * from sales_order_entity_varchar where entity_id in ( select entity_id from sales_order_entity where parent_id = (SELECT entity_id FROM `sales_order` WHERE increment_id = '$orderId') and entity_type_id = 17 /*sales_order_history*/ order by updated_at desc) and attribute_id = 559 /*status*/;";
-    #$this->debug2($sql, $filename='ibt_sql.txt', $debug = true);
-    $aAll = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-    if ($aAll){
-      foreach($aAll as $h){#set sales_order_history status to open
-        $sql = "update sales_order_entity_varchar set value = '$status' where value_id = '".$h['value_id']."'";
-        $conn = Mage::getSingleton('core/resource')->getConnection('core_write');
-        $conn->query($sql);
-      }
-    }
+		$session = $this->getCheckout();
+		$dataObj = new Varien_Object($this->getRequest()->getPost());
+		if (   $dataObj->hasOrderId()
+			&& $session->hasNovalnetRealOrderId()
+			&& $dataObj->getOrderId() == $session->getNovalnetRealOrderId())
+		{
+			$session->setQuoteId($session->getNovalnetQuoteId());
+			$session->getQuote()->setIsActive(false)->save();
+			
+			$order = Mage::getModel('sales/order')
+						->loadByIncrementId($dataObj->getOrderId());
+			$payment = $order->getPayment();
+			
+			if ($dataObj->getStatus() == Mage_Novalnet_Model_NovalnetSecure::RESPONSE_CODE_APPROVED) {
+				$payment->setStatus(Mage_Novalnet_Model_NovalnetSecure::STATUS_SUCCESS)
+						->setStatusDescription(Mage::helper('novalnet')->__('Payment was successful.'))
+						->setTransactionId($dataObj->getTid())
+						->setSuTransactionId($dataObj->getTid())
+						->setLastTransId($dataObj->getTid());
+				
+				$order->setPayment($payment);
+				
+				if( $dataObj->hasTestMode() ) {
+					Mage::getModel( 'sales/quote' )
+						->load($session->getNovalnetQuoteId())
+						->getPayment()
+						->setNnTestorder($dataObj->getTestMode())
+						->save();
+				}
 
-    $sql = "select * from sales_order_varchar where entity_id in (SELECT entity_id FROM `sales_order` WHERE increment_id = '$orderId') and (attribute_id = 215 /*status*/)";#or attribute_id = 553 /*state*/
-    #$this->debug2($sql, $filename='ibt_sql.txt', $debug = true);
-    $aAll = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-    if ($aAll){
-      foreach($aAll as $h){#set sales_order_status to open
-        $sql = "update sales_order_varchar set value = '$status' where value_id = '".$h['value_id']."'";
-        $conn = Mage::getSingleton('core/resource')->getConnection('core_write');
-        $conn->query($sql);
-      }
+				$invoice = $order->prepareInvoice();
+				$invoice->setState(Mage_Sales_Model_Order_Invoice::STATE_PAID)
+						->register()
+						->capture();
+				Mage::getModel('core/resource_transaction')
+					->addObject($invoice)
+					->addObject($invoice->getOrder())
+					->save();
+				
+				$order->addStatusToHistory( 
+					$this->_getConfigData('order_status'),
+					Mage::helper('novalnet')->__('Customer successfully returned from Novalnet'),
+					true
+				)->setState(Mage_Sales_Model_Order::STATE_PROCESSING)
+				->save();
+				if ($order->getId()) {
+					$order->sendNewOrderEmail();
+				}
+				$status = true;
+			} else {
+				$payment->setStatus(Mage_Novalnet_Model_NovalnetSecure::STATUS_ERROR);
+				$payment->setStatusDescription(Mage::helper('novalnet')->__('Payment was fail.'));
+				$order->setPayment($payment);
+				if ($dataObj->getStatus() == 20){
+					$order->addStatusToHistory(
+						$order->getStatus(),
+						Mage::helper('novalnet')->__('Customer aborted payment process'),
+						true
+					);
+				} else {
+					$order->addStatusToHistory(
+						$order->getStatus(),
+						Mage::helper('novalnet')->__('Customer was rejected by Novalnet'),
+						true
+					);
+				}
+				$order->cancel()
+					  ->save();
+				$order->setState(Mage_Sales_Model_Order::STATE_CANCELED)->save();
+				Mage::getSingleton('checkout/session')
+					 ->setErrorMessage($dataObj->getStatusText());
+			}
+		}
+		$session->unsNovalnetRealOrderId();
+		$session->unsNovalnetQuoteId();
+		return $status;
     }
-  }
 }
-?>

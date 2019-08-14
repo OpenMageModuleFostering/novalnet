@@ -31,33 +31,22 @@ class Mage_Novalnet_Block_Secure_Redirect extends Mage_Core_Block_Abstract
     protected function _toHtml()
     {
         $secure = $this->getOrder()->getPayment()->getMethodInstance();
+		$formName = $formID = $secure->getCode();
         $form = new Varien_Data_Form();
-        $form->setAction($secure->getNovalnetSecureUrl())
-            ->setId('novalnet_secure_checkout')
-            ->setName('novalnet_secure_checkout')
+        $form->setAction($secure->getCgiUrl())
+            ->setId($formID)
+            ->setName($formName)
             ->setMethod('POST')
             ->setUseContainer(true);
-        foreach ($secure->getFormFields() as $field=>$value) {
+        foreach ($secure->getFormData()->toArray() as $field=>$value) {
             $form->addField($field, 'hidden', array('name'=>$field, 'value'=>$value));
         }
+		//$form->addField('enter', 'Submit', array('name'=>'enter', 'value'=>'enter'));#for debug
         $html = '<html><body>';
         $html.= $this->__('You will be redirected to Novalnet AG 3D-Secure in a few seconds.');
         $html.= $form->toHtml();
-        $html.= '<script type="text/javascript">document.getElementById("novalnet_secure_checkout").submit();</script>';
+        $html.= '<script type="text/javascript">document.getElementById("' . $formID . '").submit();</script>';
         $html.= '</body></html>';
         return $html;
     }
-  private function debug2($object, $filename, $debug)
-	{
-		if (!$debug){return;}
-		$fh = fopen("/tmp/$filename", 'a+');
-		if (gettype($object) == 'object' or gettype($object) == 'array'){
-			fwrite($fh, serialize($object));
-		}else{
-			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
-		}
-		fwrite($fh, "<hr />\n");
-		fclose($fh);
-	}
-
 }

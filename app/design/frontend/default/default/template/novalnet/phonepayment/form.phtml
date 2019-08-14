@@ -27,23 +27,13 @@
  */
 
 ?>
-<?php $_code=$this->getMethodCode() ?>
-<?php $baseUrl=Mage::getBaseUrl('skin') ?>
 <?php
-$_code=$this->getMethodCode();
-$customer_id = '';
-if (isset($_SESSION) and isset($_SESSION['customer_base']) and isset($_SESSION['customer_base']['id']))
-{
-    $customer_id = $_SESSION['customer_base']['id'];
-}
-$user_group_id = $this->getUserGroupId($customer_id);
-$user_group_name = $this->getUserGroupExcluded();
-if (!$user_group_name){$allowed = true;}
-else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
+	$code    = $this->getMethodCode();
+	$baseUrl = Mage::getBaseUrl('skin')
 ?>
-<?php if ($allowed) {?>
+<?php if ($this->checkCustomerAccess()):?>
   <fieldset class="form-list">
-    <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+    <ul id="payment_form_<?php echo $code ?>" style="display:none">
         <li>
             <div class="input-box">
 				<?php echo $this->__('Amount below 0.90 Euro and above 10.00 Euro is not accepted')?><br />
@@ -51,18 +41,21 @@ else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
         </li>
     </ul>
   </fieldset>
-<?php }?>
-<script type="text/javascript">
-	function hideMe(payment_code){
-		t = 'p_method_' + payment_code.toString();
-		document.getElementById(t).style.visibility = 'hidden';
-		aTags = document.getElementsByTagName("label");
-		for (i=0; i<aTags.length; i++){
-			if (aTags[i].htmlFor == t){
-				aTags[i].style.visibility = 'hidden';
-				i = aTags.length;
+<?php else:?>
+	<script type="text/javascript">
+		function hideMe(payment_code){
+			t = 'p_method_' + payment_code.toString();
+			document.getElementById(t).style.visibility = 'hidden';
+			aTags = document.getElementsByTagName("label");
+			if (aTags && aTags.length) {
+				for (i=0; i<aTags.length; i++){
+					if (aTags[i].htmlFor == t){
+						aTags[i].style.visibility = 'hidden';
+						i = aTags.length;
+					}
+				}
 			}
 		}
-	}
-	<?php if (!$allowed){echo"hideMe('$_code')"; }?>
-</script>
+		<?php echo "hideMe('$code');"; ?>
+	</script>  
+<?php endif; ?>

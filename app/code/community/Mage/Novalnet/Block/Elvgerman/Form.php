@@ -28,65 +28,73 @@
 
 class Mage_Novalnet_Block_Elvgerman_Form extends Mage_Payment_Block_Form
 {
-
+	private $_localConfig;
+	
     protected function _construct()
     {
         parent::_construct();
         $this->setTemplate('novalnet/elvgerman/form.phtml');
     }
+	
     protected function _getConfig()
     {
-        return Mage::getSingleton('payment/config');
+		if(empty($this->_localConfig)) {
+			$this->_localConfig = Mage::getSingleton('payment/config');
+		}
+		return $this->_localConfig;
     }
+	
 	public function acdc_check()
 	{
 		$method = $this->getMethod();
-		return$method->getConfigData('acdc_check');
+		return $method->getConfigData('acdc_check');
 	}
+	
+	public function isCallbackTypeCall()
+	{
+		return $this->getMethod()->isCallbackTypeCall();
+	} 
+	
+	public function getCallbackConfigData(){
+			
+		return $this->getMethod()->getCallbackConfigData();
+	}
+	
+	public function getCustomersTelephone()
+	{     
+		$customer = Mage::getSingleton('customer/session')
+					->getCustomer()
+					->getDefaultBillingAddress();
+					
+		if( $customer )            
+			return $customer->getTelephone();		    
+	} 
+	
+	public function getCustomersEmail()
+	{     
+		$customer = Mage::getSingleton('customer/session')
+					->getCustomer()
+					->getEmail();
+					
+		if( $customer )            
+			return $customer;		    
+	}	
+	
 	public function show_comment()
 	{
 		$method = $this->getMethod();
-		return$method->getConfigData('comment');
+		return $method->getConfigData('comment');
 	}
-	public function getUserGroupExcluded()
-	{
-		$method = $this->getMethod();
-		return$method->getConfigData('user_group_excluded');
-	}
-	public function getUserGroupId($id)
-	{
-		if (!$id){
-			return'';
-			#Mage::throwException(__FUNCTION__.': '.Mage::helper('novalnet')->__('Parameter missing').'!');
+	
+	public function checkCustomerAccess() {
+		
+		$exludedGroupes = trim($this->getMethod()->getConfigData('user_group_excluded'));
+		if( strlen( $exludedGroupes ) ) {
+			$exludedGroupes = explode(',', $exludedGroupes);
+			$custGrpId = Mage::getSingleton('customer/session')->getCustomerGroupId();
+			return !in_array($custGrpId, $exludedGroupes);
 		}
-		$sql = "select customer_group_id from sales_flat_quote where customer_id = '$id'";
-		$data = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-		return$data[0]['customer_group_id'];
-	}
-	public function checkUserGroupAccess($user_group_id, $user_group_name)
-	{
-		if (!$user_group_id or !$user_group_name){
-			return'';
-			#Mage::throwException(__FUNCTION__.': '.Mage::helper('novalnet')->__('Parameter missing').'!');
-		}
-		$sql = "select customer_group_id from customer_group where customer_group_id = '$user_group_id' and customer_group_code = '$user_group_name'";
-		$data = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-		if ($data and count($data) >= 1){
-			return false;
-		}else {
-			return true;
-		}
-	}
-	public function getAccountData($customer_id){
-		if (!$customer_id){
-			return'';
-			#Mage::throwException(__FUNCTION__.': '.Mage::helper('novalnet')->__('Parameter missing').'!');
-		}
-		#cc_type, cc_last4, cc_owner, cc_exp_month, cc_exp_year, nn_account_holder #nn_account_number, nn_bank_sorting_code, nn_elv_country
-		$sql = "select a.nn_account_holder, a.nn_account_number, a.nn_bank_sorting_code, a.nn_elv_country from sales_flat_quote_payment a, sales_flat_quote b where b.customer_id = '$customer_id' and b.entity_id = a.quote_id and a.nn_account_number != '' and a.method = 'novalnetElvgerman' order by a.created_at desc limit 1";
-		$data = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-		if ($data and count($data)>0)return $data[0];
-		return'';
+		return true;
 	}
 
 }

@@ -28,7 +28,8 @@
 
 class Mage_Novalnet_Block_Phonepayment_Info extends Mage_Payment_Block_Info
 {
-
+	protected $_localInfo = NULL;
+	
     protected function _construct()
     {
         parent::_construct();
@@ -37,11 +38,14 @@ class Mage_Novalnet_Block_Phonepayment_Info extends Mage_Payment_Block_Info
 
     public function getInfo()
     {
-        $info = $this->getData('info');
-        if (!($info instanceof Mage_Payment_Model_Info)) {
+        if (!$this->_localInfo) {
+			$this->_localInfo = $this->getData('info');
+			$this->loadNovalnetData();
+		}
+        if (!($this->_localInfo instanceof Mage_Payment_Model_Info)) {
             Mage::throwException($this->__('Can not retrieve payment info model object.'));
         }
-        return $info;
+        return $this->_localInfo;
     }
 
     /**
@@ -53,12 +57,46 @@ class Mage_Novalnet_Block_Phonepayment_Info extends Mage_Payment_Block_Info
     {
         return $this->getInfo()->getMethodInstance();
     }
+	
     public function getInfoData($field)
     {
         return $this->htmlEscape($this->getMethod()->getInfoInstance()->getData($field));
+    }
+	public function toPdf()
+    {
+        $this->setTemplate('payment/info/pdf/cc.phtml');
+        return $this->toHtml();
     }
     public function getPaymentMethod()
     {
         return $this->htmlEscape($this->getMethod()->getConfigData('title'));
     }
+	
+	public function loadNovalnetData() {
+		$order_id = $this->getRequest()->getParam('order_id');
+		$obj = NULL;
+		if($this->getRequest()->getControllerName() == 'sales_order_invoice') {
+			$order_id = $this->getData('info')->getOrder()->getId();
+		}
+		if( $order_id ) {
+			$objOrder = Mage::getModel('sales/order')->load($order_id);
+			$objQuote = Mage::getModel( 'sales/quote' );
+			$obj = $objQuotePayment = $objQuote->setStoreId($objOrder->getStoreId())->load($objOrder->getQuoteId())->getPayment();
+		}else {
+			$chSess = Mage::getSingleton('checkout/session');
+			if($this->getRequest()->getControllerName() == 'onepage' && $this->getRequest()->getActionName() == 'saveOrder' && $chSess->hasLastSuccessQuoteId()){
+				$objQuote = Mage::getModel( 'sales/quote' );
+				$obj = $objQuotePayment = $objQuote->setStoreId($this->getMethod()->getStoreId())->load($chSess->getLastSuccessQuoteId())->getPayment();
+			}else {
+				$obj = $this->_localInfo;
+			}
+		}
+	//	$this->setNnAccountHolder($obj->getNnAccountHolder());
+	//	$this->setNnAccountNumber($obj->getNnAccountNumber());
+	//	$this->setNnBankSortingCode($obj->getNnBankSortingCode());
+	//	$this->setNnElvCountry($obj->getNnElvCountry());
+		$this->setNnTestorder($obj->getNnTestorder());
+		$this->setNnComments($obj->getNnComments());
+		return $this;
+	}
 }

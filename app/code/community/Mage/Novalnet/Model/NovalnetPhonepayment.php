@@ -43,9 +43,9 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
      *
      * @var string [a-z0-9_]
      */
-  protected $_code = 'novalnetPhonepayment';
-  protected $_formBlockType = 'novalnet/phonepayment_form';
-  protected $_infoBlockType = 'novalnet/phonepayment_info';
+	protected $_code = 'novalnetPhonepayment';
+	protected $_formBlockType = 'novalnet/phonepayment_form';
+	protected $_infoBlockType = 'novalnet/phonepayment_info';
 	protected $code = 'novalnet_tel';
 	protected $public_title = 'Telefonpayment';
 	protected $amount = 0;
@@ -130,7 +130,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         $note .= $order->getCustomerNote();
       }
       if ( !$this->getConfigData('live_mode') ){
-        $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+        $note .= '<br /><b>'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</b>';
       }
 
       $order->setCustomerNote($note);
@@ -143,16 +143,11 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         if ($result->getStatus() == self::RESPONSE_CODE_APPROVED) {
         $this->debug2($result, 'magento_capture_resultok.txt');
             $payment->setStatus(self::STATUS_APPROVED);
-            $payment->setCcTransId($result->getTid());
             $payment->setLastTransId($result->getTid());
-            $payment->setNnAccountNumber(substr($payment->getNnAccountNumber(),0,-4)."XXXX");
-            $payment->setNnBankSortingCode(substr($payment->getNnBankSortingCode(),0,-3)."XXX");
             $id = $payment->getNnId();
             $quote_payment = $this->getQuote()->getPaymentById($id);
           if ($quote_payment)#to avoid error msg. in admin interface
           {
-            $quote_payment->setNnAccountNumber(substr($payment->getNnAccountNumber(),0,-4)."XXXX");
-            $quote_payment->setNnBankSortingCode(substr($payment->getNnBankSortingCode(),0,-3)."XXX");
             $quote_payment->save();
           }
         }
@@ -208,11 +203,10 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         ->settariff($this->getConfigData('tariff_id'))
         ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
-        $request->setcurrency($order->getOrderCurrency());
+        $request->setcurrency($order->getOrderCurrencyCode());
 
         if($payment->getAmount()){
-            #$request->setamount($payment->getAmount()*100);
-            $request->setamount($this->getAmount4Request($payment->getAmount()));
+            $request->setamount(round($payment->getAmount(), 2) * 100);
         }
 
         if (!empty($order)) {
@@ -239,19 +233,16 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
                 ->setcountry($billing->getCountry())
                 ->settel($billing->getTelephone())
                 ->setfax($billing->getFax())
-                ->setremote_ip($this->getRealIpAddr())
+                ->setremote_ip(Mage::helper('novalnet')->getRealIpAddr())
                 ->setgender('u')
                 ->setemail($order->getCustomerEmail())
+                ->setInput1('order_id')
+				->setOrderNo($this->_getOrderId())
+                ->setInputval1($this->_getOrderId())
                 ->setsearch_in_street(1);
-                #->setremote_ip($order->getRemoteIp())
-                #->sethouse_no($street[1].$street[2])
             }
         }
-        /*$request->setbank_account_holder($payment->getNnAccountHolder())
-        ->setbank_account($payment->getNnAccountNumber())
-        ->setbank_code($payment->getNnBankSortingCode())*/
         $request->setkey(self::KEY);
-        #$request->setinvoice_type(self::PAYMENT_METHOD);
         
 		if (session_is_registered('tid')){
 			$this->urlparam  = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
@@ -275,12 +266,11 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
           $client->setUri(self::CGI_URL2);
         }
 
-        $client->setConfig(array(
-            'maxredirects'=>0,
-            'timeout'=>30,
-        //'ssltransport' => 'tcp',
-        ));
-        #$request->toLatin1();
+        $httpClientConfig = array( 'maxredirects'=>0 );
+		if( ((int)$this->getConfigData( 'gateway_timeout' )) > 0 ) {
+			$httpClientConfig['timeout'] = (int)$this->getConfigData( 'gateway_timeout' );
+		}
+        $client->setConfig( $httpClientConfig );
 
 		if (!session_is_registered('tid')){#first call
 			$request->toLatin1();
@@ -289,9 +279,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		}else{#secondcall
                 $client->setHeaders('Content-Type', 'application/atom+xml');
                 $client->setRawData($this->urlparam);
-				#$response = $client->request('POST');
-			#$client->setParameterPost(utf8_encode($this->urlparam));
-			$this->debug2($this->urlparam, 'magento_request2.txt');
+				$this->debug2($this->urlparam, 'magento_request2.txt');
 		}
 
         $client->setMethod(Zend_Http_Client::POST);
@@ -316,23 +304,13 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 			$this->debug2($response, 'magento_response2.txt');
 			$xml = serialize($response);
 			$this->debug2($xml, 'magento_xml.txt');
-			/*
-			<nnxml>
-			  <novaltel_status>18</novaltel_status>
-			  <novaltel_status_message>Zahlungsanruf noch nicht durchgef¨¹hrt</novaltel_status_message>
-			  <member_url>http://magento.gsoftpro.de/</member_url>
-			  <login></login>
-			  <password></password>
-			  <paid_until></paid_until>
-			</nnxml>
-			*/
+
 			if (!preg_match('|\<nnxml\>(.+)\</nnxml\>|is', $xml, $matches)){
 				Mage::throwException(Mage::helper('novalnet')->__('Error in payment gateway').': '.Mage::helper('novalnet')->__('Response contains no XML'));
 			}
 
 			$xml = $matches[1];
 			$this->debug2($xml, 'magento_xml_purged.txt');
-			#Mage::throwException($xml.'h');
 
 			$data = $xml; #$response;
 			if(strstr($data, '<novaltel_status>'))
@@ -377,10 +355,15 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 				if (isset($aryResponse['tid'])){
 					$result->setTid($aryResponse['tid']);
 				}
+
 				if (isset($aryResponse['status_desc'])){
 					$result->setStatusDesc($aryResponse['status_desc']);
 				}
-				$this->debug2($result, 'magento_result1.txt');
+
+        if (isset($aryResponse['status']) and $aryResponse['status'] != 100) {
+          Mage::throwException(Mage::helper('novalnet')->__('Error in payment gateway') .': '.utf8_encode($aryResponse['status_desc']));
+        }
+				#$this->debug2($result, 'magento_result1.txt');
 			} else {
 				Mage::throwException(Mage::helper('novalnet')->__('Error in payment gateway'));
 			}
@@ -392,10 +375,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		}
 		if ($payment){
 			$this->debug2($payment, 'magento_payment2.txt');
-			#$note = $this->getNote($aryResponse);
 			$order = $payment->getOrder();
-			#$order->setCustomerNote($note);
-			#$order->setCustomerNoteNotify(true);
 		}
 
 		if ($aryResponse['status'] == 100){
@@ -422,17 +402,12 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 			$this->getFirstCall();
 		}else{
 			$this->debug2($data, 'magento_assignData2.txt');
-			#Mage::throwException($this->text.'hl');
 		}
 
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
         }
         $info=$this->getInfoInstance();
-        /*$info->setNnElvCountry($data->getElvCountry())
-        ->setNnAccountHolder($data->getAccountHolder())
-        ->setNnAccountNumber($data->getAccountNumber())
-        ->setNnBankSortingCode($data->getBankSortingCode());*/
 
         return $this;
     }
@@ -462,27 +437,15 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         return $this->_checkout;
     }
    
-    public function getTitle()
-    {
-        return Mage::helper('novalnet')->__($this->getConfigData('title'));
+    public function getTitle() {
+        //return $this->getConfigData('title');
+		return Mage::helper('novalnet')->__($this->getConfigData('title'));
     }
     
    public function validate()
    {
          parent::validate();
          $info = $this->getInfoInstance();
-         $nnAccountNumber = $info->getNnAccountNumber();
-         $nnBankSortingCode = $info->getNnBankSortingCode();
-         $nnAccountNumber = preg_replace('/[\-\s]+/', '', $nnAccountNumber);
-         $info->setNnAccountNumber($nnAccountNumber);
-         $nnBankSortingCode = preg_replace('/[\-\s]+/', '', $nnBankSortingCode);
-         $info->setNnBankSortingCode($nnBankSortingCode);
-         if (preg_match("/\D/",$nnAccountNumber)){
-             Mage::throwException(Mage::helper('novalnet')->__('This is not a valid account number.'));
-         }
-         if (preg_match("/\D/",$nnBankSortingCode)){
-             Mage::throwException(Mage::helper('novalnet')->__('This is not a valid bank sorting code.'));
-         }
          return $this;
    }
    public function isPublicIP($value)
@@ -493,45 +456,20 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         }
         return !preg_match('~^((0|10|172\.16|192\.168|169\.254|255|127\.0)\.)~', $value);
    }
-	public function getRealIpAddr()
-	{
-        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) and $this->isPublicIP($_SERVER['HTTP_X_FORWARDED_FOR']))
-		{
-			return $_SERVER['HTTP_X_FORWARDED_FOR'];
-		}
-        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) and $iplist=explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']))
-        {
-            if($this->isPublicIP($iplist[0])) return $iplist[0];
-        }
-        if (isset($_SERVER['HTTP_CLIENT_IP']) and $this->isPublicIP($_SERVER['HTTP_CLIENT_IP']))
-		{
-			return $_SERVER['HTTP_CLIENT_IP'];
-		}
-        if (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']) and $this->isPublicIP($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']))
-		{
-			return $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-		}
-        if (isset($_SERVER['HTTP_FORWARDED_FOR']) and $this->isPublicIP($_SERVER['HTTP_FORWARDED_FOR']) )
-		{
-			return $_SERVER['HTTP_FORWARDED_FOR'];
-		}
-		return $_SERVER['REMOTE_ADDR'];
-	}
-    public function getAmount4Request($amount)
-    {
-        if(preg_match('/[,.]$/', $amount))
-        {
-          $amount = $amount . '00';
-        }
-        else if(preg_match('/[,.][0-9]$/', $amount))
-        {
-          $amount = $amount . '0';
-        }
-        $orig_amount = $amount;
 
-        $amount = str_replace(array('.', ','), array('',''), $amount);
-        return$amount;
+  public function getAmount4Request($amount) {
+    $orig_amount = $amount;
+    if(preg_match('/[,.]$/', $amount)) {
+      $amount = $amount . '00';
     }
+    else if(preg_match('/[,.][0-9]$/', $amount)) {
+      $amount = $amount . '0';
+    }
+
+    $amount = round($amount, 2);
+    $amount = str_replace(array('.', ','), array('',''), $amount);
+    return$amount;
+  }
   public function getNote($aryResponse)
 	{
 		#todo: Kontoinhaber fehlt
@@ -553,26 +491,17 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 
 	public function checkAmountAllowed()
 	{
-		$info=$this->getInfoInstance();
-		$data = serialize($info->getData());
 
-		#example: "grand_total";s:8:"524.9600";
-		$t = preg_match('/origData.+\"grand_total\"\;s\:\d*\:\"(\d*\.\d*)\".+base_grand_total/', $data, $aMatch);
-		if (!$aMatch and !$aMatch[1]){
-			Mage::throwException(Mage::helper('novalnet')->__('Error').':'. Mage::helper('novalnet')->__('Order Price not found'));
-		}
-		$amount = $aMatch[1] * 100;
-		$amount = $this->getAmount4Request($amount); #10 euro => 1000 Cent
-		#$amount = 900;#todo: delete this line
-		if ($amount >= self::AMOUNT_MIN and $amount <= self::AMOUNT_MAX){
+    $amount = sprintf('%.2f', $this->getQuote()->getGrandTotal()) * 100;
+   		if ($amount >= self::AMOUNT_MIN and $amount <= self::AMOUNT_MAX){
 			$this->amount = $amount;
 			return true;
 		}
 		Mage::throwException(Mage::helper('novalnet')->__('Amount below 0.90 Euro and above 10.00 Euro is not accepted'));
 	}
-	public function debug2($object, $filename)
+	public function debug2($object, $filename, $debug = false)
 	{
-		if (!$this->debug){return;}
+		if (!$this->debug and !$debug){return;}
 		$fh = fopen("/tmp/$filename", 'a+');
 		if (gettype($object) == 'object' or gettype($object) == 'array'){
 			fwrite($fh, serialize($object));
@@ -603,7 +532,7 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		->setcountry(utf8_encode($this->aBillingAddress['country']))
 		->settel($this->aBillingAddress['telephone'])
 		->setfax($this->aBillingAddress['fax'])
-		->setremote_ip($this->getRealIpAddr())
+		->setremote_ip(Mage::helper('novalnet')->getRealIpAddr())
 		->setgender('u')
 		->setemail($this->aBillingAddress['email'])
 		->setsearch_in_street(1);
@@ -648,7 +577,6 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		if((session_is_registered('tid') and $_SESSION['tid'] != '') && $aryResponse['status']==100) #### SECOND CALL -> On successful payment ####
 		{
 		   #### Redirecting the user to the checkout page ####
-		   #$order->info['comments'] .= '. Novalnet Transaction ID : '.$_SESSION['tid'];
 		   session_unregister('tid'); #$_SESSION['tid'] = '';
 		   if (session_is_registered('novalnet_tel')){
 				session_unregister('novalnet_tel');#$_SESSION['novalnet_tel'] = '';
@@ -782,4 +710,39 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 		}
 		return$aBillingAddress;
 	}
+	
+	public function isAvailable($quote=null)
+	{
+
+		$minOrderCount = trim($this->getConfigData('orderscount'));
+		$customerId = Mage::getSingleton('customer/session')->getCustomerId();
+       
+	        // Load orders and check
+            $orders = Mage::getResourceModel('sales/order_collection')
+                ->addAttributeToSelect('*')
+                ->addAttributeToFilter('customer_id', $customerId)
+                ->load();
+            if (count($orders) < $minOrderCount) {
+                return false;
+            }
+		
+		if(!is_null($quote) && parent::isAvailable($quote)){
+			$amount = round($quote->getGrandTotal(), 2);
+			if( $amount >= 0.9 && $amount <= 10 ) {
+				return true;
+			}
+		}
+		return false;
+	}
+  private function _getOrderId(){
+        $info = $this->getInfoInstance();
+        if ($this->_isPlaceOrder()) {
+            return $info->getOrder()->getIncrementId();
+        } else {
+            if (!$info->getQuote()->getReservedOrderId()) {
+                $info->getQuote()->reserveOrderId();
+            }
+            return $info->getQuote()->getReservedOrderId();
+        }
+    }
 }

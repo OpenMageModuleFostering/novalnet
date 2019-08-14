@@ -27,57 +27,39 @@
  */
 ?>
 <?php
-$allowed = true;
-$nn_account_holder = '';
-$nn_account_number = '';
-$nn_bank_sorting_code = '';
-if (isset($_SESSION['adminhtml_quote']["customer_id"]))
-{
-	$customer_id = $_SESSION['adminhtml_quote']['customer_id'];
-	$accountData = $this->getAccountData($customer_id);
-	$nn_account_holder = $nn_account_number = $nn_bank_sorting_code = $nn_elv_country = '';
-	if ($accountData){
-		list($nn_account_holder, $nn_account_number, $nn_bank_sorting_code, $nn_elv_country) = array_values($accountData);
-		$nn_account_number = substr($nn_account_number, 0, -4);
-		$nn_bank_sorting_code = substr($nn_bank_sorting_code, 0, -3);
-	}
-	$user_group_id = $this->getUserGroupId($customer_id);
-	$user_group_name = $this->getUserGroupExcluded();
-	if (!$user_group_name){$allowed = true;}
-	else{$allowed = $this->checkUserGroupAccess($user_group_id, $user_group_name);}
-}
+	$code    = $this->getMethodCode();
+	$baseUrl = Mage::getBaseUrl('skin')
 ?>
-<?php $_code=$this->getMethodCode();?>
-<?php $baseUrl=Mage::getBaseUrl('skin') ?>
-<?php if ($allowed) {?>
+<?php if ($this->checkCustomerAccess()): ?>
 <fieldset class="form-list">
 	<div style="position: relative; left: 14em; top: -2.5em">
-		<img src='<?php echo $baseUrl?>frontend/default/default/images/novalnet/ELV_Logo.png' alt='ELV Logo'/>
+			<?php $imgpath = "images/novalnet/ELV_Logo.png";  ?>
+			<img src='<?php echo Mage::getDesign()->getSkinUrl($imgpath) ?>' alt='ELV Logo'/>
 	</div>
-    <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+    <ul id="payment_form_<?php echo $code ?>" style="display:none">
         <li>
             <div class="input-box">
-                <label for="<?php echo $_code ?>_account_holder"><?php echo $this->__('Account Holder') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $_code ?>_account_holder" name="payment[account_holder]" title="<?php echo $this->__('Account Holder') ?>" class="required-entry input-text" value="<?=$nn_account_holder?>" />
+                <label for="<?php echo $code ?>_account_holder"><?php echo $this->__('Account Holder') ?> <span class="required">*</span></label><br/>
+                <input type="text" id="<?php echo $code ?>_account_holder" name="payment[account_holder]" title="<?php echo $this->__('Account Holder') ?>" class="required-entry input-text" value="" />
             </div>
         </li>
         <li>
             <div class="input-box">
-                <label for="<?php echo $_code ?>_account_number"><?php echo $this->__('Account Number') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $_code ?>_account_number" name="payment[account_number]" title="<?php echo $this->__('Account Number') ?>" class="required-entry input-text" value="<?=$nn_account_number?>" />
+                <label for="<?php echo $code ?>_account_number"><?php echo $this->__('Account Number') ?> <span class="required">*</span></label><br/>
+                <input type="text" id="<?php echo $code ?>_account_number" name="payment[account_number]" title="<?php echo $this->__('Account Number') ?>" class="required-entry input-text" value="" />
             </div>
         </li>
         <li>
             <div class="input-box">
-                <label for="<?php echo $_code ?>_bank_sorting_code"><?php echo $this->__('Bank Sorting Code') ?> <span class="required">*</span></label><br/>
-                <input type="text" id="<?php echo $_code ?>_bank_sorting_code" name="payment[bank_sorting_code]" title="<?php echo $this->__('Bank Sorting Code') ?>" class="required-entry input-text" value="<?=$nn_bank_sorting_code?>" />
+                <label for="<?php echo $code ?>_bank_sorting_code"><?php echo $this->__('Bank Sorting Code') ?> <span class="required">*</span></label><br/>
+                <input type="text" id="<?php echo $code ?>_bank_sorting_code" name="payment[bank_sorting_code]" title="<?php echo $this->__('Bank Sorting Code') ?>" class="required-entry input-text" value="" />
             </div>
         </li>
 		<?php if($this->acdc_check()): ?>
 		<li>
             <div class="input-box">
-                <input type="checkbox" id="<?php echo $_code ?>_acdc" name="payment[acdc]" title="<?php echo $this->__('acdc') ?>" class="required-entry" />
-                <label for="<?php echo $_code ?>_acdc"><?php echo $this->__('The') ?> <b><a href='javascript:show_acdc_info()' ONMOUSEOVER='show_acdc_info()'><?php echo $this->__('ACDC-Check') ?></a></b> <?php echo $this->__('accepted') ?> <span class="required">*</span></label>
+                <input type="checkbox" id="<?php echo $code ?>_acdc" name="payment[acdc]" title="<?php echo $this->__('acdc') ?>" class="required-entry" />
+                <label for="<?php echo $code ?>_acdc"><?php echo $this->__('The') ?> <b><a href='javascript:show_acdc_info()' ONMOUSEOVER='show_acdc_info()'><?php echo $this->__('ACDC-Check') ?></a></b> <?php echo $this->__('accepted') ?> <span class="required">*</span></label>
             </div>
         </li>
 		<?php endif ?>
@@ -89,7 +71,7 @@ if (isset($_SESSION['adminhtml_quote']["customer_id"]))
         </li>
 		<?php endif ?>
     </ul>
-	<SCRIPT>
+	<script type="text/javascript">
 		var showbaby;
 		function show_acdc_info(){
 			var url=parent.location.href;
@@ -98,20 +80,23 @@ if (isset($_SESSION['adminhtml_quote']["customer_id"]))
 			showbaby.focus();
 		}
 		function hide_acdc_info(){showbaby.close();}
-	</SCRIPT>
+	</script>
 </fieldset>
-<?php }?>
-<script type="text/javascript">
-	function hideMe(payment_code){
-		t = 'p_method_' + payment_code.toString();
-		document.getElementById(t).style.visibility = 'hidden';
-		aTags = document.getElementsByTagName("label");
-		for (i=0; i<aTags.length; i++){
-			if (aTags[i].htmlFor == t){
-				aTags[i].style.visibility = 'hidden';
-				i = aTags.length;
+<?php else: ?>
+	<script type="text/javascript">
+		function hideMe(payment_code){
+			t = 'p_method_' + payment_code.toString();
+			document.getElementById(t).style.visibility = 'hidden';
+			aTags = document.getElementsByTagName("label");
+			if (aTags && aTags.length) {
+				for (i=0; i<aTags.length; i++){
+					if (aTags[i].htmlFor == t){
+						aTags[i].style.visibility = 'hidden';
+						i = aTags.length;
+					}
+				}
 			}
 		}
-	}
-	<?php if (!$allowed){echo"hideMe('$_code')"; }?>
-</script>
+		<?php echo "hideMe('$code');"; ?>
+	</script>  
+<?php endif; ?>

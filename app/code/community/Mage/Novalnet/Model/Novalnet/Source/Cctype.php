@@ -31,6 +31,6 @@ class Mage_Novalnet_Model_Novalnet_Source_Cctype extends Mage_Payment_Model_Sour
     public function getAllowedTypes()
     {
         //return array('VI', 'MC', 'AE');
-        return array('VI', 'MC');
+        return array('VI', 'MC', 'AE');
     }
 }

@@ -28,16 +28,22 @@
 
 class Mage_Novalnet_Block_Invoice_Form extends Mage_Payment_Block_Form
 {
-
+	private $_localConfig;
+	
     protected function _construct()
     {
         parent::_construct();
         $this->setTemplate('novalnet/invoice/form.phtml');
     }
+	
     protected function _getConfig()
     {
-        return Mage::getSingleton('payment/config');
+		if(empty($this->_localConfig)) {
+			$this->_localConfig = Mage::getSingleton('payment/config');
+		}
+		return $this->_localConfig;
     }
+	
 /*	public function getInvoiceAvailableCountries()
     {
         if ($method = $this->getMethod()) {
@@ -47,34 +53,47 @@ class Mage_Novalnet_Block_Invoice_Form extends Mage_Payment_Block_Form
             }
         }
         return $availableCountries;
-    }*/
-	public function getUserGroupExcluded()
-	{
-		$method = $this->getMethod();
-		return$method->getConfigData('user_group_excluded');
-	}
-	public function getUserGroupId($id)
-	{
-		if (!$id){
-			return'';
-			#Mage::throwException(__FUNCTION__.': '.Mage::helper('novalnet')->__('Parameter missing').'!');
+    }
+*/
+	public function checkCustomerAccess() {
+		
+		$exludedGroupes = trim($this->getMethod()->getConfigData('user_group_excluded'));
+		if( strlen( $exludedGroupes ) ) {
+			$exludedGroupes = explode(',', $exludedGroupes);
+			$custGrpId = Mage::getSingleton('customer/session')->getCustomerGroupId();
+			return !in_array($custGrpId, $exludedGroupes);
 		}
-		$sql = "select customer_group_id from sales_flat_quote where customer_id = '$id'";
-		$data = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-		return$data[0]['customer_group_id'];
+		return true;
 	}
-	public function checkUserGroupAccess($user_group_id, $user_group_name)
+	
+	public function isCallbackTypeCall()
 	{
-		if (!$user_group_id or !$user_group_name){
-			return'';
-			#Mage::throwException(__FUNCTION__.': '.Mage::helper('novalnet')->__('Parameter missing').'!');
-		}
-		$sql = "select customer_group_id from customer_group where customer_group_id = '$user_group_id' and customer_group_code = '$user_group_name'";
-		$data = Mage::getSingleton('core/resource')->getConnection('core_read')->fetchAll($sql);
-		if ($data and count($data) >= 1){
-			return false;
-		}else {
-			return true;
-		}
+		return $this->getMethod()->isCallbackTypeCall();
+	} 
+	
+	public function getCallbackConfigData(){
+			
+		return $this->getMethod()->getCallbackConfigData();
 	}
+	
+	public function getCustomersTelephone()
+	{     
+		$customer = Mage::getSingleton('customer/session')
+					->getCustomer()
+					->getDefaultBillingAddress();
+					
+		if( $customer )            
+			return $customer->getTelephone();		    
+	}
+	
+	public function getCustomersEmail()
+	{     
+		$customer = Mage::getSingleton('customer/session')
+					->getCustomer()
+					->getEmail();
+					
+		if( $customer )            
+			return $customer;		    
+	}	
+	
 }

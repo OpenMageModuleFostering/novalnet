@@ -1,0 +1,16 @@
+<a name="<?php  echo $this->getMethodCode() ?>"></a>
+<?php $_code=$this->getMethodCode() ?>
+<?php $baseUrl = Mage::getBaseUrl('skin') ?>
+<div style="position: relative; left: 14em; top: -2.5em">
+		<a href="#<?php  echo $this->getMethodCode() ?>" title="Informationen zu Sofortüberweisung">
+		<?php $imgpath = "images/novalnet/sofortueberweisung/Sofort_Logo_t.jpg";  ?>
+		<img src='<?php echo Mage::getDesign()->getSkinUrl($imgpath) ?>' alt="Sofortüberweisung" title="Sofortüberweisung" />
+		</a>
+		<ul id="payment_form_<?php echo $_code ?>" style="display:none">
+			<li>
+            <?php echo $this->__('You will be redirected to Novalnet AG website when you place an order.') ?>
+			</li>
+		</ul>
+</div>
+
+<div class="clear"></div>

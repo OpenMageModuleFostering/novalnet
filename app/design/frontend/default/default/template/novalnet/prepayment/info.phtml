@@ -26,9 +26,10 @@
  */
 ?>
 <?php if($_info = $this->getInfo()):?>
+<?php if( $this->getNnTestorder() ) echo '<div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">!',$this->__('Testorder'),'!</div>' ?>
 <?php echo $this->__($this->htmlEscape($this->getPaymentMethod())) ?><br />
-<?php #echo $this->__('Country').': '.$this->__($this->htmlEscape($this->getInfo()->getNnElvCountry())) ?><!--br /-->
-<?php if ($_info->getLastTransId()!="")	echo $this->__('TID: %s', $this->htmlEscape($_info->getLastTransId())) ?><br />
+<?php if ($_info->getLastTransId()!="")	echo $this->__('TID: %s', $this->htmlEscape($_info->getLastTransId())) ?>
+<?php if (strlen($this->getNnComments())) { echo '<br>', nl2br($this->getNnComments()); } ?>
 <?php else: ?>
 
 <?php endif; ?>

@@ -29,246 +29,201 @@
 
 class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
 {
-  const CGI_URL = 'https://payport.novalnet.de/global_pci_payport';
-  const PAYMENT_METHOD = '3D-Secure Credit Card';
-  const RESPONSE_DELIM_CHAR = '&';
-  const RESPONSE_CODE_APPROVED = 100;
-  var   $_debug = false;
-  /**
-  * unique internal payment method identifier
-  * 
-  * @var string [a-z0-9_]
-  */
-  protected $_code = 'novalnet_secure';
-  protected $_formBlockType = 'novalnet/cc_form';
-  protected $_infoBlockType = 'novalnet/cc_info';
-
-    /**
-     * Is this payment method a gateway (online auth/charge) ?
+	const CGI_URL                = 'https://payport.novalnet.de/global_pci_payport';
+	const PAYMENT_METHOD         = '3D-Secure Credit Card';
+	const RESPONSE_CODE_APPROVED = 100;
+	const RESPONSE_CODE_ABORT    = 20;
+	
+	private $_nnPaymentId = 6;
+	
+	/**
+	* unique internal payment method identifier
+	* 
+	* @var string [a-z0-9_]
+	*/
+	protected $_code = 'novalnet_secure';
+	protected $_formBlockType = 'novalnet/secure_form';
+	protected $_infoBlockType = 'novalnet/secure_info';
+	
+	/**
+	* Is this payment method a gateway (online auth/charge) ?
+	*/
+	protected $_isGateway               = true;
+	
+	/**
+	* Can authorize online?
+	*/
+	protected $_canAuthorize            = true;
+	
+	/**
+	* Can capture funds online?
+	*/
+	protected $_canCapture              = true;
+	
+	/**
+	* Can capture partial amounts online?
+	*/
+	protected $_canCapturePartial       = true;
+	
+	/**
+	* Can refund online?
+	*/
+	protected $_canRefund               = false;
+	
+	/**
+	* Can void transactions online?
+	*/
+	protected $_canVoid                 = false;
+	
+	/**
+	* Can use this payment method in administration panel?
+	*/
+	protected $_canUseInternal          = true;
+	
+	/**
+	* Can show this payment method as an option on checkout payment page?
+	*/
+	protected $_canUseCheckout          = true;
+	
+	/**
+	* Is this payment method suitable for multi-shipping checkout?
+	*/
+	protected $_canUseForMultishipping  = false;
+	
+	/**
+	* Can save credit card information for future processing?
+	*/
+	protected $_canSaveCc = false;
+	
+	protected $_isInitializeNeeded      = true;
+	
+	/**
+     * Instantiate state and set it to state object
+     * @param string $paymentAction
+     * @param Varien_Object
      */
-    protected $_isGateway               = true;
-
-    /**
-     * Can authorize online?
-     */
-    protected $_canAuthorize            = true;
-
-    /**
-     * Can capture funds online?
-     */
-    protected $_canCapture              = true; #important; default: false
-
-    /**
-     * Can capture partial amounts online?
-     */
-    protected $_canCapturePartial       = true;
-
-    /**
-     * Can refund online?
-     */
-    protected $_canRefund               = false;
-
-    /**
-     * Can void transactions online?
-     */
-    protected $_canVoid                 = false;
-
-    /**
-     * Can use this payment method in administration panel?
-     */
-    protected $_canUseInternal          = true;
-
-    /**
-     * Can show this payment method as an option on checkout payment page?
-     */
-    protected $_canUseCheckout          = true;
-    
-    /**
-     * Is this payment method suitable for multi-shipping checkout?
-     */
-    protected $_canUseForMultishipping  = false;
-
-    /**
-     * Can save credit card information for future processing?
-     */
-    protected $_canSaveCc = false;
-
-    /**
-     * Here you will need to implement authorize, capture and void public methods
-     * 
-     * @see examples of transaction specific public methods such as
-     * authorize, capture and void in Mage_Paygate_Model_Authorizenet
-     */
-    public function authorize(Varien_Object $payment, $amount)
+    public function initialize($paymentAction, $stateObject)
     {
-      return $this;
+		$paymentInfo = $this->getInfoInstance();
+		$session = Mage::getSingleton('checkout/session');
+		$session->setCcNo(Mage::helper('core')->encrypt($paymentInfo->getCcNumber()));
+		$session->setCcCvc2(Mage::helper('core')->encrypt($paymentInfo->getCcCid()));
     }
-    public function capture(Varien_Object $payment, $amount)
-    {
-      $order = $payment->getOrder();
-      if ($order->getCustomerNote())
-      {
-        #$note  = '<br />';
-        $note  = Mage::helper('novalnet')->__('Comment').': ';
-        $note .= $order->getCustomerNote();
-        $order->setCustomerNote($note);
-        $order->setCustomerNoteNotify(true);
-      }
-
-        $session = Mage::getSingleton('checkout/session');
-        #$session->setCcNumber(Mage::helper('core')->encrypt($payment->getCcNumber()));
-        $session->setcc_no(Mage::helper('core')->encrypt($payment->getCcNumber()));
-        $session->setCcCid(Mage::helper('core')->encrypt($payment->getCcCid()));
-        $session->setcc_exp_month(Mage::helper('core')->encrypt($payment->getCcExpMonth()));
-        $session->setcc_exp_year(Mage::helper('core')->encrypt($payment->getCcExpYear()));
-        $session->setcc_cvc2(Mage::helper('core')->encrypt($payment->getCcCid()));
-        $session->setcc_holder(Mage::helper('core')->encrypt($payment->getCcOwner()));
-
-   		return $this;
-    }
-    public function refund(Varien_Object $payment, $amount)
-    {
-    	return $this;
-    }
-    
-    public function void(Varien_Object $payment)
-    {
-    	return $this;
-    }
-    /**
-     * Prepare request to gateway
-     *
-     * @link http://www.authorize.net/support/AIM_guide.pdf
-     * @param Mage_Sales_Model_Document $order
-     * @return unknown
-     */
-   
-  
-    
-    public function getBookingReference()
-    {
-        return $this->getConfigData('booking_reference');
-    }
-    
-  
-    public function getTitle()
-    {
-        return Mage::helper('novalnet')->__($this->getConfigData('title'));
-    }
-    
-    public function getOrder()
-    {
-        if (!$this->_order) {
-            $paymentInfo = $this->getInfoInstance();
-            $this->_order = Mage::getModel('sales/order')
-                            ->loadByIncrementId($paymentInfo->getOrder()->getRealOrderId());
-        }
-        return $this->_order;
-    }
-    
-    public function getFormFields()
-    {
-        $billing = $this->getOrder()->getBillingAddress();
-        $payment = $this->getOrder()->getPayment();
-
-        $fieldsArr = array();
-        $session                = Mage::getSingleton('checkout/session');
-        $paymentInfo            = $this->getInfoInstance();
-        $order                  = $this->getOrder();
-        $fieldsArr['vendor']    = $this->getConfigData('merchant_id');
-        $fieldsArr['auth_code'] = $this->getConfigData('auth_code');
-        $fieldsArr['key']       = 6;
-        $fieldsArr['product']   = $this->getConfigData('product_id');
-        $fieldsArr['tariff']    = $this->getConfigData('tariff_id');
-        $fieldsArr['amount']    = ($order->getBaseGrandTotal()*100);
-        $fieldsArr['test_mode'] = (!$this->getConfigData('live_mode'))? 1: 0;
-        $fieldsArr['currency']  = $order->getOrderCurrencyCode();
-        $fieldsArr['first_name']= $billing->getFirstname();
-        $fieldsArr['last_name'] = $billing->getLastname();
-        $fieldsArr['email']     = $this->getOrder()->getCustomerEmail();
-        $fieldsArr['street']    = $billing->getStreet(1);
-        $fieldsArr['search_in_street']    = 1;
-        $fieldsArr['city']                = $billing->getCity();
-        $fieldsArr['zip']                 = $billing->getPostcode();
-        $fieldsArr['country_code']        = $billing->getCountry();
-        $fieldsArr['lang']                = $billing->getLang();
-        #$fieldsArr['remote_ip']          = $order->getRemoteIp();
-        $fieldsArr['remote_ip']           = $this->getRealIpAddr();
-        $fieldsArr['tel']                 = $billing->getTelephone();
-        $fieldsArr['fax']                 = $billing->getFax();
-        $fieldsArr['birth_date']          = $order->getRemoteIp();
-        $fieldsArr['session']             = session_id();
-        $fieldsArr['cc_holder']           = $payment->getCcOwner();
-        $fieldsArr['cc_no']               = Mage::helper('core')->decrypt($session->getcc_no());
-        $fieldsArr['cc_exp_month']        = $payment->getCcExpMonth();
-        $fieldsArr['cc_exp_year']         = $payment->getCcExpYear();
-        $fieldsArr['cc_cvc2']             = Mage::helper('core')->decrypt($session->getcc_cvc2());
-        $fieldsArr['return_url']          = Mage::getUrl('novalnet/secure/success', array('_secure' => true));
-        $fieldsArr['return_method']       = 'POST';
-        $fieldsArr['error_return_url']    = Mage::getUrl('novalnet/secure/success', array('_secure' => true));;
-        $fieldsArr['error_return_method'] = 'POST';
-        $fieldsArr['input1']              = 'order_id';
-        $fieldsArr['inputval1']           = $paymentInfo->getOrder()->getRealOrderId();
-        $session->setCcNumber('');
-        $session->setCcCid();
-        $request = '';
-        foreach ($fieldsArr as $k=>$v) {
-            $request .= '<' . $k . '>' . $v . '</' . $k . '>';
-        }
-        return $fieldsArr;
-    }
-    
-    public function getOrderPlaceRedirectUrl()
-    {
-          return Mage::getUrl('novalnet/secure/redirect');
-    }
-    
-    public function getNovalnetSecureUrl()
-    {
-         return self::CGI_URL;
-    }
-    public function isPublicIP($value)
+	
+	public function getBookingReference()
 	{
-        if(!$value || count(explode('.',$value))!=4)
-        {
-            return false;
-        }
-        return !preg_match('~^((0|10|172\.16|192\.168|169\.254|255|127\.0)\.)~', $value);
+		return $this->getConfigData('booking_reference');
 	}
-	public function getRealIpAddr()
+	
+	public function getTitle() {
+        //return $this->getConfigData('title');
+		return Mage::helper('novalnet')->__($this->getConfigData('title'));
+    }
+	
+	public function isAvailable($quote = null) {
+	
+		$minOrderCount = trim($this->getConfigData('orderscount'));
+		$customerId = Mage::getSingleton('customer/session')->getCustomerId();
+       
+	        // Load orders and check
+            $orders = Mage::getResourceModel('sales/order_collection')
+                ->addAttributeToSelect('*')
+                ->addAttributeToFilter('customer_id', $customerId)
+                ->load();
+            if (count($orders) < $minOrderCount) {
+                return false;
+            }elseif(!$this->getConfigData('merchant_id') || !$this->getConfigData('auth_code') || !$this->getConfigData('product_id') || !$this->getConfigData('tariff_id')) {
+				return false;
+			}
+		return parent::isAvailable();
+	}
+	
+	public function getFormData()
+    {
+		$dataObj        = new Varien_Object();
+		$order          = $this->getInfoInstance()->getOrder();
+		$amount         = (round($order->getBaseGrandTotal(), 2) * 100);
+		$manualCheckAmt = (int)$this->getConfigData('manual_checking_amount');
+        $billing		= $order->getBillingAddress();
+		$session        = Mage::getSingleton('checkout/session');
+		$payment        = $order->getPayment();
+		
+		$objQuote = $objQuote = Mage::getModel( 'sales/quote' );
+		$objQuote->setStoreId($order->getStoreId())->load($order->getQuoteId());
+		$objQuotePayment = $objQuote->getPayment();
+		$objQuotePayment->setNnTestOrder((!$this->getConfigData('live_mode'))? 1: 0)->save();
+		
+		if(!$this->getConfigData('merchant_id') || !$this->getConfigData('auth_code') || !$this->getConfigData('product_id') || !$this->getConfigData('tariff_id'))
+		{
+			Mage::getSingleton('core/session')
+                ->addError('Die Hashfunktionen sind nicht verf&uuml;gbar!');
+            $url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+            Mage::app()->getResponse()->setRedirect($url);
+            Mage::app()->getResponse()->sendResponse();
+			exit;
+		}
+		
+		$dataObj->setVendor($this->getConfigData('merchant_id'))
+			->setVendorAuthcode($this->getConfigData('auth_code'))
+			->setProduct(
+				($manualCheckAmt || $manualCheckAmt<$amount)
+				?$this->getConfigData('product_id')
+				:$this->getConfigData('second_product_id'))
+			->setTariff(
+				($manualCheckAmt || $manualCheckAmt<$amount)
+				?$this->getConfigData('tariff_id')
+				:$this->getConfigData('second_tariff_id'))
+			->setAmount($amount)
+			->setKey($this->_nnPaymentId)
+			->setTestMode((!$this->getConfigData('live_mode'))? 1: 0)
+			->setCurrency($order->getOrderCurrencyCode())
+			->setFirstName($billing->getFirstname())
+			->setLastName($billing->getLastname())
+			->setEmail($order->getCustomerEmail())
+			->setStreet($billing->getStreet(1))
+			->setSearchInStreet(1)
+			->setCity($billing->getCity())
+			->setZip($billing->getPostcode())
+			->setCountryCode($billing->getCountry())
+			->setLang(substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2))
+			->setRemoteIp(Mage::helper('novalnet')->getRealIpAddr())
+			->setTel($billing->getTelephone())
+			->setFax($billing->getFax())
+			->setCcHolder($payment->getCcOwner())
+			->setCcNo(Mage::helper('core')->decrypt($session->getCcNo()))
+			->setCcExpMonth($payment->getCcExpMonth())
+			->setCcExpYear($payment->getCcExpYear())
+			->setCcCvc2(Mage::helper('core')->decrypt($session->getCcCvc2()))
+			->setSession($session->getSessionId())
+			->setReturnUrl(Mage::getUrl('novalnet/secure/success', array('_secure' => true)))
+			->setReturnMethod('POST')
+			->setErrorReturnUrl(Mage::getUrl('novalnet/secure/success', array('_secure' => true)))
+			->setErrorReturnMethod('POST')
+			->setOrderId($order->getRealOrderId())
+			->setOrderNo($order->getRealOrderId())
+			->setInput1('order_id')
+			->setInputval1($order->getRealOrderId());
+			
+		$session->unsCcNo()->unsCcCvc2();
+        return $dataObj;
+    }
+	
+	public function getOrderPlaceRedirectUrl()
 	{
-        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) and $this->isPublicIP($_SERVER['HTTP_X_FORWARDED_FOR']))
-		{
-			return $_SERVER['HTTP_X_FORWARDED_FOR'];
-		}
-        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) and $iplist=explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']))
-        {
-            if($this->isPublicIP($iplist[0])) return $iplist[0];
-        }
-        if (isset($_SERVER['HTTP_CLIENT_IP']) and $this->isPublicIP($_SERVER['HTTP_CLIENT_IP']))
-		{
-			return $_SERVER['HTTP_CLIENT_IP'];
-		}
-        if (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']) and $this->isPublicIP($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']))
-		{
-			return $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
-		}
-        if (isset($_SERVER['HTTP_FORWARDED_FOR']) and $this->isPublicIP($_SERVER['HTTP_FORWARDED_FOR']) )
-		{
-			return $_SERVER['HTTP_FORWARDED_FOR'];
-		}
-		return $_SERVER['REMOTE_ADDR'];
+		return Mage::getUrl('novalnet/secure/redirect');
 	}
-  private function debug2($object, $filename, $debug)
+	
+	public function getCgiUrl() {
+		return self::CGI_URL;
+	}
+	
+	public function isPublicIP($value)
 	{
-		if (!$this->_debug and !$debug){return;}
-		$fh = fopen("/tmp/$filename", 'a+');
-		if (gettype($object) == 'object' or gettype($object) == 'array'){
-			fwrite($fh, serialize($object));
-		}else{
-			fwrite($fh, date('Y-m-d H:i:s').' '.$object);
+		if(!$value || count(explode('.',$value))!=4)
+		{
+			return false;
 		}
-		fwrite($fh, "<hr />\n");
-		fclose($fh);
+		return !preg_match('~^((0|10|172\.16|192\.168|169\.254|255|127\.0)\.)~', $value);
 	}
+	
 }

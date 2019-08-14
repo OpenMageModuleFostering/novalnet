@@ -28,7 +28,8 @@
 
 class Mage_Novalnet_Block_Invoice_Info extends Mage_Payment_Block_Info
 {
-
+	protected $_localInfo = NULL;
+	
     protected function _construct()
     {
         parent::_construct();
@@ -37,11 +38,14 @@ class Mage_Novalnet_Block_Invoice_Info extends Mage_Payment_Block_Info
 
     public function getInfo()
     {
-        $info = $this->getData('info');
-        if (!($info instanceof Mage_Payment_Model_Info)) {
+		if (!$this->_localInfo) {
+			$this->_localInfo = $this->getData('info');
+			$this->loadNovalnetData();
+		}
+        if (!($this->_localInfo instanceof Mage_Payment_Model_Info)) {
             Mage::throwException($this->__('Can not retrieve payment info model object.'));
         }
-        return $info;
+        return $this->_localInfo;
     }
 
     /**
@@ -53,39 +57,59 @@ class Mage_Novalnet_Block_Invoice_Info extends Mage_Payment_Block_Info
     {
         return $this->getInfo()->getMethodInstance();
     }
+	
     public function getInfoData($field)
     {
         return $this->htmlEscape($this->getMethod()->getInfoInstance()->getData($field));
     }
+	
     public function getPaymentMethod()
     {
         return $this->htmlEscape($this->getMethod()->getConfigData('title'));
     }
+    
+    public function loadNovalnetData() {
+		$order_id = $this->getRequest()->getParam('order_id');
+		$obj = NULL;
+		if($this->getRequest()->getControllerName() == 'sales_order_invoice') {
+			$order_id = $this->getData('info')->getOrder()->getId();
+		}
+		if( $order_id ) {
+			$objOrder = Mage::getModel('sales/order')->load($order_id);
+			$objQuote = Mage::getModel( 'sales/quote' );
+			$obj = $objQuotePayment = $objQuote->setStoreId($objOrder->getStoreId())->load($objOrder->getQuoteId())->getPayment();
+		}else {
+			$chSess = Mage::getSingleton('checkout/session');
+			if($this->getRequest()->getControllerName() == 'onepage' && $this->getRequest()->getActionName() == 'saveOrder' && $chSess->hasLastSuccessQuoteId()){
+				$objQuote = Mage::getModel( 'sales/quote' );
+				$obj = $objQuotePayment = $objQuote->setStoreId($this->getMethod()->getStoreId())->load($chSess->getLastSuccessQuoteId())->getPayment();
+			}else {
+				$obj = $this->_localInfo;
+			}
+		}
+	//	$this->setNnAccountHolder($obj->getNnAccountHolder());
+	//	$this->setNnAccountNumber($obj->getNnAccountNumber());
+	//	$this->setNnBankSortingCode($obj->getNnBankSortingCode());
+	//	$this->setNnElvCountry($obj->getNnElvCountry());
+		$this->setNnTestorder($obj->getNnTestorder());
+		$this->setNnComments($obj->getNnComments());
+		return $this;
+	}
+	public function toPdf()
+    {
+        $this->setTemplate('payment/info/pdf/cc.phtml');
+        return $this->toHtml();
+    }
 	public function getDuedate()
     {
-        $payment_duration = $this->getMethod()->getConfigData('payment_duration');
-        $due_date = '';
-        $due_date_string = '';
-        if($payment_duration)
-        {
-            $due_date = date("d.m.Y",mktime(0,0,0,date("m"),date("d")+$payment_duration,date("Y")));
-            $due_date_string = '&due_date='.date("Y-m-d",mktime(0,0,0,date("m"),date("d")+$payment_duration,date("Y")));
-
-			/*if ($payment->getNnElvCountry()=="DE") or $payment->getNnElvCountry()=="AT"))
-			{
-				$due_date = explode('-', $due_date);
-				$due_date = $due_date[];
-			}*/
-        }
-        
-        /*if($due_date)
-        {
-            $order->info['comments'] .= '<BR><B>'.MODULE_PAYMENT_NOVALNET_INVOICE_TEXT_DURATION_LIMIT_INFO." $due_date ".MODULE_PAYMENT_NOVALNET_INVOICE_TEXT_DURATION_LIMIT_END_INFO.".</B><BR><BR>";
-        }
-        else
-        {
-            $order->info['comments'] = '<BR><B>'.MODULE_PAYMENT_NOVALNET_INVOICE_TEXT_TRANSFER_INFO.'</B><BR><BR>';
-        }*/
-          return$due_date;
+		$dueDate = NULL;
+		$order_id = $this->getRequest()->getParam('order_id');
+        $paymentDuration = (int)trim($this->getMethod()
+			->getConfigData('payment_duration'))
+		;
+		if($paymentDuration && !$order_id) {
+			$dueDate  = date('d.m.Y', strtotime('+' . $paymentDuration . ' days'));
+		}
+		return $dueDate;
     }
 }

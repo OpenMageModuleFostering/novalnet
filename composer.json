@@ -1,7 +1,7 @@
 {
     "name": "OpenMageModuleFostering/Novalnet",
     "type": "magento-module",
-    "license": "Open-Software-License-(OSL)",
+    "license": "OSL",
     "homepage": "",
     "description": "Novalnet AG ist ein deutsches EPayment - Unternehmen, bietet alle relevanten Zahlungsarten weltweit. / Novalnet is a German based payment service provider, which offers all the available payments and solutions worldwide.",
     "authors": [

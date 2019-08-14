@@ -1,0 +1,381 @@
+<?php echo $this->getChildHtml('items_before'); ?>
+<div id="checkout-review-table-wrapper">
+    <table class="data-table" id="checkout-review-table">
+        <?php if ($this->helper('tax')->displayCartBothPrices()): $colspan = $rowspan = 2; else: $colspan = $rowspan = 1; endif; ?>
+        <col />
+        <col width="1" />
+        <col width="1" />
+        <col width="1" />
+        <?php if ($this->helper('tax')->displayCartBothPrices()): ?>
+        <col width="1" />
+        <col width="1" />
+        <?php endif; ?>
+        <thead>
+            <tr>
+                <th rowspan="<?php echo $rowspan ?>"><?php echo $this->__('Product Name') ?></th>
+                <th colspan="<?php echo $colspan ?>" class="a-center"><?php echo $this->__('Price') ?></th>
+                <th rowspan="<?php echo $rowspan ?>" class="a-center"><?php echo $this->__('Qty') ?></th>
+                <th colspan="<?php echo $colspan ?>" class="a-center"><?php echo $this->__('Subtotal') ?></th>
+            </tr>
+            <?php if ($this->helper('tax')->displayCartBothPrices()): ?>
+                <tr>
+                    <th class="a-right"><?php echo $this->helper('tax')->getIncExcTaxLabel(false) ?></th>
+                    <th><?php echo $this->helper('tax')->getIncExcTaxLabel(true) ?></th>
+                    <th class="a-right"><?php echo $this->helper('tax')->getIncExcTaxLabel(false) ?></th>
+                    <th><?php echo $this->helper('tax')->getIncExcTaxLabel(true) ?></th>
+                </tr>
+            <?php endif; ?>
+        </thead>
+        <?php echo $this->getChildHtml('totals'); ?>
+        <tbody>
+        <?php foreach($this->getItems() as $_item): ?>
+            <?php echo $this->getItemHtml($_item)?>
+        <?php endforeach ?>
+        </tbody>
+    </table>
+</div>
+<?php echo $this->getChildHtml('items_after'); 
+$magento_version=Mage::getVersion();
+echo'<input type="hidden" name="magentoversion" id="magentoversion" value="'.$magento_version.'">';
+if($magento_version>='1.5')
+{
+?>
+<script type="text/javascript">
+    decorateTable('checkout-review-table');
+    truncateOptions();
+</script>
+<div id="checkout-review-submit">
+    <?php echo $this->getChildHtml('agreements') ?>
+	  <div align="right">
+ 	<button id="placeorder_button" type="submit" title="<?php echo $this->__('Place Order') ?>" class="button btn-checkout" onclick="novalnet.save();"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
+ </div>
+
+    <div class="buttons-set" id="review-buttons-container">
+        <p class="f-left"><?php echo $this->__('Forgot an Item?') ?> <a href="<?php echo $this->getUrl('checkout/cart') ?>"><?php echo $this->__('Edit Your Cart') ?></a></p>
+		
+        <span class="please-wait" id="review-please-wait" style="display:none;">
+            <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="<?php echo $this->__('Submitting order information...') ?>" title="<?php echo $this->__('Submitting order information...') ?>" class="v-middle" /> <?php echo $this->__('Submitting order information...') ?>
+        </span>
+    </div>
+ </div>
+
+ <?php 
+ }
+else
+{ ?>
+
+ <script type="text/javascript">
+//<![CDATA[
+    decorateTable('checkout-review-table');
+    truncateOptions();
+	document.getElementById('review-buttons-container').style.display='none';
+	document.getElementById('checkout-review-submit').style.display='none';
+
+
+//]]>
+</script>
+<div id="checkout-review-submit-novalnet">
+    <?php echo $this->getChildHtml('agreements') ?>
+	
+ <div align="right">
+ 	<button id="placeorder_button" type="submit" title="<?php echo $this->__('Place Order') ?>" class="button btn-checkout" onclick="novalnet.save();"><span><span><?php echo $this->__('Place Order') ?></span></span></button>
+ </div>
+	
+    <div class="buttons-set" id="review-buttons-container-novalnet">
+        <p class="f-left"><?php echo $this->__('Forgot an Item?') ?> <a href="<?php echo $this->getUrl('checkout/cart') ?>"><?php echo $this->__('Edit Your Cart') ?></a></p>
+        <?php //echo $this->getChildHtml('button') ?>
+		
+        <span class="please-wait" id="review-please-wait" style="display:none;">
+            <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="<?php echo $this->__('Submitting order information...') ?>" title="<?php echo $this->__('Submitting order information...') ?>" class="v-middle" /> <?php echo $this->__('Submitting order information...') ?>
+        </span>
+    </div>
+ </div>
+
+
+<?php
+
+	}	
+		$paymentmethod=Mage::getSingleton('checkout/session')->getQuote()->getPayment()->getMethodInstance()->getCode();
+ ?>
+ <script type="text/javascript">
+    //<![CDATA[
+        novalnet = new Novalnet('<?php echo $this->getUrl('checkout/onepage/saveOrder') ?>', '<?php echo $this->getUrl('checkout/onepage/success') ?>', $('checkout-agreements'), '<?php echo $paymentmethod; ?>');
+		
+    //]]>
+    </script>
+<?php
+			 $check_active	= Mage::getSingleton('checkout/session')->getNnDataValue()->getCheckActive();
+			 $password		= Mage::getSingleton('checkout/session')->getNnDataValue()->getPassword();
+			 $vendorid 		= Mage::getSingleton('checkout/session')->getNnDataValue()->getVendorId();
+			 $vendorAuthcode = Mage::getSingleton('checkout/session')->getNnDataValue()->getVendorAuthcode();
+			 $pid    		= Mage::getSingleton('checkout/session')->getNnDataValue()->getProductId();
+			 $tid    		= Mage::getSingleton('checkout/session')->getNnDataValue()->getTariffId();
+
+
+			if($check_active=='1')
+			{	
+			  
+			  if($password && $vendorid && $vendorAuthcode && $pid && $tid)
+			  {	  
+				$sessionvalue=Mage::getSingleton('checkout/session');
+				$get_user_email=Mage::getSingleton('customer/session')->getCustomer()->getEmail();
+				$dataObj	= new Varien_Object();
+				$dbc_collect_order = Mage::getSingleton('core/resource')->getConnection('core_read');
+				
+				$datavalue		= Mage::getSingleton('checkout/session');
+				$check_active	= $datavalue->getNnDataValue()->getCheckActive();
+				$vendorid 		= $datavalue->getNnDataValue()->getVendorId();
+				$paymentid 		= $datavalue->getNnDataValue()->getPaymentId();
+				$vendorAuthcode = $datavalue->getNnDataValue()->getVendorAuthcode();
+				$pid    		= $datavalue->getNnDataValue()->getProductId();
+				$tid    		= $datavalue->getNnDataValue()->getTariffId();
+				$uniqid    		= $datavalue->getNnDataValue()->getUniqid();
+				$product2 		= $datavalue->getNnDataValue()->getProductId2();
+				$tariff2  		= $datavalue->getNnDataValue()->getTariffId2();
+				
+				$grand_total	= Mage::getSingleton('checkout/session')->getQuote()->getGrandTotal();
+				$amount 		= (round($grand_total, 2) * 100);
+				$manualCheckAmt = (int)$datavalue->getNnDataValue()->getManualCheckAmt();
+				
+				if($manualCheckAmt && $manualCheckAmt>=$amount && $product2 && $tariff2) {
+					$pid    	= $datavalue->getNnDataValue()->getProductId2();
+					$tid    	= $datavalue->getNnDataValue()->getTariffId2();
+				}
+								
+				$test_mode		= $datavalue->getNnDataValue()->getTestMode();
+				$currencycode	=  Mage::app()->getStore()->getCurrentCurrencyCode();			
+				$password			= $datavalue->getNnDataValue()->getPassword();
+				$order_status		= $datavalue->getNnDataValue()->getOrderStatus();
+				$createinvoice		= $datavalue->getNnDataValue()->getCreateInvoice();
+				$returnURL			= $datavalue->getNnDataValue()->getReturnUrl();
+				$returnmethod		= 'POST';
+				$errorreturnURL 	= $datavalue->getNnDataValue()->getErrorReturnUrl();
+				$errorreturnmethod	= 'POST';
+				$input1				= 'order_id';
+				$Implementation		= 'PHP_PCI';
+				$sessionid			= $datavalue->getNnDataValue()->getSessionId();
+				$lang				= substr(Mage::app()->getLocale()->getLocaleCode(), 0, 2);
+				$remoteip			= $datavalue->getNnDataValue()->getRemoteIp();
+				
+				$magento_version=Mage::getVersion();
+				if($magento_version<'1.4.1.0'){
+					$tableSalesOrder  =  Mage::getSingleton('core/resource')->getTableName('sales_order');
+					$result 	 	  =  $dbc_collect_order->query("SELECT `increment_id` FROM `".$tableSalesOrder."` ORDER BY `entity_id` DESC LIMIT 1");
+				}else{
+					$tableSalesFlatOrder  =  Mage::getSingleton('core/resource')->getTableName('sales_flat_order');
+					$result 		 	  =  $dbc_collect_order->query("SELECT `increment_id` FROM `".$tableSalesFlatOrder."` ORDER BY `entity_id` DESC LIMIT 1");
+				}
+					$result_data		  =  $result->fetch(PDO::FETCH_ASSOC);
+					$order_id_data		  =  $result_data['increment_id'];
+					$billingadd = Mage::getModel('checkout/session')->getQuote()->getBillingAddress();
+					
+					$firstname		= $billingadd->getFirstname();
+					$lastname		= $billingadd->getLastname();
+					$email			= $billingadd->getEmail();
+					$street			= $billingadd->getData('street');
+					$SearchInStreet	= '1';
+					$city			= $billingadd->getCity();
+					$postcode		= $billingadd->getPostcode();
+					$countryid		= $billingadd->getCountryId();
+					$telephone		= $billingadd->getTelephone();
+					$fax			= $billingadd->getFax();
+
+				if(!$order_id_data)
+				{
+					$last_main_order_id = '100000000';
+					$inputval1			= $last_main_order_id+1;
+				}
+				else
+				{
+					$last_main_order_id = $order_id_data; 
+					$inputval1			= $last_main_order_id+1;
+				}
+				
+				$dataObj->setVendorId($vendorid)
+						->setVendorAuthcode($vendorAuthcode)
+						->setProductId($pid)
+						->setTariffId($tid)
+						->setUniqid($uniqid)
+						->setAmount($amount)
+						->setTestMode($test_mode)
+						->setPaymentId($paymentid)			
+						->setCurrency($currencycode)
+						->setFirstname($firstname)
+						->setLastname($lastname)
+						->setEmail($email)
+						->setStreet($street)
+						->setSearchInStreet(1)
+						->setCity($city)
+						->setZip($postcode)
+						->setCountryCode($countryid)
+						->setLang($lang)									
+						->setRemoteIp($remoteip)	
+						->setTel($telephone)
+						->setFax($fax)		
+						->setSession($sessionid)
+						->setReturnUrl($returnURL)
+						->setReturnMethod($returnmethod)
+						->setErrorReturnUrl($errorreturnURL)
+						->setErrorReturnMethod($errorreturnmethod)
+						->setOrderNo($inputval1)
+						->setInput1($input1)
+						->setImplementation($Implementation)
+						->setInputval1($inputval1);
+					 if($paymentmethod=='novalnetCc')
+			 		 {	
+					 	$dataObj->setIsIframe(1);
+					 }
+						
+					$session=Mage::getSingleton('checkout/session')->setNovalnetRealOrderId($inputval1);
+					$session=Mage::getSingleton('checkout/session')->setOrderId($inputval1);
+					$session=Mage::getSingleton('checkout/session')->setPassword($password);
+					$session=Mage::getSingleton('checkout/session')->setCreateInvoice($createinvoice);
+					$session=Mage::getSingleton('checkout/session')->setNovalnetQuoteId($session->getQuoteId());
+					
+					$authcode_str='vendor_authcode';
+					$product_str='product_id';
+					$tarrif_str ='tariff_id';
+					$uniq_str='uniqid';
+					$amt_str='amount';
+					$testmode_str='test_mode';
+					
+					$assignmodel=new Mage_Novalnet_Model_NovalnetCc();
+					$dataObj=importHashData($dataObj);
+					
+					$authcode_enc_val=importEncodeData($dataObj,$authcode_str);
+				    $product_enc_val=importEncodeData($dataObj,$product_str);
+				    $tarrif_enc_val=importEncodeData($dataObj,$tarrif_str);
+				    $uniq_enc_val=importEncodeData($dataObj,$uniq_str);
+				    $amt_enc_val=importEncodeData($dataObj,$amt_str);
+					$testmode_enc_val=importEncodeData($dataObj,$testmode_str);
+					
+					
+				}
+				else
+				{
+						Mage::getSingleton('core/session')
+						->addError('Die Methoden f&uuml;r die Verarbeitung von Zeichens&auml;tzen sind nicht verf&uuml;gbar!');
+						echo '<script>alert("Basic Parameters Missing in Credit Card");window.location.reload();</script>';
+				}
+				
+			}
+				function importEncodeData($dataObj, $dataval) 
+				{
+					$password = Mage::getSingleton('checkout/session')->getNnDataValue()->getPassword();
+					$encoding =encode($dataObj, $password, $dataval);
+					if($encoding != true)
+					{
+					
+						Mage::getSingleton('core/session')
+						->addError('Die Methoden f&uuml;r die Verarbeitung von Zeichens&auml;tzen sind nicht verf&uuml;gbar!');
+						$url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+						Mage::app()->getResponse()->setRedirect($url);
+						Mage::app()->getResponse()->sendResponse();
+						exit;
+					}
+						return $encoding;
+				}
+
+				function encode(&$fields, $key, $dataObj)
+				{
+					if(!function_exists('base64_encode') || !function_exists('pack') || !function_exists('crc32')) {
+						return false;
+					}
+					$toBeEncoded = array($dataObj);
+					foreach($toBeEncoded as $_value ) {
+						$data = $fields[$_value];
+						if(isEmptyString($data)) {
+							return false;
+						}
+						try {
+							$crc = sprintf('%u', crc32($data));//%u is a must for ccrc32 returns a signed value
+							$data = $crc."|".$data;
+							$data = bin2hex($data.$key);
+							$data = strrev(base64_encode($data));
+							if($dataObj==$_value)
+							{
+							 
+							 return $fields[$_value] = $data;
+							}
+						}catch(Exception $e) {
+							return false;
+						}
+					}
+					return true;
+				}
+				
+				
+				function importHashData($dataObj) 
+				{
+					$password = Mage::getSingleton('checkout/session')->getNnDataValue()->getPassword();
+					$hash	  = generateHash($dataObj, $password);
+					
+					if($hash == false)
+					{
+						Mage::getSingleton('core/session')
+						->addError('Die Hashfunktionen sind nicht verf&uuml;gbar!');
+						$url = Mage::getModel('core/url')->getUrl("checkout/onepage/failure");
+						Mage::app()->getResponse()->setRedirect($url);
+						Mage::app()->getResponse()->sendResponse();
+						exit;
+					}
+					$returnval=$dataObj->setHash($hash);
+					return $returnval;
+				}
+	
+				function generateHash($data, $key)
+				{
+					$emptystring = isEmptyString($key);
+					if(!function_exists('md5') || $emptystring)
+					{
+						return false;
+					}
+					$hashFields = array('vendor_authcode', 'product_id', 'tariff_id', 'amount', 'test_mode', 'uniqid' );
+					$str = NULL;
+					foreach( $hashFields as $_value ) {
+					if(isEmptyString($data[$_value])) {
+						return false;
+					}
+					$str .= $data[$_value];
+					}
+					return md5($str . strrev($key));
+				}
+
+				function isEmptyString($str) {
+					$str = trim($str);
+					return !isset($str[0]);
+				}
+
+		
+?>
+<div id="nn_iframe" style="display:none;">
+<?php
+			 $password		= Mage::getSingleton('checkout/session')->getNnDataValue()->getPassword();
+			 $vendorid 		= Mage::getSingleton('checkout/session')->getNnDataValue()->getVendorId();
+			 $vendorAuthcode = Mage::getSingleton('checkout/session')->getNnDataValue()->getVendorAuthcode();
+			 $pid    		= Mage::getSingleton('checkout/session')->getNnDataValue()->getProductId();
+			 $tid    		= Mage::getSingleton('checkout/session')->getNnDataValue()->getTariffId();
+
+			if($paymentmethod=='novalnetCc')
+			{
+			  if($password && $vendorid && $vendorAuthcode && $pid && $tid)
+			  {	  
+				$data_val=$dataObj;
+				$form = new Varien_Data_Form();
+				$html = '<html><body>';
+				echo '<form action="https://payport.novalnet.de/pci_payport" id="novalnetCc" name="novalnetCc" method="POST" target="my_iframe">';
+				foreach ($data_val->toArray() as $field=>$value) {
+				$form->addField($field, 'hidden', array('name'=>$field, 'value'=>$value));
+				}
+				$html.= $form->toHtml();
+				$html.="<iframe id='my_iframe' name='my_iframe' width='518' height='350' ></iframe>";
+				$html.= '</form>';
+				$html.= '<script type="text/javascript">document.getElementById("review-buttons-container").style.display="none";document.getElementById("novalnetCc").submit();</script>';
+				$html.= '</body>';
+				echo $html.= '</html>';
+			  }
+			}
+?>
+</div>
+
+		
