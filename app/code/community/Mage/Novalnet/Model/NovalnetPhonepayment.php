@@ -121,6 +121,17 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
         $error = false;
         $payment->setAmount($amount);
 		$this->debug2($amount, 'magento_capture_amount.txt');
+
+		$order = $payment->getOrder();
+		if ($order->getCustomerNote())
+		{
+			#$note  = '<br />';
+			$note  = Mage::helper('novalnet')->__('Comment').': ';
+			$note .= $order->getCustomerNote();
+			$order->setCustomerNote($note);
+			$order->setCustomerNoteNotify(true);
+		}
+
         $request = $this->_buildRequest($payment);
 		$this->debug2($request, 'magento_capture_request.txt');
         $result = $this->_postRequest($request, $payment);
@@ -210,6 +221,12 @@ class Mage_Novalnet_Model_NovalnetPhonepayment extends Mage_Payment_Model_Method
 				if (session_is_registered('tid')){
 					$this->debug2($billing, 'magento_billing2.txt');
 				}
+
+				if (!$order->getCustomerEmail())
+				{
+					Mage::throwException(Mage::helper('novalnet')->__('Email address missing'));
+				}
+
                 $request->setfirst_name($billing->getFirstname())
                 ->setLast_name($billing->getlastname())
                 ->setstreet($street[0].$street[1].$street[2])

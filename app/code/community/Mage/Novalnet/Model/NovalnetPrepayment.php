@@ -273,9 +273,14 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
             );
         }
         $result->toUtf8();
-		#$this->debug2($result,$aryResponse);
 		$note = $this->getNote($aryResponse);
-        $order = $payment->getOrder();
+		$order = $payment->getOrder();
+		if ($order->getCustomerNote())
+		{
+			$note .= '<br /><br />';
+			$note .= Mage::helper('novalnet')->__('Comment').': ';
+			$note .= $order->getCustomerNote();
+		}
         $order->setCustomerNote($note);
         $order->setCustomerNoteNotify(true);
         #Mage::throwException($order->getEmailCustomerNote());#todo:

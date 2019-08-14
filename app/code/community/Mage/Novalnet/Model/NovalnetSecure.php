@@ -104,6 +104,16 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
     }
     public function capture(Varien_Object $payment, $amount)
     {
+		$order = $payment->getOrder();
+		if ($order->getCustomerNote())
+		{
+			#$note  = '<br />';
+			$note  = Mage::helper('novalnet')->__('Comment').': ';
+			$note .= $order->getCustomerNote();
+			$order->setCustomerNote($note);
+			$order->setCustomerNoteNotify(true);
+		}
+
         $session = Mage::getSingleton('checkout/session');
         $session->setCcNumber(Mage::helper('core')->encrypt($payment->getCcNumber()));
         $session->setCcCid(Mage::helper('core')->encrypt($payment->getCcCid()));

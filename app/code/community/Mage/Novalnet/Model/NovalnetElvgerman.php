@@ -107,8 +107,18 @@ class Mage_Novalnet_Model_NovalnetElvgerman extends Mage_Payment_Model_Method_Ab
     {
         $error = false;
         $payment->setAmount($amount);
-        $request = $this->_buildRequest($payment);
 
+		$order = $payment->getOrder();
+		if ($order->getCustomerNote())
+		{
+			#$note  = '<br />';
+			$note  = Mage::helper('novalnet')->__('Comment').': ';
+			$note .= $order->getCustomerNote();
+			$order->setCustomerNote($note);
+			$order->setCustomerNoteNotify(true);
+		}
+
+        $request = $this->_buildRequest($payment);
         $result = $this->_postRequest($request);
          
         if ($result->getStatus() == self::RESPONSE_CODE_APPROVED) {

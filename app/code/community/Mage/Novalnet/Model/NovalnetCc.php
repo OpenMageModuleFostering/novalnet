@@ -60,7 +60,7 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
     /**
      * Can capture partial amounts online?
      */
-    protected $_canCapturePartial       = false;
+    protected $_canCapturePartial       = true;
 
     /**
      * Can refund online?
@@ -106,6 +106,17 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
     {
     	$error = false;
     	$payment->setAmount($amount);
+
+		$order = $payment->getOrder();
+		if ($order->getCustomerNote())
+		{
+			$note  = '<br />';
+			$note .= Mage::helper('novalnet')->__('Comment').': ';
+			$note .= $order->getCustomerNote();
+			$order->setCustomerNote($note);
+			$order->setCustomerNoteNotify(true);
+		}
+
     	$request = $this->_buildRequest($payment);
     	$result = $this->_postRequest($request);
     	
@@ -149,7 +160,6 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
         $order = $payment->getOrder();
 
  		$request = Mage::getModel('novalnet/novalnet_request');
-  
 
         $request->setvendor($this->getConfigData('merchant_id'))
             ->setauth_code($this->getConfigData('auth_code'))
@@ -166,8 +176,8 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
 
             $billing = $order->getBillingAddress();
             $street = preg_split("/(\d)/",$billing->getStreet(1),2,PREG_SPLIT_DELIM_CAPTURE);
-			if (!$street[1]){$street[1]='';}
-			if (!$street[2]){$street[2]='';}
+			if (!isset($street[1]) or !$street[1]){$street[1]='';}
+			if (!isset($street[2]) or !$street[2]){$street[2]='';}
             if (!empty($billing)) {
                 $request->setfirst_name($billing->getFirstname())
                     ->setlast_name($billing->getLastname())
@@ -231,7 +241,7 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
                 Mage::helper('paygate')->__('Gateway request error: %s', $e->getMessage())
             );
         }
-	
+
         $responseBody = $response->getBody();
 
         $r = explode(self::RESPONSE_DELIM_CHAR, $responseBody);
