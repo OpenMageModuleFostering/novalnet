@@ -31,6 +31,10 @@ $paymentObj = $payment->getMethodInstance();
 $data = unserialize($payment->getAdditionalData());
 $parentTid =   isset($data['NnTid']) ? $data['NnTid'] : '';
 $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '';
+preg_match('|<span id="due_date">(.+?)</span>|s', $this->getPaymentHtml(), $match);
+if($match) {
+	$due_date = date("Y-m-d", strtotime($match['1'] .' +1 day'));
+}
 ?>
 <div>
     <div id="order-messages">
@@ -80,17 +84,14 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
             $amount = $helper->getAmountCollection($_order->getId(), 1, 0);
             $amount = !$amount ? $amount : $grandTotal;
             $amount = $helper->getFormatedAmount($amount);
-
             if (in_array($paymentname, array_merge($sepapayment,$invoicepayment))) {
-                $statusCall = $paymentObj->doNovalnetStatusCall($checkTidExist,$payment);
+                $update_details = $paymentObj->updatedAmount($checkTidExist);
             }
-
             $amount = '';
             $date = '';
-
             if ($status == 99 && $getTransactionStatus->getTransactionStatus() && in_array($paymentname, $sepapayment)
                     && $_order->canInvoice()) {
-                        $amount = $statusCall->getAmount();
+                        $amount = $helper->getFormatedAmount($update_details->getAmount());
                 ?>
                 <div class="entry-edit">
                     <div class="entry-edit-head">
@@ -111,8 +112,8 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
                 <?php
             } else if ($status == 100 && in_array($paymentname, $invoicepayment)
                     && ($paid == 1 || !$paid)) {
-                        $amount = $statusCall->getAmount();
-                        $date = $statusCall->getInvoiceDueDate();
+                        $amount = $helper->getFormatedAmount($update_details->getAmount());
+                        $date = $due_date;
                 ?>
                 <div class="entry-edit">
                     <div class="entry-edit-head">
@@ -244,20 +245,11 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
 
         function novalnetAllowNumeric(evt) {
 
-        var charCode = (evt.which) ? evt.which : evt.keyCode
-
-        if((charCode == 35 || charCode == 36 ||charCode == 37
-          || charCode == 39) && evt.shiftKey == false) {
-            return true;
-        }
-        else if((evt.ctrlKey == true && charCode == 114)|| charCode == 116) {
-          return true;
-        }
-        else if(charCode > 31 && (charCode < 48 || charCode > 57)) {
-            return false;
-        }else{
-        return true;
-        }
+        var keycode = ( 'which' in evt ) ? evt.which : evt.keyCode,
+        event = evt || window.evt,
+        reg = '' ;
+        var reg = /^(?:[0-9]+$)/;
+        return ( reg.test( String.fromCharCode( keycode ) ) || keycode == 0 || keycode == 8 );
          }
 
         function reformatDate(dateStr)
@@ -280,7 +272,6 @@ $sepaparentTid =  isset($data['NnSepaParentTid']) ? $data['NnSepaParentTid'] : '
                 var dt_day   = dt_array[5];
                 var dt_year  = dt_array[1];
             }
-
 
             if ((one == 1 || paymentcode == 'novalnetPrepayment') && !invoice_duedate && !amountchanged) {
                 alert(lang1);

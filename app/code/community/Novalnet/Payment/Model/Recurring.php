@@ -106,6 +106,7 @@ class Novalnet_Payment_Model_Recurring extends Mage_Core_Model_Abstract
         $testMode = (((isset($serverResponse) && $serverResponse == 1) || (isset($shopMode)
                 && $shopMode == 0)) ? 1 : 0 );
         $data = $paymentObj->setPaymentAddtionaldata($result, $config);
+        $data['paidUntil'] = $result->getPaidUntil();
         $request->setVendor($config->getVendor())
                 ->setAuthCode($config->getAuthCode())
                 ->setProduct($config->getProduct())

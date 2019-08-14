@@ -28,6 +28,7 @@ class Novalnet_Payment_Model_Novalnet_Request extends Varien_Object
     public function toLatin1()
     {
         $data = $this->toArray();
+        mage::log($data, null, 'test.log', true);
         foreach ($data as $key => $val) {
             $setKey = "set" . ucfirst($key);
             $this->$setKey(utf8_decode($val));

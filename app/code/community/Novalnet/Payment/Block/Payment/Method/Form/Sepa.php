@@ -64,5 +64,4 @@ class Novalnet_Payment_Block_Payment_Method_Form_Sepa extends Mage_Payment_Block
     {
         return trim(strip_tags(trim($this->getMethod()->getConfigData('booking_reference'))));
     }
-
 }

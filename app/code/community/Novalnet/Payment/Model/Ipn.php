@@ -303,16 +303,15 @@ class Novalnet_Payment_Model_Ipn
 
         $order = $recurringProfile->createOrder($productItemInfo);
         $this->_order = $order;
-        $payment = $order->getPayment();
+        $payment = $order->getPayment();         
         $order->save();
         $payment->setAdditionalData($this->getRequestData('additional_data'))
                 ->save();
         $paymentObj = $payment->getMethodInstance();
 
         $paymentMethod = $paymentObj->getCode();
-        $getTransactionStatus = $paymentObj->doNovalnetStatusCall($tid,$payment);
-        $getStatus = $getTransactionStatus->getStatus();
-        $subsId = $getTransactionStatus->getSubsId();
+        $getStatus = $resultdata->getTidStatus();
+        $subsId = $resultdata->getSubsId();
         $resultdata->setStatus($getStatus);
         if (!$referenceId
         && (in_array($paymentMethod, array(Novalnet_Payment_Model_Config::NN_PREPAYMENT, Novalnet_Payment_Model_Config::NN_INVOICE)) && $getStatus != 100)) {
@@ -327,7 +326,8 @@ class Novalnet_Payment_Model_Ipn
         $payment->setTransactionId($tid)
                 ->setPreparedMessage($this->_createIpnComment(''))
                 ->setAdditionalInformation('subs_id', $subsId)
-                ->setIsTransactionClosed($closed);
+                ->setIsTransactionClosed($closed); 
+        $resultdata->setAmount($order->getGrandTotal());                 
         $paymentObj->logNovalnetStatusData($resultdata, trim($tid));
         $paymentObj->logNovalnetTransactionData($requestdata, $resultdata, trim($tid), $this->_helper->getCustomerId(), $this->_helper->getMagentoStoreId());
         $payment->registerCaptureNotification($originalPrice, 0);

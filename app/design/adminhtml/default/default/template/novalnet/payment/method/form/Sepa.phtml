@@ -26,7 +26,7 @@
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
 $assignDatahelper = Mage::helper('novalnet_payment/AssignData');
-$sepaRefill = $this->getMethod()->getNovalnetConfig('auto_refill', true);
+$sepaRefill = $this->getMethod()->getNovalnetConfig('auto_refill');
 $sepaPaymentRefill = $this->getMethod()->getConfigData('sepa_payment_refill');
 $refillValues = $assignDatahelper->getCheckout()->getRefilldatavalues();
 $refillMethod = ($sepaRefill && $refillValues && $code == $refillValues->getMethod());
@@ -45,15 +45,17 @@ $panhash = (($sepaPaymentRefill || $sepaRefill) && $panhash) ? $panhash : '';
 ?>
 <fieldset class="form-list" id="fieldset_<?php echo $code ?>">
     <!--{{{ Payment Logo -->
-    <div>
-        <a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;">
-            <?php
-            $image = "sepa.png";
-            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
-            ?>
-            <img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
-        </a>
-    </div>
+    <?php if ($helper->getModel($code)->getNovalnetConfig('enable_payment_logo', true)): ?>
+		<div>
+			<a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;">
+				<?php
+				$image = "sepa.png";
+				$imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+				?>
+				<img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
+			</a>
+		</div>
+    <?php endif; ?>	
     <!--}}} Payment Logo -->
     <!--{{{ Novalnet SEPA Form -->
     <ul id="payment_form_<?php echo $code ?>" style="display:none">

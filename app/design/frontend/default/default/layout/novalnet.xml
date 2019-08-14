@@ -32,11 +32,16 @@
                 <script>novalnet/novalnetJquery.js</script>
             </action>
             <action method="addJs">
-                <script>novalnet/novalnetcc.js</script>
-            </action>
-            <action method="addJs">
                 <script>novalnet/novalnetsepa.js</script>
             </action>
         </reference>
     </checkout_onepage_index>
+    <!-- Adjusts Credit Card hosted page loaded in iframe -->
+    <novalnet_payment_novalnetcc_index>
+        <reference name="root">
+            <remove name="right"/>
+            <remove name="left"/>
+        </reference>
+    </novalnet_payment_novalnetcc_index>
+    <!-- Adjusts Credit Card hosted page loaded in iframe -->
 </layout>

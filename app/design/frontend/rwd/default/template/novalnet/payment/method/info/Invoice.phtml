@@ -30,7 +30,7 @@ $currentUrl = Mage::helper('core/url')->getCurrentUrl();
 $currentTime = $this->getAdditionalData('voidCreateAt');
 $captureTime = $this->getAdditionalData('CaptureCreateAt');
 $nextCycleId = $this->getAdditionalData('NnSepaParentTid') ? $this->getAdditionalData('NnSepaParentTid') : $this->getAdditionalData('NnTid');
-$nextCycleDate = $helper->getCycleDate($nextCycleId);
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
 $recurringOrder = $this->getAdditionalData('NnRecurringOrder') ? true : false;
 ?>
 <?php if ($_info): ?>

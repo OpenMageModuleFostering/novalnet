@@ -34,7 +34,6 @@ class Novalnet_Payment_Model_System_Config_Activemethods
     {
         $methods = array();
         $activePayment = false;
-        $inactivePayment = false;
 
         if (strlen($code = Mage::app()->getRequest()->getParam('store'))) { // store level
             $scopeId = Mage::getModel('core/store')->load($code)->getId();
@@ -57,12 +56,10 @@ class Novalnet_Payment_Model_System_Config_Activemethods
                     'value' => $paymentCode,
                 );
                 $activePayment = true;
-            } else {
-                $inactivePayment = true;
-            }
+            } 
         }
 
-        if (!$activePayment && $inactivePayment) {
+        if (!$activePayment) {
             $methods[$paymentCode] = array(
                 'label' => Mage::helper('novalnet_payment')->__('No active payment method for this store'),
                 'value' => false,

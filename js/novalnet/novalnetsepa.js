@@ -194,10 +194,10 @@ function sepaRefillcall()
 
 function sepaCrossDomainAjax(reqData, reqCall)
 {
+	var payportUrl = 'https://payport.novalnet.de/sepa_iban';
     // IE8 & 9 only Cross domain JSON POST request
     if ('XDomainRequest' in window && window.XDomainRequest !== '') {
         var xdr = new XDomainRequest(); // Use Microsoft XDR
-        var payportUrl = getSepaHttpProtocol();
         xdr.open('POST', payportUrl);
         xdr.onload = function() {
             getSepaHashResult($nnsepa_j.parseJSON(this.responseText), reqCall);
@@ -210,7 +210,6 @@ function sepaCrossDomainAjax(reqData, reqCall)
 
         xdr.send(reqData);
     } else {
-        var payportUrl = getSepaHttpProtocol();
         $nnsepa_j.ajax({
             type: 'POST',
             url: payportUrl,
@@ -303,9 +302,9 @@ function removeUnwantedSpecialChars(value, req)
     if (value != 'undefined' || value != '') {
         value.replace(/^\s+|\s+$/g, '');
         if (req != 'undefined' && req == 'holder') {
-            return value.replace(/[\/\\|\]\[|#@,+()`'$~%.":;*?<>!^{}=_]/g,'');
+            return value.replace(/[\/\\|\]\[|#@,+()`'$~%":;*?<>!^{}=_]/g,'');
         } else {
-            return value.replace(/[\/\\|\]\[|#@,+()`'$~%.":;*?<>!^{}=_-]/g,'');
+            return value.replace(/[\/\\|\]\[|#@,+()`'$~%":;*?<>!^{}=_-]/g,'');
         }
     }
 }
@@ -314,7 +313,7 @@ function ibanbicValidate(event)
 {
     var keycode = ('which' in event) ? event.which : event.keyCode;
     var reg = /^(?:[A-Za-z0-9]+$)/;
-    if(event.target.id == 'novalnetSepa_account_holder') var reg = /^(?:[A-Za-z0-9&\s-]+$)/;
+    if(event.target.id == 'novalnetSepa_account_holder') var reg = /^(?:[A-Za-z&\s-.]+$)/;
     return (reg.test(String.fromCharCode(keycode)) || keycode == 0 || keycode == 8 || (event.ctrlKey == true && keycode == 114))? true : false;
 }
 
@@ -333,14 +332,6 @@ function generateUniqueId()
     }
     fromLimit = Math.floor(Math.random() * (5 - 30 + 1)) + 20; //Random split from limit
     return str.substring(fromLimit, fromLimit + length);
-}
-
-function getSepaHttpProtocol()
-{
-    var url = location.href;
-    var urlArr = url.split('://');
-    var urlPrefix = ((urlArr[0] != '' && urlArr[0] == 'https') ? 'https' : 'http');
-    return urlPrefix + "://payport.novalnet.de/sepa_iban";
 }
 
 $nnsepa_j(document).ready(function() {

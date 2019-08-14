@@ -47,7 +47,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         'paymentSave' => array(
             'group_name' => array('novalnetCc', 'novalnetSepa', 'novalnetInvoice',
                 'novalnetPrepayment',
-                'novalnetBanktransfer', 'novalnetPaypal', 'novalnetEps', 'novalnetIdeal'),
+                'novalnetBanktransfer', 'novalnetPaypal', 'novalnetEps', 'novalnetIdeal', 'novalnetGiropay'),
             'header_text' => 'Novalnet Global Configuration',
             'codes' => array(
                 'page' => 'paymentSave',
@@ -487,37 +487,13 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         $exludedGroupes = trim($userGroupId);
         if (strlen($exludedGroupes)) {
             $exludedGroupes = explode(',', $exludedGroupes);
-            $custGrpId = $this->getCustomerSession()->getCustomerGroupId();
-            return !in_array($custGrpId, $exludedGroupes,true);
+            $custGrpId = $this->getCustomerSession()->getCustomerGroupId();     
+            if ($this->checkIsAdmin()) {
+				$custGrpId = $this->getAdminCheckoutSession()->getQuote()->getCustomerId();       
+			}			
+            return !in_array($custGrpId, $exludedGroupes);
         }
         return true;
-    }
-
-    /**
-     * Function to Encode Novalnet data
-     *
-     * @param string $data
-     * @param string $key
-     * @return string
-     */
-    public function getEncodedParam($data, $key)
-    {
-        $data = trim($data);
-        if (!$data) {
-            return'Error: no data';
-        }
-        if (!function_exists('base64_decode') or ! function_exists('pack') or ! function_exists('crc32')) {
-            return'Error: func n/a';
-        }
-        try {
-            $crc = sprintf('%u', crc32($data)); // %u is a must for ccrc32 returns a signed value
-            $data = $crc . "|" . $data;
-            $data = bin2hex($data . $key);
-            $data = strrev(base64_encode($data));
-        } catch (Exception $e) {
-            Mage::logException('Error: ' . $e);
-        }
-        return $data;
     }
 
     /**
@@ -525,14 +501,17 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param string $data
      * @param string $key
+     * @param string $type
      * @return boolean
      */
-    public function getPciEncodedParam(&$fields, $key)
+    public function getPciEncodedParam(&$fields, $key, $type = 'PHP')
     {
         if (!function_exists('base64_encode') || !function_exists('pack') || !function_exists('crc32')) {
             return false;
         }
-        $toBeEncoded = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetHashParams');
+        $toBeEncoded = ($type == 'PHP_PCI')
+            ? Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('pciHashParams')
+            : Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetHashParams');
         foreach ($toBeEncoded as $_value) {
             $data = $fields->$_value;
             if ($this->isEmptyString($data)) {
@@ -603,14 +582,17 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param array $data
      * @param string $key
+     * @param string $type
      * @return string
      */
-    public function generateHash($data, $key)
+    public function generateHash($data, $key, $type = 'PHP')
     {
         if (!function_exists('md5') || $this->isEmptyString($key)) {
             return false;
         }
-        $hashFields = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetHashParams');
+        $hashFields = ($type == 'PHP_PCI')
+            ? Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('pciHashParams')
+            : Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('novalnetHashParams');
         $str = NULL;
         foreach ($hashFields as $_value) {
             if ($this->isEmptyString($data->$_value)) {
@@ -626,9 +608,10 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param array $request
      * @param string $key
+     * @param string $type
      * @return string
      */
-    public function getHash($request, $key)
+    public function getHash($request, $key, $type)
     {
         if (empty($request)) {
             return'Error: no data';
@@ -636,7 +619,13 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
         if (!function_exists('md5')) {
             return'Error: func n/a';
         }
-        return md5($request['auth_code'] . $request['product'] . $request['tariff'] . $request['amount'] . $request['test_mode'] . $request['uniqid'] . strrev($key));
+
+        if ($type == 'PHP_PCI') {
+            $hash = md5($request['vendor_authcode'] . $request['product_id'] . $request['tariff_id'] . $request['amount'] . $request['test_mode'] . $request['uniqid'] . strrev($key));
+        } else {
+            $hash = md5($request['auth_code'] . $request['product'] . $request['tariff'] . $request['amount'] . $request['test_mode'] . $request['uniqid'] . strrev($key));
+        }
+        return $hash;
     }
 
     /**
@@ -644,12 +633,13 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param array $request
      * @param string $key
+     * @param string $type
      * @return boolean
      */
-    public function checkHash($request, $key)
+    public function checkHash($request, $key, $type)
     {
         if (!$request) return false;
-        if ($request['hash2'] != $this->getHash($request, $key)) {
+        if ($request['hash2'] != $this->getHash($request, $key, $type)) {
             return false;
         }
         return true;
@@ -660,14 +650,15 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      *
      * @param array $response
      * @param string $password
+     * @param string $type
      * @return int
      */
-    public function checkParams($response, $password)
+    public function checkParams($response, $password, $type)
     {
         $status = $response['status'];
         if (!$response['hash2']) {
             $status = '94';
-        }if (!$this->checkHash($response, $password)) {
+        }if (!$this->checkHash($response, $password, $type)) {
             $status = '91';
         }
         $response['amount'] = $this->getDecodedParam($response['amount'], $password);
@@ -995,8 +986,6 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getPayportUrl($reqType, $paymentCode = NULL)
     {
-        $protocol = Mage::app()->getStore()->isCurrentlySecure() ? 'https' : 'http';
-
         if ($paymentCode && $reqType == 'redirect') {
             $redirectUrl = Novalnet_Payment_Model_Config::getInstance()->getNovalnetVariable('redirectPayportUrl');
             $payportUrl = $redirectUrl[$paymentCode];
@@ -1007,44 +996,7 @@ class Novalnet_Payment_Helper_Data extends Mage_Core_Helper_Abstract
             );
             $payportUrl = $urlType[$reqType];
         }
-        return $protocol . $payportUrl;
-    }
-
-    /**
-     * Get Next Cycle Date
-     *
-     * @param $nextCycleId
-     * @return mixed
-     */
-    public function getCycleDate($nextCycleId)
-    {
-        $_order = new Mage_Sales_Model_Order();
-        $orderId = Mage::app()->getRequest()->getParam('order_id');
-        if (!$orderId) {
-            $request = Mage::app()->getRequest();
-            $invoiceId = $request->getParam('invoice_id');
-            $shipmentId = $request->getParam('shipment_id');
-            $creditmemoId = $request->getParam('creditmemo_id');
-            if ($invoiceId) {
-            $invoice = Mage::getModel('sales/order_invoice')->load($invoiceId);
-            $orderId = $invoice->getOrder()->getId();
-            } else if ($shipmentId) {
-            $ship = Mage::getModel('sales/order_shipment')->load($shipmentId);
-            $orderId = $ship->getOrder()->getId();
-            } else if ($creditmemoId) {
-                $creditmemo = Mage::getModel('sales/order_creditmemo')->load($creditmemoId);
-                $orderId = $creditmemo->getOrder()->getId();
-            }
-        }
-        if (isset($orderId) && $orderId) {
-            $order = $_order->load($orderId);
-            $payment = $order->getPayment();
-            if ($payment) {
-                $paymentObj = $payment->getMethodInstance();
-                $statusCall = $paymentObj->doNovalnetStatusCall($nextCycleId,$payment);
-                return $statusCall->getNextSubsCycle();
-            }
-        }
+        return $payportUrl;
     }
 
     /**

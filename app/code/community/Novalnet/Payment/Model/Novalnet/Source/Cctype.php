@@ -30,24 +30,19 @@ class Novalnet_Payment_Model_Novalnet_Source_Cctype
     public function toOptionArray()
     {
         $cardTypes = array(
-            'VI' => 'Visa',
-            'MC' => 'MasterCard',
-            'AE' => 'American Express',
-            'TO' => 'Maestro',
-            'T' => 'CartaSi',
+            'visacard'   => 'Visa',
+            'mastercard' => 'MasterCard',
+            'amex'       => 'American Express',
+            'maestro'    => 'Maestro',
+            'cartasi'    => 'CartaSi',
         );
-
-        $allowed = array('AE', 'VI', 'MC', 'TO', 'T');
         $options = array();
         foreach ($cardTypes as $code => $name) {
-            if (in_array($code, $allowed) || !count($allowed)) {
                 $options[] = array(
                     'value' => $code,
                     'label' => $name
                 );
-            }
         }
-
         return $options;
     }
 

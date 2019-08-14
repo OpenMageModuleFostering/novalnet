@@ -29,7 +29,7 @@
     <modules>
         <Novalnet_Payment>
             <!-- declare module's version information for database updates -->
-            <version>10.1.0</version>
+            <version>10.2.0</version>
         </Novalnet_Payment>
     </modules>
 
@@ -306,21 +306,18 @@
         <novalnet_global>
             <novalnet>
                 <gateway_timeout>240</gateway_timeout>
+                <order_status>processing</order_status>
+                <void_status>canceled</void_status>
             </novalnet>
-            <novalnetsetting>
-                <emailsendoption>1</emailsendoption>
-            </novalnetsetting>
         </novalnet_global>
         <!-- 'payment' configuration section (tab) -->
         <payment>
-            <!-- 'module' configuration group (fieldset) -->
             <novalnetInvoice translate="title" module="novalnet_payment">
-                <!-- by default this payment method is inactive -->
                 <active>0</active>
-                <!-- model to handle logic for this payment method -->
                 <model>novalnet_payment/payment_method_novalnetInvoice</model>
-                <!-- default title for payment checkout page and order view page -->
-                <title>Novalnet Kauf auf Rechnung</title>
+                <title>Kauf auf Rechnung</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
                 <payment_ref_one>1</payment_ref_one>
@@ -330,7 +327,9 @@
             <novalnetPrepayment translate="title" module="novalnet_payment">
                 <active>0</active>
                 <model>novalnet_payment/payment_method_novalnetPrepayment</model>
-                <title>Novalnet Vorauskasse</title>
+                <title>Vorauskasse</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
                 <payment_ref_one>1</payment_ref_one>
@@ -338,12 +337,12 @@
                 <payment_ref_three>1</payment_ref_three>
             </novalnetPrepayment>
             <novalnetCc translate="title" module="novalnet_payment">
-                <cctypes>VI,MC</cctypes>
+                <cctypes>visacard,mastercard</cctypes>
                 <active>0</active>
-                <cc_refill>0</cc_refill>
-                <cc_valid_year>25</cc_valid_year>
                 <model>novalnet_payment/payment_method_novalnetCc</model>
-                <title>Novalnet Kreditkarte</title>
+                <title>Kreditkarte</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
             </novalnetCc>
@@ -352,37 +351,55 @@
                 <sepa_refill>0</sepa_refill>
                 <model>novalnet_payment/payment_method_novalnetSepa</model>
                 <allowspecific>0</allowspecific>
-                <title>Novalnet Lastschrift SEPA</title>
+                <title>Lastschrift SEPA</title>
+                <order_status>processing</order_status>
                 <group>novalnet</group>
             </novalnetSepa>
             <novalnetBanktransfer translate="title" module="novalnet_payment">
                 <active>0</active>
                 <model>novalnet_payment/payment_method_novalnetBanktransfer</model>
-                <title>Novalnet Sofortüberweisung</title>
+                <title>Sofortüberweisung</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
             </novalnetBanktransfer>
             <novalnetPaypal translate="title" module="novalnet_payment">
                 <active>0</active>
                 <model>novalnet_payment/payment_method_novalnetPaypal</model>
-                <title>Novalnet PayPal</title>
+                <title>PayPal</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
             </novalnetPaypal>
             <novalnetIdeal translate="title" module="novalnet_payment">
                 <active>0</active>
                 <model>novalnet_payment/payment_method_novalnetIdeal</model>
-                <title>Novalnet iDEAL</title>
+                <title>iDEAL</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
             </novalnetIdeal>
             <novalnetEps translate="title" module="novalnet_payment">
                 <active>0</active>
                 <model>novalnet_payment/payment_method_novalnetEps</model>
-                <title>Novalnet Eps</title>
+                <title>Eps</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
                 <allowspecific>0</allowspecific>
                 <group>novalnet</group>
             </novalnetEps>
+            <novalnetGiropay translate="title" module="novalnet_payment">
+                <active>0</active>
+                <model>novalnet_payment/payment_method_novalnetGiropay</model>
+                <title>Giropay</title>
+                <order_status>pending</order_status>
+                <order_status_after_payment>processing</order_status_after_payment>
+                <allowspecific>0</allowspecific>
+                <group>novalnet</group>
+            </novalnetGiropay>
         </payment>
     </default>
 </config>

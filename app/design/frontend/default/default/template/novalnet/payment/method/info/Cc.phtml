@@ -29,7 +29,7 @@ $nextCycleId = $this->getAdditionalData('NnSepaParentTid') ? $this->getAdditiona
 $helper = Mage::helper('novalnet_payment');
 $currentTime = $this->getAdditionalData('voidCreateAt');
 $captureTime = $this->getAdditionalData('CaptureCreateAt');
-$nextCycleDate = $helper->getCycleDate($nextCycleId);
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
 if ($_info):
     ?>
     <?php

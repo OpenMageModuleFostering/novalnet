@@ -209,7 +209,9 @@ $getpayment = array(
                 Novalnet_Payment_Model_Config::NN_PREPAYMENT,
                 Novalnet_Payment_Model_Config::NN_INVOICE,
                 Novalnet_Payment_Model_Config::NN_IDEAL,
-                Novalnet_Payment_Model_Config::NN_SOFORT
+                Novalnet_Payment_Model_Config::NN_SOFORT,
+                Novalnet_Payment_Model_Config::NN_EPS,
+                Novalnet_Payment_Model_Config::NN_GIROPAY
             );
 if (in_array($paymentname, $getpayment)):
     $firstName = $_order->getBillingAddress()->getData('firstname');
@@ -225,7 +227,7 @@ if (in_array($paymentname, $getpayment)):
     <table>
     <tr>
       <td>
-     <input type='radio' name='refund_payment_type' id='refund_payment_type_none' value='NONE' checked onclick="refund_payment_type_element_handle('none');"/> <?php echo Mage::helper('sales')->__('None'); ?>
+     <input type='radio' name='refund_payment_type' id='refund_payment_type_none' value='NONE' checked onclick="refund_payment_type_element_handle('none');"/> <?php echo $this->__('Novalnet None'); ?>
       <input type='radio' name='refund_payment_type' id='refund_payment_type_sepa' value='SEPA' onclick="refund_payment_type_element_handle();"/> <?php echo Mage::helper('sales')->__('Novalnet Direct Debit SEPA'); ?>
       </td>
     </tr>

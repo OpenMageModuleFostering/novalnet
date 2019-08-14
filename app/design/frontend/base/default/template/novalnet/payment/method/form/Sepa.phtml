@@ -26,7 +26,7 @@
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
 $assignDatahelper = Mage::helper('novalnet_payment/AssignData');
-$sepaRefill = $this->getMethod()->getNovalnetConfig('auto_refill', true);
+$sepaRefill = $this->getMethod()->getConfigData('auto_refill');
 $sepaPaymentRefill = $this->getMethod()->getConfigData('sepa_payment_refill');
 $refillValues = $assignDatahelper->getCheckout()->getRefilldatavalues();
 $refillMethod = ($sepaRefill && $refillValues && $code == $refillValues->getMethod());
@@ -51,15 +51,17 @@ $authCode = $checkoutSession->getNnAuthcode() ? $checkoutSession->getNnAuthcode(
 ?>
 <ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
     <!--{{{ Payment Logo -->
-    <div>
-        <a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;">
-            <?php
-            $image = "sepa.png";
-            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
-            ?>
-            <img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
-        </a>
-    </div>
+    <?php if ($helper->getModel($code)->getNovalnetConfig('enable_payment_logo', true)): ?>
+		<div>
+			<a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;">
+				<?php
+				$image = "sepa.png";
+				$imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+				?>
+				<img src="<?php echo $imgpath; ?>" alt="<?php echo $this->getMethod()->getConfigData('title'); ?>" title="<?php echo $this->getMethod()->getConfigData('title'); ?>" />
+			</a>
+		</div>
+	<?php endif; ?>	
     <!--}}} Payment Logo -->
     <!--{{{ Novalnet SEPA Form -->
     <div class="nnsepaloader" id='sepa_loading' style='display:none;'></div>
@@ -80,6 +82,7 @@ $authCode = $checkoutSession->getNnAuthcode() ? $checkoutSession->getNnAuthcode(
     <?php endif ?>
 
     <li>
+        <p class="required"><?php echo $this->__('* Required Fields') ?></p>
         <label for="<?php echo $code ?>_account_holder" class="required"><em>*</em><?php echo $this->__('Account Holder') ?></label>
         <div class="input-box">
             <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $code ?>_account_holder" onkeypress="return ibanbicValidate(event)" onchange="unsetHashRelatedElements();" name="payment[account_holder]" autocomplete="off" value="<?php echo $billingaddress->getFirstname() . ' ' . $billingaddress->getLastname(); ?>" />
@@ -158,17 +161,8 @@ $authCode = $checkoutSession->getNnAuthcode() ? $checkoutSession->getNnAuthcode(
                     <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
                 </div>
             </li>
-            <!--}}} PIN by Callback-->
-            <!--{{{ Reply by Email-->
-            <?php elseif ($this->getCallbackConfigData() == 3): ?>
-            <li>
-                <label for="<?php echo $code ?>_callback_email" class="required"><em>*</em><?php echo $this->__('E-mail Address') ?></label>
-                <div class="input-box">
-                    <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php echo $billingaddress->getEmail(); ?>"/>
-                </div>
-            </li>
+            <!--}}} PIN by Callback-->         
         <?php endif ?>
-        <!--}}} Reply by Email-->
     <?php endif ?>
     <!--}}} CallbackType-->
     <input id="process_vendor_id" type="hidden" value="<?php echo $vendorId ?>"/>

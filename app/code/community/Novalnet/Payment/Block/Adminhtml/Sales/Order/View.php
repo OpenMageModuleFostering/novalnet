@@ -32,30 +32,24 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
         $order = $this->getOrder();
         $payment = $order->getPayment();
         $paymentMethod = $payment->getMethodInstance()->getCode();
-        $helper = Mage::helper('novalnet_payment');
-        $getTid = $helper->makeValidNumber($payment->getLastTransId());
-
 
         if (preg_match("/novalnet/i", $paymentMethod)) {
+            $helper = Mage::helper('novalnet_payment');
+            $getTid = $helper->makeValidNumber($payment->getLastTransId());
             $this->_removeButton('order_creditmemo');
             $getTransactionStatus = $helper->loadTransactionStatus($getTid);
-
             $this->_updateButton('order_invoice', 'label', Mage::helper('novalnet_payment')->__('Capture'));
 
-            if ($paymentMethod == Novalnet_Payment_Model_Config::NN_PAYPAL) {
+            if ($paymentMethod == Novalnet_Payment_Model_Config::NN_PAYPAL ||
+                    $getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS) {
                 $this->_removeButton('order_invoice');
             }
-
-            if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
+            if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED ) {
                 $this->_removeButton('void_payment');
             }
 
-            if ($getTransactionStatus->getTransactionStatus() == Novalnet_Payment_Model_Config::PAYMENT_VOID_STATUS) {
-                $this->_removeButton('order_invoice');
-            }
-
             if (in_array($paymentMethod, array(Novalnet_Payment_Model_Config::NN_INVOICE,
-                        Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
+                    Novalnet_Payment_Model_Config::NN_PREPAYMENT))) {
                 $this->_removeButton('order_invoice');
                 if ($getTransactionStatus->getTransactionStatus() == 91) {
                     $this->_removeButton('order_invoice');
@@ -65,6 +59,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
                             ), 0);
                 }
             }
+
             if ($order->canCancel() && $getTransactionStatus->getTransactionStatus()
                     < Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
                 $this->_removeButton('void_payment');
@@ -74,6 +69,7 @@ class Novalnet_Payment_Block_Adminhtml_Sales_Order_View extends Mage_Adminhtml_B
                     'onclick' => "confirmSetLocation('{$message}', '{$this->getVoidPaymentUrl()}')",
                 ));
             }
+
             if ($this->_isAllowedAction('ship') && $order->canShip()
                 && !$order->getForcedDoShipmentWithInvoice()) {
                 $this->_addButton('order_ship', array(

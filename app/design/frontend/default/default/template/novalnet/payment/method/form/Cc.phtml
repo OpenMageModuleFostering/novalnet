@@ -25,39 +25,24 @@
  */
 $code = $this->getMethodCode();
 $helper = Mage::helper('novalnet_payment');
-$assignDatahelper = Mage::helper('novalnet_payment/AssignData');
-$refillValues = $assignDatahelper->getCheckout()->getRefilldatavalues();
-$creditCardSecure = $this->getMethod()->getConfigData('active_cc3d');
-$ccRefill = $this->getMethod()->getNovalnetConfig('auto_refill', true);
-// get quote billing address
-$checkoutSession = Mage::getSingleton('checkout/session');
-$billingaddress = $checkoutSession->getQuote()->getBillingAddress();
-$telephoneNumber = ($this->getCallbackConfigData() == 1 && $billingaddress->getTelephone())
-           ? $billingaddress->getTelephone() : '' ;
-$vendorId = $checkoutSession->getNnVendor()
-            ? $checkoutSession->getNnVendor() : trim($this->getMethod()->getNovalnetConfig('merchant_id', true));
-$authCode = $checkoutSession->getNnAuthcode()
-            ? $checkoutSession->getNnAuthcode() : trim($this->getMethod()->getNovalnetConfig('auth_code', true));
 ?>
 <ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
     <!--{{{ Payment Logo -->
-    <div>
-        <a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;float:none;">
-            <?php foreach ($this->getCcAvailableTypes() as $typeCode => $typeName): ?>
-                <?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $typeCode . ".png"; ?>
-                <img style="height:20px;display:inline;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
-            <?php endforeach; ?>
-        </a>
-    </div>
+	<?php if ($helper->getModel($code)->getNovalnetConfig('enable_payment_logo', true)): ?>
+		<div>
+			<a href="<?php echo $helper->getNovalnetUrl(); ?>" target="_new" style="text-decoration:none;float:none;">
+				<?php foreach ($this->getCcAvailableTypes() as $typeCode => $typeName): ?>
+					<?php $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $typeCode . ".png"; ?>
+					<img style="display:inline;" src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+				<?php endforeach; ?>
+			</a>
+		</div>
+	<?php endif; ?>	
     <!--}}} Payment Logo -->
-    <!--{{{ Novalnet Cc Form -->
-    <div class="nnccloader" id='cc_loading' style='display:none;'></div>
     <li>
         <?php
-            echo $this->__('The amount will be debited from your credit card once the order is submitted');
-            if ($this->getMethod()->getConfigData('active_cc3d')):
-                echo "<br>".$this->__('Please don’t close the browser after successful payment, until you have been redirected back to the Shop');
-            endif;
+            echo $this->__('redirect payment description');
+            echo "<br>".$this->__('Please don’t close the browser after successful payment, until you have been redirected back to the Shop');
          ?>
     </li>
     <?php if ($this->getUserInfo()): ?>
@@ -65,124 +50,11 @@ $authCode = $checkoutSession->getNnAuthcode()
             <?php echo $this->getUserInfo() ?>
         </li>
     <?php endif ?>
-    <?php if (Mage::helper('novalnet_payment')->getModel('novalnetCc')->getNovalnetConfig('live_mode', true) == 0): ?>
+    <?php if ($helper->getModel('novalnetCc')->getNovalnetConfig('live_mode', true) == 0): ?>
         <li>
             <div style="font-weight:bold;color:red;font-size:12px;">
                 <?php echo $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged') ?>
             </div>
         </li>
     <?php endif ?>
-    <li>
-        <label for="<?php echo $code ?>_cc_owner" class="required"><em>*</em><?php echo $this->__('NN CC holder') ?></label>
-        <div class="input-box">
-            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="required-entry input-text" id="<?php echo $code ?>_cc_owner"  autocomplete="off" onkeypress="return accHolderValidate(event)" onchange="cchashcall()" value="<?php echo $billingaddress->getFirstname() . ' ' . $billingaddress->getLastname(); ?>" />
-        </div>
-    </li>
-    <li>
-        <label for="<?php echo $code ?>_cc_number" class="required"><em>*</em><?php echo $this->__('NN CC number') ?></label>
-        <div class="input-box">
-            <input type="text" id="<?php echo $code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" autocomplete="off" onchange="cchashcall()" onkeypress="return isNumberKey(event,true)" value="" />
-        </div>
-    </li>
-    <li>
-        <label for="<?php echo $code ?>_expiration" class="required"><em>*</em><?php echo $this->__('NN Expiration Date') ?></label>
-        <div class="input-box">
-            <div class="v-fix">
-                <select id="<?php echo $code ?>_expiration" onchange="cchashcall()" class="month validate-cc-exp required-entry" name="<?php echo $code ?>_expiration">
-                    <option value=""><?php echo $this->__('Month'); ?></option>
-                    <?php foreach ($this->getCcMonths() as $k => $v): ?>
-                        <option value="<?php echo $k ?>"><?php echo $v ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="v-fix">
-                <select id="<?php echo $code ?>_expiration_yr" onchange="cchashcall()" class="year required-entry" name="<?php echo $code ?>_expiration_yr">
-                    <option value=""><?php echo $this->__('Year'); ?></option>
-                    <?php foreach ($this->getCcYears() as $k => $v): ?>
-                        <option value="<?php echo $k ?>"><?php echo $v ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-    </li>
-    <li>
-        <label for="<?php echo $code ?>_cc_cid" class="required"><em>*</em><?php echo $this->__('NN CVC') ?></label>
-        <div class="input-box">
-            <div class="v-fix">
-                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv required-entry validate-cc-cvn" id="<?php echo $code ?>_cc_cid" name="payment[nn_cc_cid]" value="" onkeypress="return isNumberKey(event, false);"/>
-            </div>
-            <a href="#" class="cvv-what-is-this"><?php echo $this->__('What is this?') ?></a>
-        </div>
-    </li>
-    <!--{{{ CallbackType-->
-    <?php if (!$creditCardSecure && $this->isCallbackTypeCall()): ?>
-        <!--{{{ PIN by Callback-->
-        <?php
-        if ($this->getCallbackConfigData() != 3):
-            ?>
-            <li>
-                <label for="<?php echo $code ?>_callback_tel" class="required"><em>*</em>
-                    <?php if ($this->getCallbackConfigData() == 2): ?>
-                        <?php echo $this->__('Mobile phone number'); ?>
-                    <?php else: ?>
-                        <?php echo $this->__('NN Mobile Number'); ?>
-                    <?php endif; ?>
-                </label>
-                <div class="input-box">
-                    <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text validate-number" value="<?php echo $telephoneNumber; ?>"/>
-                </div>
-            </li>
-            <li>
-                <div class="nncallbacknote">
-                    <?php echo $this->__('Note for pin by sms and callback') ?>
-                </div>
-                <label for="<?php echo $code ?>_callback_pin" class="required"><em>*</em><?php echo $this->__('PIN') ?></label>
-                <div class="input-box">
-                    <input onkeydown="document.getElementById('<?php echo $code ?>_new_callback_pin').checked = false;" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
-                    <input id="<?php echo $code ?>_new_callback_pin" type="checkbox" name="payment[new_callback_pin]" value="1">
-                    <label style="float:none;" for="<?php echo $code ?>_new_callback_pin"><?php echo $this->__('Forgot PIN? [New PIN Request]') ?></label>
-                </div>
-            </li>
-            <!--}}} PIN by Callback-->
-            <!--{{{ Reply by Email-->
-            <?php elseif ($this->getCallbackConfigData() == 3): ?>
-            <li>
-                <label for="<?php echo $code ?>_callback_email" class="required"><em>*</em><?php echo $this->__('E-mail Address') ?></label>
-                <div class="input-box">
-                    <input type="text" autocomplete="off" id="<?php echo $code ?>_callback_email" name="payment[callback_email]" title="<?php echo $this->__('Callback Email') ?>" class="input-text validate-email required-entry" value="<?php echo $billingaddress->getEmail(); ?>"/>
-                </div>
-           </li>
-        <?php endif ?>
-        <!--}}} Reply by Email-->
-    <?php endif ?>
-    <!--}}} CallbackType-->
-    <input type="hidden" id="original_vendor_id" value="<?php echo $vendorId ?>" />
-    <input type="hidden" id="original_vendor_authcode" value="<?php echo $authCode ?>" />
-    <input type="hidden" id="novalnet_cc_pan_hash" value="<?php echo $ccRefill ? $assignDatahelper->getCheckout()->getCcPanHash() : '';   ?>" />
-    <input type="hidden" name="novalnet_cc_hash" id="novalnet_cc_hash" value="" />
-    <input type="hidden" name="novalnet_cc_unique_id" id="novalnet_cc_unique_id" value="<?php echo $ccRefill ? $assignDatahelper->getCheckout()->getCcUniqueId() : ''; ?>" />
-    <input type="hidden" id="nn_cc_merchant_validate_error_message" value="<?php echo $this->__('Basic parameter not valid') . '!'; ?>" />
-    <input type="hidden" id="nn_cc_validate_error_message" value="<?php echo $this->__('Your credit card details are invalid') . '!'; ?>" />
-    <!--}}} Novalnet Cc Form -->
 </ul>
-<style>
-.nnccloader {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  background: url('<?php echo $helper->getNovalnetPaymentFormLogoUrl() ?>novalnet-loading-icon.gif') 50% 50% no-repeat;
-}
-.nncallbacknote {
-  font-weight:bold;
-  font-size:11px;
-  color:gray;
-  border:1px solid #BFBFBF;
-  background:#FEFFBF;
-  padding:10px;
-  margin-top:10px;
-  width:400px;
-}
-</style>

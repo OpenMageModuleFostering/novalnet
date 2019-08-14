@@ -30,7 +30,7 @@ $currentUrl = Mage::helper('core/url')->getCurrentUrl();
 $currentTime = $this->getAdditionalData('voidCreateAt');
 $captureTime = $this->getAdditionalData('CaptureCreateAt');
 $nextCycleId = $this->getAdditionalData('NnSepaParentTid') ? $this->getAdditionalData('NnSepaParentTid') : $this->getAdditionalData('NnTid');
-$nextCycleDate = $helper->getCycleDate($nextCycleId);
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
 ?>
 <?php if ($this->getAdditionalData('NnTestOrder')) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
 <strong><?php echo Mage::helper('novalnet_payment')->__('%s', $this->getMethod()->getTitle()) ?></strong>{{pdf_row_separator}}

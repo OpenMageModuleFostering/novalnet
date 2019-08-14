@@ -28,15 +28,17 @@ $helper = Mage::helper('novalnet_payment');
 ?>
 <ul class="form-list" id="payment_form_<?php echo $code ?>" style="display:none;">
     <!--{{{ Payment Logo -->
-    <div>
-        <a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
-            <?php
-            $image = "eps.png";
-            $imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
-            ?>
-            <img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
-        </a>
-    </div>
+   <?php if ($helper->getModel($code)->getNovalnetConfig('enable_payment_logo', true)): ?>
+		<div>
+			<a href="<?php echo $helper->getNovalnetUrl() ?>" target="_new" style="text-decoration:none;">
+				<?php
+				$image = "eps.png";
+				$imgpath = $helper->getNovalnetPaymentFormLogoUrl() . $image;
+				?>
+				<img src="<?php echo $imgpath ?>" alt="<?php echo $this->getMethod()->getConfigData('title') ?>" title="<?php echo $this->getMethod()->getConfigData('title') ?>" />
+			</a>
+		</div>
+	<?php endif; ?>		
     <!--}}} Payment Logo -->
     <!--{{{ Payment Description -->
     <li>

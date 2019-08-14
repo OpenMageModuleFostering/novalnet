@@ -53,7 +53,6 @@ class Novalnet_Payment_Model_Factory
         }
 
         if ($transStatus != Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED) {
-
             $transMode = (version_compare($magentoVersion, '1.6', '<')) ? false : true;
             $payment->setTransactionId($lastTranId)
                     ->setIsTransactionClosed($transMode);
@@ -75,16 +74,15 @@ class Novalnet_Payment_Model_Factory
      * @param array $response
      * @return mixed
      */
-    public function callTransactionStatus($getTid, $payment, $amountAfterRefund, $call, $refundTid
+    public function getTransactionData($getTid, $payment, $amountAfterRefund, $call, $refundTid
     = NULL, $customerId = NULL, $response = NULL)
-    {
+    {			
         $helper = Mage::helper('novalnet_payment');
-        $paymentObj = $payment->getMethodInstance();
-        $getTransactionStatus = $paymentObj->doNovalnetStatusCall($getTid, $payment, Novalnet_Payment_Model_Config::TRANS_STATUS, NULL, NULL);
-        $amount = $helper->getFormatedAmount($getTransactionStatus->getAmount(), 'RAW');
-        if ($call == 1) {
+        $paymentObj = $payment->getMethodInstance();    	     	   
+        $amount = $helper->getFormatedAmount($response->getAmount(), 'RAW');       
+        if ($call == 1) {	
             $loadTransaction = $helper->loadTransactionStatus($getTid);
-            $loadTransaction->setTransactionStatus($getTransactionStatus->getStatus())
+            $loadTransaction->setTransactionStatus($response->getTidStatus())
                     ->setAmount($amount)
                     ->save();
           if (in_array($paymentObj->getCode(), array(Novalnet_Payment_Model_Config::NN_INVOICE,
@@ -92,13 +90,14 @@ class Novalnet_Payment_Model_Factory
                     $loadTransaction->setAmount($amountAfterRefund)
                             ->save();
           }
-        } else {
+        } else {	
             if ($refundTid) { // Only log the novalnet transaction which contains TID
-                $response->setStatus($getTransactionStatus->getStatus());
-                $paymentObj->logNovalnetStatusData($response, $refundTid, $customerId, NULL, $amount);
+                $response->setStatus($response->getTidStatus());
+                $paymentObj->logNovalnetStatusData($response, $refundTid, $customerId, NULL, $response->getAmount());
             }
-        }
-        return $getTransactionStatus;
+        }      
+        return $response;
+       
     }
 
     /**
@@ -129,7 +128,7 @@ class Novalnet_Payment_Model_Factory
                     ->save();
         }
     }
-
+    
     /**
      * Set RequestParams Form
      *
@@ -144,14 +143,17 @@ class Novalnet_Payment_Model_Factory
         $helper = Mage::helper('novalnet_payment');
         $billing = $infoObject->getBillingAddress();
         $shipping = $infoObject->getShippingAddress();
-        $company = $billing->getCompany() ? $billing->getCompany() : ($shipping->getCompany() ? $shipping->getCompany() : '');
+        if (!$infoObject->getIsVirtual())
+			$company = $billing->getCompany() ? $billing->getCompany() : ($shipping->getCompany() ? $shipping->getCompany() : '');
         $email = $billing->getEmail() ? $billing->getEmail() : $infoObject->getCustomerEmail();
         $request = $company ? $request->setCompany($company) : $request;
+        $vendorScriptUrlConfig = Mage::getStoreConfig('novalnet_global/novalnetsetting/vendor_script_url');
+        $vendorScriptUrl = $vendorScriptUrlConfig ? $vendorScriptUrlConfig : 
+							Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB).'callback_novalnet2magento.php';
         $request->setTestMode($livemode)
                 ->setAmount($amount)
                 ->setCurrency($infoObject->getBaseCurrencyCode())
                 ->setCustomerNo($helper->getCustomerId())
-                ->setUseUtf8(1)
                 ->setFirstName($billing->getFirstname())
                 ->setLastName($billing->getLastname())
                 ->setSearchInStreet(1)
@@ -172,8 +174,9 @@ class Novalnet_Payment_Model_Factory
                 ->setSystemIp($helper->getServerAddr())
                 ->setSystemName('Magento')
                 ->setSystemVersion($helper->getMagentoVersion() . '-' . $helper->getNovalnetVersion())
+                ->setNotifyUrl($vendorScriptUrl)
                 ->setInput1('order_id')
-                ->setInputval1($orderId);
+                ->setInputval1($orderId);        
     }
 
     /**
@@ -352,29 +355,6 @@ class Novalnet_Payment_Model_Factory
             endforeach;
             $checkoutSession->getQuote()->getPayment()->setMethod($paymentMethod);
         }
-    }
-
-    /**
-     * Verify the final amount for the transaction id
-     *
-     * @param string $currency
-     * @param int $getTid
-     * @param varien_object $payment
-     * @param int $refundAmount
-     * @return int
-     */
-    public function checkNovalnetCardAmount($currency, $getTid, $payment, $refundAmount)
-    {
-        $helper = Mage::helper('novalnet_payment');
-        $paymentObj = $payment->getMethodInstance();
-        $statusCallSub = $paymentObj->doNovalnetStatusCall($getTid,$payment);
-        $respnseCode = $statusCallSub->getStatus();
-        $cardAmount = $statusCallSub->getAmount();
-
-        if($respnseCode == 100 && $refundAmount > $cardAmount) {
-            Mage::throwException($helper->__('Refund amount greater than Novalnet card Amount, amount in card') . ' '. $currency . $helper->getFormatedAmount($cardAmount, 'RAW'));
-        }
-        return $cardAmount;
     }
 
     /**

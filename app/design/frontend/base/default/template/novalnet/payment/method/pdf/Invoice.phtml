@@ -30,8 +30,7 @@ $currentUrl = Mage::helper('core/url')->getCurrentUrl();
 $currentTime = $this->getAdditionalData('voidCreateAt');
 $captureTime = $this->getAdditionalData('CaptureCreateAt');
 $nextCycleId = $this->getAdditionalData('NnSepaParentTid') ? $this->getAdditionalData('NnSepaParentTid') : $this->getAdditionalData('NnTid');
-$nextCycleDate = $helper->getCycleDate($nextCycleId);
-$recurringOrder = $this->getAdditionalData('NnRecurringOrder') ? true : false;
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
 ?>
 <?php if ($this->getAdditionalData('NnTestOrder')) echo $this->__('Testorder'); ?>{{pdf_row_separator}}
 <strong><?php echo Mage::helper('novalnet_payment')->__('%s', $this->getMethod()->getTitle()) ?></strong>{{pdf_row_separator}}
@@ -50,7 +49,7 @@ if ($this->getAdditionalData('refunded_tid')):
     endforeach;
 endif;
 ?>{{pdf_row_separator}}
-<?php if (!preg_match("/creditmemo|callback_novalnet2magento/i", $currentUrl) || $recurringOrder): ?>
+<?php if (!preg_match("/creditmemo|callback_novalnet2magento/i", $currentUrl)): ?>
     <?php
     if (strlen($this->getAdditionalData('NnNote'))):
         if (strstr($this->getAdditionalData('NnNote'), 'br')):

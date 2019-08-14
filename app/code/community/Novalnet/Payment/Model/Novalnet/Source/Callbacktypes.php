@@ -30,7 +30,6 @@ class Novalnet_Payment_Model_Novalnet_Source_Callbacktypes
         return array(0 => Mage::helper('novalnet_payment')->__('None'),
             1 => Mage::helper('novalnet_payment')->__('PIN by callback'),
             2 => Mage::helper('novalnet_payment')->__('PIN by SMS'),
-            3 => Mage::helper('novalnet_payment')->__('Reply via E-mail')
         );
     }
 }

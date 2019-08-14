@@ -246,18 +246,16 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
 
                     $amountChanged = $rawAmount;
                     $loadTransStatus = $helper->loadTransactionStatus($lastTranId);
-                    $transStatus = $loadTransStatus->getTransactionStatus();
-                    // set transaction amount
-                    $loadTransStatus->setAmount($amountChanged)
-                                   ->save();
-
+                    $transStatus = $loadTransStatus->getTransactionStatus();                    
                     if (!in_array(NULL, $request->toArray()) && !empty($transStatus)) {
                         $buildNovalnetParam = http_build_query($request->getData());
                         $payportUrl = $helper->getPayportUrl('paygate');
                         $dataHelper =  Mage::helper('novalnet_payment/AssignData');
                         $response = $dataHelper->setRawCallRequest($buildNovalnetParam, $payportUrl, $paymentObj);
-
                         if ($response->getStatus() == $responseCodeApproved) {
+							// set transaction amount
+							$loadTransStatus->setAmount($amountChanged)
+										    ->save();
                             // make capture transaction open for lower versions to make refund
                             if (version_compare($helper->getMagentoVersion(), '1.6', '<')) {
                                 $payment->setIsTransactionClosed(false)
@@ -270,7 +268,7 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                                 if ($invoiceDuedate) {
                                     $note = explode('|',$data['NnNote']);
                                     $formatDate = Mage::helper('core')->formatDate($invoiceDuedate);
-                                    $note[0] = "Due Date: <b>$formatDate</b>";
+                                    $note[0] = 'Due Date: <b><span id="due_date">'.$formatDate.'</span></b>';
                                     $data['NnNote'] = implode('|',$note);
                                 }
                                 $data['NnNoteAmount'] = $dataHelper->getBankDetailsAmount($amountChanged);
@@ -278,7 +276,7 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                                         ->save();
                                 $modNovalamountchanged->setInvoiceDuedate($invoiceDuedate);
                             }
-                            $countAmount = $helper->getAmountCollection($orderId, NULL, NULL);
+                            $countAmount = $helper->getAmountCollection($orderId, NULL, NULL);                            
                             $modNovalamountchanged = $countAmount ? $helper->getModelAmountchanged()->load($orderId, 'order_id')
                                         : $helper->getModelAmountchanged();
                             $modNovalamountchanged->setOrderId($orderId)
@@ -309,7 +307,7 @@ class Novalnet_Payment_Adminhtml_Novalnetpayment_Sales_OrderController extends M
                             }
                         } else {
                             Mage::throwException($response->getStatusDesc());
-                        }
+                        }             
                         $customerId = $order->getCustomerId();
                         $paymentObj->logNovalnetTransactionData($request, $response, $lastTranId, $customerId, $storeId);
                         $this->_getSession()->addSuccess(

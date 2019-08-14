@@ -28,24 +28,23 @@ class Novalnet_Payment_Model_Config
     /* ******************************************** */
      /*      NOVALNET GLOBAL PARAMS STARTS         */
     /* ******************************************* */
-    const CALLBACK_PIN_LENGTH = 4;   //PIN Length
     const RESPONSE_CODE_APPROVED = 100; //On Payment Success
     const PAYMENT_VOID_STATUS = 103; //On Payment void
-    const CVV_MIN_LENGTH = 3;   //MIN CVV No
     const NOVALNET_RETURN_METHOD = 'POST';
     const NOVALNET_REDIRECT_BLOCK = 'novalnet_payment/payment_method_novalnetRedirect';
     const GATEWAY_REDIRECT_URL = 'novalnet_payment/gateway/redirect';
     const GATEWAY_DIRECT_URL = 'novalnet_payment/gateway/payment';
     const GATEWAY_RETURN_URL = 'novalnet_payment/gateway/return';
     const GATEWAY_ERROR_RETURN_URL = 'novalnet_payment/gateway/error';
-    const PAYPORT_URL = '://payport.novalnet.de/paygate.jsp';
-    const INFO_REQUEST_URL = '://payport.novalnet.de/nn_infoport.xml';
+    const CC_IFRAME_URL = 'novalnet_payment/cc/index';
+    const CC_PCI_PAYPORT_URL = 'https://payport.novalnet.de/pci_payport';
+    const PAYPORT_URL = 'https://payport.novalnet.de/paygate.jsp';
+    const INFO_REQUEST_URL = 'https://payport.novalnet.de/nn_infoport.xml';
     const INVOICE_PAYMENT_METHOD = 'Invoice';
     const PREPAYMENT_PAYMENT_METHOD = 'Prepayment';
     const TRANS_STATUS = 'TRANSACTION_STATUS';
     const SUBS_PAUSE = 'SUBSCRIPTION_PAUSE';
     const TRANSMIT_PIN_AGAIN = 'TRANSMIT_PIN_AGAIN';
-    const REPLY_EMAIL_STATUS = 'REPLY_EMAIL_STATUS';
     const PIN_STATUS = 'PIN_STATUS';
     const METHOD_DISABLE_CODE = '0529006';
     const PAYPAL_PENDING_CODE = 90;
@@ -55,25 +54,29 @@ class Novalnet_Payment_Model_Config
     static protected $_instance;
     protected $_novalnetPaymentKey = array('novalnetCc' => 6, 'novalnetInvoice' => 27,
         'novalnetPrepayment' => 27, 'novalnetPaypal' => 34, 'novalnetBanktransfer' => 33,
-        'novalnetIdeal' => 49, 'novalnetEps' => 50, 'novalnetSepa' => 37);
+        'novalnetIdeal' => 49, 'novalnetEps' => 50, 'novalnetSepa' => 37, 'novalnetGiropay' => 69);
     protected $_novalnetPaymentMethods = array('novalnetCc' => 'Novalnet Credit Card', 'novalnetInvoice' => 'Novalnet Invoice',
         'novalnetPrepayment' => 'Novalnet Prepayment',
         'novalnetPaypal' => 'Novalnet PayPal', 'novalnetBanktransfer' => 'Novalnet Instant Bank Transfer',
-        'novalnetIdeal' => 'Novalnet iDEAL', 'novalnetEps' => 'Novalnet Eps', 'novalnetSepa' => 'Novalnet Direct Debit SEPA');
+        'novalnetIdeal' => 'Novalnet iDEAL', 'novalnetEps' => 'Novalnet Eps', 'novalnetSepa' => 'Novalnet Direct Debit SEPA',
+        'novalnetGiropay' => 'Novalnet Giropay');
     protected $_novalnetPaymentTypes = array('novalnetCc' => 'CREDITCARD', 'novalnetInvoice' => 'INVOICE',
         'novalnetPrepayment' => 'PREPAYMENT', 'novalnetPaypal' => 'PAYPAL', 'novalnetBanktransfer' => 'ONLINE_TRANSFER',
-         'novalnetIdeal' => 'IDEAL', 'novalnetEps' => 'EPS', 'novalnetSepa' => 'DIRECT_DEBIT_SEPA');
-    protected $_redirectPayportUrl = array('novalnetPaypal' => '://payport.novalnet.de/paypal_payport',
-        'novalnetBanktransfer' => '://payport.novalnet.de/online_transfer_payport',
-        'novalnetIdeal' => '://payport.novalnet.de/online_transfer_payport', 'novalnetEps' => '://payport.novalnet.de/eps_payport',
-        'novalnetCc' => '://payport.novalnet.de/global_pci_payport');
+         'novalnetIdeal' => 'IDEAL', 'novalnetEps' => 'EPS', 'novalnetSepa' => 'DIRECT_DEBIT_SEPA', 'novalnetGiropay' => 'GIROPAY');
+    protected $_redirectPayportUrl = array('novalnetPaypal' => 'https://payport.novalnet.de/paypal_payport',
+        'novalnetBanktransfer' => 'https://payport.novalnet.de/online_transfer_payport',
+        'novalnetIdeal' => 'https://payport.novalnet.de/online_transfer_payport',
+        'novalnetEps' => 'https://payport.novalnet.de/giropay',
+        'novalnetGiropay' => 'https://payport.novalnet.de/giropay');
     protected $_redirectPayments = array('novalnetPaypal', 'novalnetBanktransfer',
-        'novalnetIdeal', 'novalnetEps');
-    protected $_subscriptionPayments = array('novalnetCc', 'novalnetSepa',
+        'novalnetIdeal', 'novalnetEps', 'novalnetGiropay');
+    protected $_subscriptionPayments = array('novalnetSepa',
         'novalnetPrepayment', 'novalnetInvoice');
     protected $_setonholdPayments = array('novalnetCc', 'novalnetSepa', 'novalnetInvoice');
     protected $_callbackAllowedCountry = array('AT', 'DE', 'CH');
     protected $_paymentOnholdStaus = array('91', '98', '99');
+    protected $_pciHashParams = array('vendor_authcode', 'product_id', 'tariff_id', 'amount',
+        'test_mode', 'uniqid');
     protected $_novalnetHashParams = array('auth_code', 'product', 'tariff', 'amount',
         'test_mode', 'uniqid');
     protected $_fraudCheckPayment = array('novalnetInvoice', 'novalnetSepa');
@@ -84,8 +87,8 @@ class Novalnet_Payment_Model_Config
 
     const NN_CC = 'novalnetCc';
     const NN_CC_CAN_CAPTURE = true;
-    const NN_CC_CAN_USE_INTERNAL = true;
     const NN_CC_CAN_USE_MULTISHIPPING = false;
+    const NN_CC_CAN_USE_INTERNAL = false;
     const NN_CC_FORM_BLOCK = 'novalnet_payment/payment_method_form_Cc';
     const NN_CC_INFO_BLOCK = 'novalnet_payment/payment_method_info_Cc';
 
@@ -136,6 +139,16 @@ class Novalnet_Payment_Model_Config
     const NN_EPS_CAN_USE_MULTISHIPPING = false;
     const NN_EPS_FORM_BLOCK = 'novalnet_payment/payment_method_form_Eps';
     const NN_EPS_INFO_BLOCK = 'novalnet_payment/payment_method_info_Eps';
+
+    /* ******************************************** */
+     /*         NOVALNET GIROPAY PARAMS                */
+    /* ******************************************* */
+    const NN_GIROPAY = 'novalnetGiropay';
+    const NN_GIROPAY_CAN_CAPTURE = true;
+    const NN_GIROPAY_CAN_USE_INTERNAL = false;
+    const NN_GIROPAY_CAN_USE_MULTISHIPPING = false;
+    const NN_GIROPAY_FORM_BLOCK = 'novalnet_payment/payment_method_form_Giropay';
+    const NN_GIROPAY_INFO_BLOCK = 'novalnet_payment/payment_method_info_Giropay';
 
     /* ******************************************** */
      /*         NOVALNET PAYPAL PARAMS             */

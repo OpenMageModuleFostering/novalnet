@@ -47,31 +47,27 @@ class Novalnet_Payment_Block_Payment_Method_NovalnetRedirect extends Mage_Core_B
             foreach ($getFormData as $field => $value) {
                 $form->addField($field, 'hidden', array('name' => $field, 'value' => $value));
             }
-
-            $logFormData = Mage::helper('novalnet_payment/AssignData')->doRemoveSensitiveData($getFormData, $paymentCode);
-            $authCode = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $logFormData['auth_code']
-                        : $helper->getDecodedParam($logFormData['auth_code'], $authorizeKey);
-            $productId = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $logFormData['product']
-                        : $helper->getDecodedParam($logFormData['product'], $authorizeKey);
-            $tariffId = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $logFormData['tariff']
-                        : $helper->getDecodedParam($logFormData['tariff'], $authorizeKey);
-            $data = array('vendor' => $logFormData['vendor'],
+            $authCode = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $getFormData['auth_code']
+                        : $helper->getDecodedParam($getFormData['auth_code'], $authorizeKey);
+            $productId = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $getFormData['product']
+                        : $helper->getDecodedParam($getFormData['product'], $authorizeKey);
+            $tariffId = $paymentCode == Novalnet_Payment_Model_Config::NN_CC ? $getFormData['tariff']
+                        : $helper->getDecodedParam($getFormData['tariff'], $authorizeKey);
+            $data = array('vendor' => $getFormData['vendor'],
                 'auth_code' => $authCode,
                 'product' => $productId,
                 'tariff' => $tariffId,
-                'key' => $logFormData['key'],
+                'key' => $getFormData['key'],
                 'authorize_key' => $authorizeKey
             );
-            if ($paymentCode == Novalnet_Payment_Model_Config::NN_CC && $paymentObj->getNovalnetConfig('active_cc3d')) {
-                $data['ActiveCc3d'] = 1;
-            }
+
             $payment->setAdditionalData(serialize($data))
                     ->save();
 
             //Save Transaction request data
             $modNnTransOverview = $helper->getModelTransactionOverview();
             $modNnTransOverview->setOrderId($getFormData['order_no'])
-                    ->setRequestData(serialize($logFormData))
+                    ->setRequestData(serialize($getFormData))
                     ->setCreatedDate($helper->getCurrentDateTime())
                     ->save();
 

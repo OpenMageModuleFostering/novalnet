@@ -32,9 +32,6 @@
                 <script>novalnet/novalnetJquery.js</script>
             </action>
             <action method="addJs">
-                <script>novalnet/novalnetcc.js</script>
-            </action>
-            <action method="addJs">
                 <script>novalnet/novalnetsepa.js</script>
             </action>
         </reference>

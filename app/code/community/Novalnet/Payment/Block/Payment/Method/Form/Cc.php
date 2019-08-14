@@ -36,26 +36,6 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
     }
 
     /**
-     * Check whether Callback type allowed
-     *
-     * @return bool
-     */
-    public function isCallbackTypeCall()
-    {
-        return $this->getMethod()->isCallbackTypeCall();
-    }
-
-    /**
-     * Novalnet Callback data getter
-     *
-     * @return string
-     */
-    public function getCallbackConfigData()
-    {
-        return $this->getMethod()->getNovalnetConfig('callback');
-    }
-
-    /**
      * Retrieve availables Credit Card types
      *
      * @return array
@@ -63,11 +43,11 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
     public function getCcAvailableTypes()
     {
         $types = array(
-            'VI' => 'Visa',
-            'MC' => 'MasterCard',
-            'AE' => 'American Express',
-            'TO' => 'Maestro',
-            'T' => 'CarteSi',
+            'visacard' => 'Visa',
+            'mastercard' => 'MasterCard',
+            'amex' => 'American Express',
+            'maestro' => 'Maestro',
+            'cartasi' => 'CarteSi',
         );
         $method = $this->getMethod();
         if ($method) {
@@ -95,57 +75,6 @@ class Novalnet_Payment_Block_Payment_Method_Form_Cc extends Mage_Payment_Block_F
             $this->_localConfig = Mage::getModel('payment/config');
         }
         return $this->_localConfig;
-    }
-
-    /**
-     * Retrieve Credit Card expiry months
-     *
-     * @return array
-     */
-    public function getCcMonths()
-    {
-        $months = $this->getData('cc_months');
-        if (is_null($months)) {
-            $months = $this->_getConfig()->getMonths();
-            $this->setData('cc_months', $months);
-        }
-        return $months;
-    }
-
-    /**
-     * Retrieve Credit Card expiry years
-     *
-     * @return array
-     */
-    public function getCcYears()
-    {
-        $years = $this->getData('cc_years');
-        if (is_null($years)) {
-            $years = $this->getYears();
-            $this->setData('cc_years', $years);
-        }
-        return $years;
-    }
-
-    /**
-     * Retrieve Credit Card expiry years from Novalnet configuration
-     *
-     * @return array
-     */
-    private function getYears()
-    {
-        $method = $this->getMethod();
-        $configYears = $method->getConfigData('cc_valid_year');
-        $count = $configYears ? $configYears : 25;
-
-        $years = array();
-        $first = date("Y");
-
-        for ($index = 0; $index < $count; $index++) {
-            $year = $first + $index;
-            $years[$year] = $year;
-        }
-        return $years;
     }
 
     /**

@@ -50,7 +50,12 @@ class Novalnet_Payment_Model_Separefill extends Mage_Core_Model_Abstract
         $modNovalSeparefill->addFieldToFilter('customer_id', $customerId);
         $modNovalSeparefill->addFieldToSelect('pan_hash');
         $modNovalSeparefillcount = count($modNovalSeparefill);
-        if ($modNovalSeparefillcount > 0) {
+        $orderCollection = Mage::getResourceModel('sales/order_collection')
+                       ->addAttributeToSelect('*')
+                       ->addFieldToFilter('customer_id', $customerId);
+        $order = $orderCollection->getLastItem();
+        $paymentMethod = $order->getPayment()->getMethod();
+        if ($modNovalSeparefillcount > 0 && $paymentMethod == Novalnet_Payment_Model_Config::NN_SEPA) {
             foreach ($modNovalSeparefill as $modNovalSeparefillvalue) {
                 $panhash = $modNovalSeparefillvalue->getPanHash();
             }
