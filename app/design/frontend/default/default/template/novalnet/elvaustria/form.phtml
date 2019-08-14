@@ -1,0 +1,129 @@
+<?php
+
+/**
+ * Magento
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/osl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@magentocommerce.com so we can send you a copy immediately.
+ *
+ * Part of the Paymentmodul of Novalnet AG
+ * http://www.novalnet.de 
+ * If you have found this script usefull a small        
+ * recommendation as well as a comment on merchant form 
+ * would be greatly appreciated.
+ * 
+ * @category   design_default
+ * @package    Mage
+ * @copyright  Copyright (c) 2012 Novalnet AG
+ * @version    1.0.0
+ * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ */
+?>
+<?php
+	$code    = $this->getMethodCode();
+	$baseUrl = Mage::getBaseUrl('skin')
+?>
+<?php if ($this->checkCustomerAccess()): ?>
+<fieldset class="form-list">
+	<div style="position: relative; left: 16em; top: -2.5em">
+    <A HREF="<?php echo Mage::helper('novalnet')->nn_url();?>" TARGET="_new" style="text-decoration:none;">
+		<?php $imgpath = "https://www.novalnet.de/img/ELV_Logo.png";  ?>
+		<img src='<?php echo $imgpath; ?>' alt='<?php echo $this->getMethod()->getConfigData('title'); ?>' title='<?php echo $this->getMethod()->getConfigData('title'); ?>' />
+    </A>
+	</div>
+    <ul id="payment_form_<?php echo $code ?>" style="display:none">
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_account_holder"><?php echo $this->__('Account Holder') ?> <span class="required">*</span></label><br/>
+                <input type="text" value="" id="<?php echo $code ?>_account_holder" name="payment[account_holder_at]" title="<?php echo $this->__('Account Holder') ?>" class="required-entry input-text" value="" />
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_account_number"><?php echo $this->__('Account Number') ?> <span class="required">*</span></label><br/>
+                <input type="text" value="" id="<?php echo $code ?>_account_number" name="payment[account_number_at]" title="<?php echo $this->__('Account Number') ?>" class="required-entry input-text" value="" />
+            </div>
+        </li>
+        <li>
+            <div class="input-box">
+                <label for="<?php echo $code ?>_bank_sorting_code"><?php echo $this->__('Bank Sorting Code') ?> <span class="required">*</span></label><br/>
+                <input type="text" value="" id="<?php echo $code ?>_bank_sorting_code" name="payment[bank_sorting_code_at]" title="<?php echo $this->__('Bank Sorting Code') ?>" class="required-entry input-text" value="" />
+            </div>
+        </li>
+
+<?php if( $this->isCallbackTypeCall() ): ?>  
+	 <?php if($this->getCallbackConfigData()!=3 ): ?>  
+        <li>
+            <div class="input-box">
+            	<label for="<?php echo $code ?>_callback_tel"><?php echo $this->__('Ihre Telefon- / Mobil- Nummer') ?><span class="required">*</span></label><br/>
+                <input type="text" value="<?php echo $this->getCustomersTelephone() ?>" id="<?php echo $code ?>_callback_tel" name="payment[callback_tel_at]" title="<?php echo $this->__('Callback') ?>" class="required-entry input-text" />  
+            </div>
+        </li>
+        <li>
+			 
+            <div class="input-box">
+				<div style="font-weight:bold;color:gray;border:1px solid #BFBFBF;font-size:11px; background:#FEFFBF; padding:10px; margin-top:10px;">
+				Hinweis: Den PIN erhalten Sie erst nachdem Sie auf "weiter" klicken!
+	
+			</div>
+            	<label for="<?php echo $code ?>_callback_pin"><?php echo $this->__('PIN') ?><span class="required">*</span></label><br/>
+                <input onchange="document.getElementById('new_callback_pin').checked = false;" maxlength="4" size="4" type="text" id="<?php echo $code ?>_callback_pin" name="payment[callback_pin_at]" title="<?php echo $this->__('Callback') ?>" class="input-text" /><br/>
+				<input id="new_callback_pin" type="checkbox" name="payment[new_callback_pin_at]" value="1"> 					 
+				Neue PIN anfordern<!--&nbsp;<a href="javascript:show_pin_info()">[?]</a>-->
+            </div>
+        </li>
+	<?php elseif($this->getCallbackConfigData()==3 ): ?>
+	         <li>
+				<div class="input-box">
+					<label for="<?php echo $code ?>_callback_email"><?php echo $this->__('Email Address') ?><span class="required">*</span></label><br/>
+					<input type="text" value="<?php echo $this->getCustomersEmail() ?>" id="<?php echo $code ?>_callback_email" name="payment[callback_email_at]" title="<?php echo $this->__('Callback Email') ?>" class="required-entry input-text" />  
+				</div>
+        	</li>
+		<?php endif ?>
+<?php endif ?>
+		<?php if($this->show_comment()): ?>
+		<li>
+            <div class="input-box">
+                <?php echo $this->show_comment()?>
+            </div>
+        </li>
+		<?php endif ?>
+    </ul>
+	<script type="text/javascript">
+		var showbaby;
+		
+		function show_pin_info()
+		{
+			var url=parent.location.href;
+			url='<?php echo $baseUrl?>/frontend/default/default/images/novalnet/pin_by_callback_sms.html';w='550';h='300';x=screen.availWidth/2-w/2;y=screen.availHeight/2-h/2;
+			showbaby=window.open(url,'showbaby','toolbar=0,location=0,directories=0,status=0,menubar=0,resizable=1,width='+w+',height='+h+',left='+x+',top='+y+',screenX='+x+',screenY='+y);
+			showbaby.focus();	
+		}
+		
+	</script>
+</fieldset>
+<?php else: ?>
+	<script type="text/javascript">
+		function hideMe(payment_code){
+			t = 'p_method_' + payment_code.toString();
+			document.getElementById(t).style.visibility = 'hidden';
+			aTags = document.getElementsByTagName("label");
+			if (aTags && aTags.length) {
+				for (i=0; i<aTags.length; i++){
+					if (aTags[i].htmlFor == t){
+						aTags[i].style.visibility = 'hidden';
+						i = aTags.length;
+					}
+				}
+			}
+		}
+		<?php echo "hideMe('$code');"; ?>
+	</script>  
+<?php endif; ?>

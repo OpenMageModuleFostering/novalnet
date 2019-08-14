@@ -9,21 +9,15 @@
   "var body"     :"Mail Body"
 }
 @-->
-<body style="background:#F6F6F6; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:14px; margin:0; padding:0;">
-    <div style="width:55%;height:auto;margin: 0 auto;background:rgb(247, 247, 247);border: 2px solid rgb(223, 216, 216);border-radius: 5px;box-shadow: 1px 7px 10px -2px #ccc;">
-        <div style="min-height: 300px;padding:20px;">
-            <table cellspacing="0" cellpadding="0" border="0" width="100%">
 
-                <tr><b>Dear Mr./Ms./Mrs.</b> {{var toName}}</tr></br></br>
+Dear Mr./Ms./Mrs. {{var toName}}
 
-                <tr>This email is sent to you (<b>Recipient E-mail:</b> {{var toEmail}}) by {{var fromName}} from {{var fromEmail}}</tr></br></br>
+This email is sent to you (Recipient E-mail: {{var toEmail}}) by {{var fromName}} from {{var fromEmail}}
 
-                <tr><b>Subject:</b> {{var subject}}</tr></br></br>
 
-                <tr><b>Body:</b> {{var body}}</tr></br>
+Subject: {{var subject}}
 
-            </table>
-        </div>
-        <div style='width:100%;height:20px;background:#00669D;'></div>
-    </div>
-</body>
+Body: {{var body}}
+
+Regards,
+Novalnet Team

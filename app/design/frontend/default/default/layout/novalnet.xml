@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <default>
+    </default>
+   <checkout_onepage_review>
+   		<reference name="root">
+			<action method="setTemplate">
+				<template>novalnet/cc/pciiframe.phtml</template>
+			</action>			
+			<block type="checkout/agreements" name="checkout.onepage.agreements" as="agreements" template="checkout/onepage/agreements.phtml"/>
+		</reference>
+	</checkout_onepage_review>
+	<checkout_onepage_index>
+		<reference name="head">
+			<action method="addItem">
+       			<type>skin_js</type>
+       			<name>js/novalnet.js</name>
+      		</action>
+			
+		</reference>
+	</checkout_onepage_index>
+	
+</layout> 

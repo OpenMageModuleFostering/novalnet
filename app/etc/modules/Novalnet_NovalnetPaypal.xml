@@ -1,0 +1,11 @@
+<config>
+	<modules>
+		<Novalnet_NovalnetPaypal>
+			<active>true</active>
+			<codePool>community</codePool>
+			<depends>
+				<Mage_Payment />
+			</depends>
+		</Novalnet_NovalnetPaypal>
+	</modules>
+</config>

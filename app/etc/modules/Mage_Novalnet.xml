@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+<!-- declare Mage_NewModule module -->
+        <Mage_Novalnet>
+<!-- this is an active module -->
+            <active>true</active>
+<!-- this module will be located in app/code/local code pool -->
+            <codePool>community</codePool>
+<!-- specify dependencies for correct module loading order -->
+            <depends>
+                <Mage_Payment />
+            </depends>
+<!-- declare module's version information for database updates -->
+            <version>1.4.0</version>
+        </Mage_Novalnet>
+    </modules>
+    <global>
+    	<resources>
+    		<novalnet_setup>
+    			<setup>
+    				<module>Mage_Novalnet</module>
+					<class>Mage_Novalnet_Model_Mysql4_Setup</class>					
+         
+    			</setup>
+    			<connection>
+    				<use>core_setup</use>
+    			</connection>
+    		</novalnet_setup>
+    	</resources>
+    </global>
+</config>
