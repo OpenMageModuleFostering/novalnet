@@ -105,19 +105,25 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
     }
     public function capture(Varien_Object $payment, $amount)
     {
-		$order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			#$note  = '<br />';
-			$note  = Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-			$order->setCustomerNote($note);
-			$order->setCustomerNoteNotify(true);
-		}
+      $order = $payment->getOrder();
+      if ($order->getCustomerNote())
+      {
+        #$note  = '<br />';
+        $note  = Mage::helper('novalnet')->__('Comment').': ';
+        $note .= $order->getCustomerNote();
+        $order->setCustomerNote($note);
+        $order->setCustomerNoteNotify(true);
+      }
 
         $session = Mage::getSingleton('checkout/session');
-        $session->setCcNumber(Mage::helper('core')->encrypt($payment->getCcNumber()));
+        #$session->setCcNumber(Mage::helper('core')->encrypt($payment->getCcNumber()));
+        $session->setcc_no(Mage::helper('core')->encrypt($payment->getCcNumber()));
         $session->setCcCid(Mage::helper('core')->encrypt($payment->getCcCid()));
+        $session->setcc_exp_month(Mage::helper('core')->encrypt($payment->getCcExpMonth()));
+        $session->setcc_exp_year(Mage::helper('core')->encrypt($payment->getCcExpYear()));
+        $session->setcc_cvc2(Mage::helper('core')->encrypt($payment->getCcCid()));
+        $session->setcc_holder(Mage::helper('core')->encrypt($payment->getCcOwner()));
+
    		return $this;
     }
     public function refund(Varien_Object $payment, $amount)
@@ -165,28 +171,28 @@ class Mage_Novalnet_Model_NovalnetSecure extends Mage_Payment_Model_Method_Cc
         $billing = $this->getOrder()->getBillingAddress();
         $payment = $this->getOrder()->getPayment();
         $fieldsArr = array();
-        $session = Mage::getSingleton('checkout/session');
-        $paymentInfo = $this->getInfoInstance();
-        $order = $this->getOrder();
-        $fieldsArr['vendor'] = $this->getConfigData('merchant_id');
+        $session                = Mage::getSingleton('checkout/session');
+        $paymentInfo            = $this->getInfoInstance();
+        $order                  = $this->getOrder();
+        $fieldsArr['vendor']    = $this->getConfigData('merchant_id');
         $fieldsArr['auth_code'] = $this->getConfigData('auth_code');
-        $fieldsArr['key'] = 6;
-        $fieldsArr['product'] = $this->getConfigData('product_id');
-        $fieldsArr['tariff'] = $this->getConfigData('tariff_id');
-        $fieldsArr['amount'] = ($order->getBaseGrandTotal()*100);
-        
-        $fieldsArr['currency'] = $order->getOrderCurrencyCode();
-        $fieldsArr['first_name'] = $billing->getFirstname();
+        $fieldsArr['key']       = 6;
+        $fieldsArr['product']   = $this->getConfigData('product_id');
+        $fieldsArr['tariff']    = $this->getConfigData('tariff_id');
+        $fieldsArr['amount']    = ($order->getBaseGrandTotal()*100);
+        $fieldsArr['test_mode'] = (!$this->getConfigData('live_mode'))? 1: 0;
+        $fieldsArr['currency']  = $order->getOrderCurrencyCode();
+        $fieldsArr['first_name']= $billing->getFirstname();
         $fieldsArr['last_name'] = $billing->getLastname();
-        $fieldsArr['email'] = $this->getOrder()->getCustomerEmail();
-        $fieldsArr['street'] = $billing->getStreet(1);
+        $fieldsArr['email']     = $this->getOrder()->getCustomerEmail();
+        $fieldsArr['street']    = $billing->getStreet(1);
         $fieldsArr['search_in_street'] = 1;
         $fieldsArr['city'] = $billing->getCity();
         $fieldsArr['zip'] = $billing->getPostcode();
         $fieldsArr['country_code'] = $billing->getCountry();
         $fieldsArr['lang'] = $billing->getLang();
         #$fieldsArr['remote_ip'] = $order->getRemoteIp();
-		$fieldsArr['remote_ip'] = $this->getRealIpAddr();
+        $fieldsArr['remote_ip'] = $this->getRealIpAddr();
         $fieldsArr['tel'] = $billing->getTelephone();
         $fieldsArr['fax'] = $billing->getFax();
         $fieldsArr['birth_date'] = $order->getRemoteIp();

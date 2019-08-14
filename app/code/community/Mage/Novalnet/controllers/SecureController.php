@@ -68,10 +68,13 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
             $order->sendNewOrderEmail();
         }
 
-        if ($status) {
+        if ($status == 100) {
             $this->_redirect('checkout/onepage/success');
         } else {
-            $this->_redirect('*/*/failure');
+            #$this->_redirect('*/*/failure');#orig
+            #$this->_redirect('checkout/onepage/failure');#ok, but not so good; $this->_redirect('*/*/failure');
+            $this->_redirect('checkout/cart');#new; ok
+
         }
     }
 
@@ -127,6 +130,17 @@ class Mage_Novalnet_SecureController extends Mage_Core_Controller_Front_Action
                 $payment->setLastTransId($response['tid']);
                 $payment->setCcTransId($response['tid']);
                 $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer successfully returned from Novalnet'));
+
+                $note = $order->getCustomerNote();
+                if ($note){
+                  $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+                }
+                if ( $response['test_mode']) {
+                  $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+                }
+                $order->setCustomerNote($note);
+                $order->setCustomerNoteNotify(true);
+                $order->setComment($note);
             //}
         } else {
             $paymentInst->setTransactionId($response['tid']);

@@ -108,22 +108,23 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
     	$error = false;
     	$payment->setAmount($amount);
 
-		$order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			$note  = '<br />';
-			$note .= Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-			$order->setCustomerNote($note);
-			$order->setCustomerNoteNotify(true);
-		}
+      $order = $payment->getOrder();
+      $note  = $order->getCustomerNote();
+      if ($note){
+        $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+      }
+      if ( !$this->getConfigData('live_mode') ){
+        $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+      }
+      $order->setCustomerNote($note);
+      $order->setCustomerNoteNotify(true);
 
     	$request = $this->_buildRequest($payment);
     	$result = $this->_postRequest($request);
     	
         if ($result->getStatus() == self::RESPONSE_CODE_APPROVED) {
             $payment->setStatus(self::STATUS_APPROVED);
-            $payment->setCcTransId($result->getTid());          
+            $payment->setCcTransId($result->getTid());
             $payment->setLastTransId($result->getTid());
         }
         else {
@@ -166,7 +167,8 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
             ->setauth_code($this->getConfigData('auth_code'))
             ->setkey('6')
             ->setproduct($this->getConfigData('product_id'))
-            ->settariff($this->getConfigData('tariff_id'));
+            ->settariff($this->getConfigData('tariff_id'))
+            ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
         if($payment->getAmount()){
             $request->setamount($payment->getAmount()*100);
@@ -273,7 +275,10 @@ class Mage_Novalnet_Model_NovalnetCc extends Mage_Payment_Model_Method_Cc
     	    if (isset($aryResponse['status_desc'])){
             	$result->setStatusDesc($aryResponse['status_desc']);
     	    }
-    	    
+          /*if ( $this->getConfigData('live_mode') == 0 ){
+                $result->setTestmode(strtoupper(Mage::helper('paygate')->__('Testorder')));
+    	    }*/
+
         } else {
              Mage::throwException(Mage::helper('paygate')->__('Error in payment gateway'));
         }

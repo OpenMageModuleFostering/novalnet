@@ -107,3 +107,6 @@
 "Customer aborted payment process","Besteller hat den Bezahlvorgang abgebrochen"
 "Customer was rejected by Novalnet","Besteller von Novalnet abgelehnt"
 "Password","Passwort"
+"Test Mode","Testmodus"
+"Live Mode","Livemodus"
+"Testorder","Testbestellung"

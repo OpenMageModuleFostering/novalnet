@@ -7,6 +7,7 @@
 				<novalnetElvgerman translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Direct Debit German</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>680</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -103,11 +104,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</comment>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 					</fields>
 				</novalnetElvgerman>
 				<novalnetElvaustria translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Direct Debit Austria</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>681</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -195,11 +206,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</comment>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 					</fields>
 				</novalnetElvaustria>
 				<novalnetCc translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Credit Card</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>682</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -240,14 +261,14 @@
 							<show_in_store>0</show_in_store>
 						</title>
 						<cctypes translate="label">
-                            <label>Credit Card Types</label>
-                            <frontend_type>multiselect</frontend_type>
-                            <source_model>novalnet/novalnet_source_cctype</source_model>
-                            <sort_order>5</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </cctypes>
+              <label>Credit Card Types</label>
+              <frontend_type>multiselect</frontend_type>
+              <source_model>novalnet/novalnet_source_cctype</source_model>
+              <sort_order>5</sort_order>
+              <show_in_default>1</show_in_default>
+              <show_in_website>1</show_in_website>
+              <show_in_store>0</show_in_store>
+            </cctypes>
 						<merchant_id translate="label">
 							<label>Novalnet Merchant ID</label>
 							<frontend_type>text</frontend_type>
@@ -296,11 +317,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</user_group_excluded>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 					</fields>
 				</novalnetCc>
 				<novalnet_secure translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Novalnet 3D-Secure Credit Card</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>683</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -341,14 +372,14 @@
 							<show_in_store>0</show_in_store>
 						</title>
 						<cctypes translate="label">
-                            <label>Credit Card Types</label>
-                            <frontend_type>multiselect</frontend_type>
-                            <source_model>novalnet/novalnet_source_cctype</source_model>
-                            <sort_order>5</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </cctypes>
+              <label>Credit Card Types</label>
+              <frontend_type>multiselect</frontend_type>
+              <source_model>novalnet/novalnet_source_cctype</source_model>
+              <sort_order>5</sort_order>
+              <show_in_default>1</show_in_default>
+              <show_in_website>1</show_in_website>
+              <show_in_store>0</show_in_store>
+            </cctypes>
 						<merchant_id translate="label">
 							<label>Novalnet Merchant ID</label>
 							<frontend_type>text</frontend_type>
@@ -397,11 +428,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</user_group_excluded>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 				</fields>
 				</novalnet_secure>
 				<novalnetPrepayment translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Prepayment</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>690</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -481,11 +522,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</user_group_excluded>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 					</fields>
 				</novalnetPrepayment>
 				<novalnetInvoice translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Invoice</label>
+          <comment>Zur Liveschaltung muessen Sie den Livemodus auf 'Ja' setzen. You have to set the live mode to 'yes' for real payments.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>689</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -573,11 +624,21 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</user_group_excluded>
+            <live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode>
 					</fields>
 				</novalnetInvoice>
 				<novalnetPhonepayment translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Phonepayment</label>
+          <comment>Wenn Sie Telefonpayment testen wollen, kontaktieren Sie bitte die Novalnet AG (Tel.: 0049 89 923068320). If you like to test phonepayment contact Novalnet AG (Phone: 0049 89 923068320), please!</comment>
 					<!-- position between other payment methods -->
 					<sort_order>691</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -657,11 +718,22 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</user_group_excluded>
+            <!--live_mode translate="label">
+							<label>Live Mode</label>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>15</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</live_mode-->
 					</fields>
 				</novalnetPhonepayment>
 				<novalnetInstantbanktransfer translate="label" module="novalnet">
 					<!-- will have title 'New Module' -->
 					<label>Instant Bank Transfer</label>
+          <comment>Das ist noch eine Betaversion. Daher muss der Livemodus auf 'Nein' stehen.</comment>
+          <comment>Das Passwort ist auf admin.novalnet.de: Stammdaten - Paymentzugriffsschluessel einzusehen. The password is available at admin.novalnet.de: Stammdaten - Paymentzugriffsschluessel.</comment>
 					<!-- position between other payment methods -->
 					<sort_order>692</sort_order>
 					<!-- do not show this configuration options in store scope -->
@@ -749,15 +821,15 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</comment>
-            <test_mode translate="label">
-							<label>Test Mode</label>
+            <live_mode translate="label">
+							<label>Live Mode</label>
 							<frontend_type>select</frontend_type>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>15</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
-						</test_mode>
+						</live_mode>
             <password translate="label">
 							<label>Password</label>
 							<frontend_type>text</frontend_type>
@@ -766,6 +838,15 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</password>
+            <!--live_mode translate="label">
+              <label>Live Mode</label>
+              <frontend_type>checkbox</frontend_type>
+              <source_model>adminhtml/system_config_source_checktype</source_model>
+              <sort_order>17</sort_order>
+              <show_in_default>1</show_in_default>
+              <show_in_website>1</show_in_website>
+              <show_in_store>1</show_in_store>
+            </live_mode-->
 					</fields>
 				</novalnetInstantbanktransfer>
 			</groups>

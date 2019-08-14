@@ -33,7 +33,7 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
     const RESPONSE_CODE_APPROVED = 100;
     const PAYMENT_METHOD = 'PREPAYMENT';
     const KEY = 27;
-	const STATUS_PENDING = 'PENDING';
+    const STATUS_PENDING = 'PENDING';
     /**
      * unique internal payment method identifier
      *
@@ -173,7 +173,8 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
         $request->setvendor($this->getConfigData('merchant_id'))
         ->setauth_code($this->getConfigData('auth_code'))
         ->setproduct($this->getConfigData('product_id'))
-        ->settariff($this->getConfigData('tariff_id'));
+        ->settariff($this->getConfigData('tariff_id'))
+        ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
         $request->setcurrency($order->getOrderCurrency());
 
@@ -271,19 +272,22 @@ class Mage_Novalnet_Model_NovalnetPrepayment extends Mage_Payment_Model_Method_A
             );
         }
         $result->toUtf8();
-		$note = $this->getNote($aryResponse);
-		$order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			$note .= '<br /><br />';
-			$note .= Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-		}
+        $note = $this->getNote($aryResponse);
+        $order = $payment->getOrder();
+        if ($order->getCustomerNote())
+        {
+          $note .= '<br /><br />';
+          $note .= Mage::helper('novalnet')->__('Comment').': ';
+          $note .= $order->getCustomerNote();
+        }
+        if ( !$this->getConfigData('live_mode') ){
+          $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+        }
         $order->setCustomerNote($note);
         $order->setCustomerNoteNotify(true);
         #Mage::throwException($order->getEmailCustomerNote());#todo:
-		#$fh = fopen('/temp/magento2.txt', 'w');fwrite($fh, $note);
-        return $result;
+        #$fh = fopen('/temp/magento2.txt', 'w');fwrite($fh, $note);
+      return $result;
     }
 
 

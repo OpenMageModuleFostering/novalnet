@@ -38,9 +38,21 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
         $order = Mage::getModel('sales/order');
         $order->loadByIncrementId($session->getLastRealOrderId());
         $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer was redirected to Novalnet'));
+
+        $note = $order->getCustomerNote();
+        if ($note){
+          $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+        }
+        #if (!$this->getConfigData('live_mode')) {
+          $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+        #}
+        $order->setComment($note);
+        $order->setCustomerNote($note);
+        $order->setCustomerNoteNotify(true);
+
         $order->save();
         #todo: update order status to open
-        $_SESSION['status_zh'] = $order->getStatus();
+        $_SESSION['status_zh']    = $order->getStatus();
         $this->setOrderStatus($session->getLastRealOrderId(), 'pending');
 
         $this->getResponse()->setBody(
@@ -69,6 +81,18 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
 
             $order = Mage::getModel('sales/order');
             $order->load($this->getCheckout()->getLastOrderId());
+
+      $note  = $order->getCustomerNote();
+      if ($note){
+        $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+      }
+      #if ( !$this->getConfigData('live_mode') ){
+        $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+      #}
+      $order->setComment($note);
+      $order->setCustomerNote($note);
+      $order->setCustomerNoteNotify(true);
+
             if($order->getId()) {
                 $order->sendNewOrderEmail();
             }
@@ -141,10 +165,27 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
                 $payment->setLastTransId($response['tid']);
                 $payment->setCcTransId($response['tid']);
                 $order->addStatusToHistory($order->getStatus(), Mage::helper('novalnet')->__('Customer successfully returned from Novalnet'));
+                if ( $this->decode($response['test_mode'], $_SESSION['mima'])) {
+                  $note = '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+                  $order->addStatusToHistory($order->getStatus(), $note);
+                }
+
+                $note = $order->getCustomerNote();
+                if ($note){
+                  $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+                }
+                if ( $this->decode($response['test_mode'], $_SESSION['mima'])) {
+                  $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+                }
+                $order->setComment($note);
+                $order->setCustomerNote($note);
+                $order->setCustomerNoteNotify(true);
+
                 $order->save();
                 $this->setOrderStatus($response['inputval1'], $_SESSION['status_zh']);#new
+                unset($_SESSION['status_zh']);
             //}
-        } else {
+        } else {#failed
             $paymentInst->setTransactionId($response['tid']);
             $payment->setLastTransId($response['tid']);
             $payment->setCcTransId($response['tid']);
@@ -172,7 +213,7 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
         return $status;
     }
 
-	public function debug2($object, $filename, $debug = false)
+	private function debug2($object, $filename, $debug = false)
 	{
 		if (!$this->debug and !$debug){return;}
 		$fh = fopen("/tmp/$filename", 'a+');
@@ -228,11 +269,11 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
   {
     if (!$request) return false; #'Error: no data';
     $h['auth_code']  = $request['auth_code'];#encoded
-    $h['product_id'] = $request['product'];#encoded
-    $h['tariff']     = $request['tariff'];#encoded
-    $h['amount']     = $request['amount'];#encoded
+    $h['product_id'] = $request['product'];  #encoded
+    $h['tariff']     = $request['tariff'];   #encoded
+    $h['amount']     = $request['amount'];   #encoded
     $h['test_mode']  = $request['test_mode'];#encoded
-    $h['uniqid']     = $request['uniqid'];#encoded
+    $h['uniqid']     = $request['uniqid'];   #encoded
 
     if ($request['hash2'] != $this->hash($h, $key)){
       return false;
@@ -287,5 +328,12 @@ class Mage_Novalnet_InstantbanktransferController extends Mage_Core_Controller_F
       }
     }
   }
+    /*order of func
+    19:30:01 redirectAction<hr />controller
+    19:30:03 getFormFields<hr />
+    19:30:47 successAction<hr />controller
+    19:30:47 _checkReturnedPost<hr />controller
+    19:30:48 capture<hr />
+  */
 }
 ?>

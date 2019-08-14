@@ -115,7 +115,7 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
 
         if ($result->getStatus() == self::RESPONSE_CODE_APPROVED) {
             #$payment->setStatus(self::STATUS_APPROVED);
-			$payment->setStatus(self::STATUS_PENDING);
+            $payment->setStatus(self::STATUS_PENDING);
             $payment->setCcTransId($result->getTid());
             $payment->setLastTransId($result->getTid());
             $payment->setNnAccountNumber(substr($payment->getNnAccountNumber(),0,-4)."XXXX");
@@ -175,7 +175,8 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
         $request->setvendor($this->getConfigData('merchant_id'))
         ->setauth_code($this->getConfigData('auth_code'))
         ->setproduct($this->getConfigData('product_id'))
-        ->settariff($this->getConfigData('tariff_id'));
+        ->settariff($this->getConfigData('tariff_id'))
+        ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
 
         $request->setcurrency($order->getOrderCurrency());
 
@@ -274,12 +275,16 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
         $result->toUtf8();
         $note = $this->getNote($aryResponse);
         $order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			$note .= '<br /><br />';
-			$note .= Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-		}
+        if ($order->getCustomerNote())
+        {
+          $note .= '<br /><br />';
+          $note .= Mage::helper('novalnet')->__('Comment').': ';
+          $note .= $order->getCustomerNote();
+        }
+        if ( !$this->getConfigData('live_mode') ){
+          $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+        }
+
         $order->setCustomerNote($note);
         $order->setCustomerNoteNotify(true);
         #$fh = fopen('/temp/magento.txt', 'w');fwrite($fh, $note);
@@ -420,39 +425,39 @@ class Mage_Novalnet_Model_NovalnetInvoice extends Mage_Payment_Model_Method_Abst
     }
     public function getNote($aryResponse)
     {
-        #todo: Kontoinhaber fehlt
-		$note = Mage::helper('novalnet')->__('Please transfer the amount at the latest, untill').' '.$this->due_date.' '.Mage::helper('novalnet')->__('to following account').":<br /><br />\n\n";
+      #todo: Kontoinhaber fehlt
+      $note = Mage::helper('novalnet')->__('Please transfer the amount at the latest, untill').' '.$this->due_date.' '.Mage::helper('novalnet')->__('to following account').":<br /><br />\n\n";
 
-		$note.= Mage::helper('novalnet')->__('Account Holder2').": NOVALNET AG<br />\n";
-		$note.= Mage::helper('novalnet')->__('Account Number').": ".$aryResponse['invoice_account']."<br />\n";
-		$note.= Mage::helper('novalnet')->__('Bank Sorting Code').": ".$aryResponse['invoice_bankcode']."<br />\n";
-		$note.= Mage::helper('novalnet')->__('Bank').": ".$aryResponse['invoice_bankname'].', Muenchen<br /><br />'."\n\n"; #.$aryResponse['invoice_bankplace']."\n\n";
+      $note.= Mage::helper('novalnet')->__('Account Holder2').": NOVALNET AG<br />\n";
+      $note.= Mage::helper('novalnet')->__('Account Number').": ".$aryResponse['invoice_account']."<br />\n";
+      $note.= Mage::helper('novalnet')->__('Bank Sorting Code').": ".$aryResponse['invoice_bankcode']."<br />\n";
+      $note.= Mage::helper('novalnet')->__('Bank').": ".$aryResponse['invoice_bankname'].', Muenchen<br /><br />'."\n\n"; #.$aryResponse['invoice_bankplace']."\n\n";
 
-		$note.= "IBAN: ".$aryResponse['invoice_iban']."<br />\n";
-		$note.= "SWIFT / BIC: ".$aryResponse['invoice_bic']."<br /><br />\n\n";
+      $note.= "IBAN: ".$aryResponse['invoice_iban']."<br />\n";
+      $note.= "SWIFT / BIC: ".$aryResponse['invoice_bic']."<br /><br />\n\n";
 
-		$note.= Mage::helper('novalnet')->__('Amount').": ".str_replace('.', ',', $aryResponse['amount'])." EUR<br />\n";
-		$note.= Mage::helper('novalnet')->__('Reference').": TID ".$aryResponse['tid']."<br />\n";
-		$note.= Mage::helper('novalnet')->__('Please note that the Transfer can only be identified with the above mentioned Reference').'.';
+      $note.= Mage::helper('novalnet')->__('Amount').": ".str_replace('.', ',', $aryResponse['amount'])." EUR<br />\n";
+      $note.= Mage::helper('novalnet')->__('Reference').": TID ".$aryResponse['tid']."<br />\n";
+      $note.= Mage::helper('novalnet')->__('Please note that the Transfer can only be identified with the above mentioned Reference').'.';
 
-		/*
-		aryResponce:
-		status=>100
-		nc_no=>2200224420635320
-		tid=>11934900002719418
-		memburl=>http://magento.gsoftpro.de/
-		login=>
-		password=>
-		end_date=>
-		amount=>1204.97 => 1204,97
-		invoice_account=>660983147
-		invoice_bankcode=>70020270
-		invoice_iban=>DE55700202700660983147
-		invoice_bic=>HYVEDEMMXXX
-		invoice_bankname=>Hypovereinsbank
-		invoice_bankplace=>M¨¹nchen
-		*/
-		return$note;
+      /*
+      aryResponce:
+      status=>100
+      nc_no=>2200224420635320
+      tid=>11934900002719418
+      memburl=>http://magento.gsoftpro.de/
+      login=>
+      password=>
+      end_date=>
+      amount=>1204.97 => 1204,97
+      invoice_account=>660983147
+      invoice_bankcode=>70020270
+      invoice_iban=>DE55700202700660983147
+      invoice_bic=>HYVEDEMMXXX
+      invoice_bankname=>Hypovereinsbank
+      invoice_bankplace=>M¨¹nchen
+      */
+      return$note;
     }
 
 	private function debug2($object, $filename)

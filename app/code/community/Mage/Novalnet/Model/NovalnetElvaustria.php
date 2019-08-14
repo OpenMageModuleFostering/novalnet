@@ -109,15 +109,16 @@ class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_A
         $error = false;
         $payment->setAmount($amount);
 
-		$order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			#$note  = '<br />';
-			$note  = Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-			$order->setCustomerNote($note);
-			$order->setCustomerNoteNotify(true);
-		}
+      $order = $payment->getOrder();
+      $note  = $order->getCustomerNote();
+      if ($note){
+        $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+      }
+      if ( !$this->getConfigData('live_mode') ){
+        $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+      }
+      $order->setCustomerNote($note);
+      $order->setCustomerNoteNotify(true);
 
         $request = $this->_buildRequest($payment);
         $result = $this->_postRequest($request);
@@ -181,10 +182,12 @@ class Mage_Novalnet_Model_NovalnetElvaustria extends Mage_Payment_Model_Method_A
         $request->setvendor($this->getConfigData('merchant_id'))
         ->setauth_code($this->getConfigData('auth_code'))
         ->setproduct($this->getConfigData('product_id'))
-        ->settariff($this->getConfigData('tariff_id'));
-		if ($this->getConfigData('acdc_check')){
-			$request->setacdc($this->getConfigData('acdc_check'));
-		}
+        ->settariff($this->getConfigData('tariff_id'))
+        ->settest_mode((!$this->getConfigData('live_mode'))? 1: 0);
+
+        if ($this->getConfigData('acdc_check')){
+          $request->setacdc($this->getConfigData('acdc_check'));
+        }
 
         if($payment->getAmount()){
             $request->setamount($payment->getAmount()*100);

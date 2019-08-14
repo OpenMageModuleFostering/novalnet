@@ -21,7 +21,7 @@
  * 
  * @category   design_default
  * @package    Mage
- * @copyright  Copyright (c) 2008 Novalnet AG
+ * @copyright  Copyright (c) 2008-2010 Novalnet AG
  * @version    1.0.0
  * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
@@ -44,9 +44,8 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
     */
     protected $_code          = 'novalnetInstantbanktransfer';#path = magento\app\code\community\Mage\Novalnet\Model\novalnetInstantbanktransfer.php
     protected $_formBlockType = 'novalnet/instantbanktransfer_form';#path = magento\app\design\frontend\default\default\template\novalnet\instantbanktransfer\form.phtml
-	protected $_infoBlockType = 'novalnet/instantbanktransfer_info';
+    protected $_infoBlockType = 'novalnet/instantbanktransfer_info';
 
-  
     /**
      * Is this payment method a gateway (online auth/charge) ?
      */
@@ -109,18 +108,23 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
     }
     public function capture(Varien_Object $payment, $amount)
     {
-		$order = $payment->getOrder();
-		if ($order->getCustomerNote())
-		{
-			#$note  = '<br />';
-			$note  = Mage::helper('novalnet')->__('Comment').': ';
-			$note .= $order->getCustomerNote();
-			$order->setCustomerNote($note);
-			$order->setCustomerNoteNotify(true);
-		}
+      $order = $payment->getOrder();
+      $note  = $order->getCustomerNote();
+      if ($note){
+        $note  = '<br />'.Mage::helper('novalnet')->__('Comment').': ';
+        $note .= $order->getCustomerNote();
+      }
+      if ( !$this->getConfigData('live_mode') ){
+        $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+      }
+      $order->setComment($note);
+      $order->setCustomerNote($note);
+      $order->setCustomerNoteNotify(true);
+      $order->save();
+      #$this->debug2($order, $filename='magent_ibt.txt', true);
 
-        $session = Mage::getSingleton('checkout/session');
-   		return $this;
+      $session = Mage::getSingleton('checkout/session');
+      return $this;
     }
     public function refund(Varien_Object $payment, $amount)
     {
@@ -173,13 +177,25 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
         $paymentInfo = $this->getInfoInstance();
         $order = $this->getOrder();
 
+              $note  = $order->getCustomerNote();
+              if ($note){
+                $note = '<br />'.Mage::helper('novalnet')->__('Comment').': '.$note;
+              }
+              if ( !$this->getConfigData('live_mode') ){
+                $note .= '<br /><b><font color="red">'.strtoupper(Mage::helper('novalnet')->__('Testorder')).'</font></b>';
+              }
+              $order->setComment($note);
+              $order->setCustomerNote($note);
+              $order->setCustomerNoteNotify(true);
+
         $fieldsArr['key']        = self::KEY;
         $fieldsArr['vendor']     = $this->getConfigData('merchant_id');
         $fieldsArr['auth_code']  = $this->encode($this->getConfigData('auth_code'),  $this->password);
         $fieldsArr['product']    = $this->encode($this->getConfigData('product_id'), $this->password);
         $fieldsArr['tariff']     = $this->encode($this->getConfigData('tariff_id'),  $this->password);
         $fieldsArr['amount']     = $this->encode(($order->getBaseGrandTotal()*100),  $this->password);
-        $fieldsArr['test_mode']  = $this->encode($this->getConfigData('test_mode'),  $this->password);
+        #$fieldsArr['test_mode']  = $this->encode($this->getConfigData('test_mode'),  $this->password);
+        $fieldsArr['test_mode']  = $this->encode((!$this->getConfigData('live_mode'))? 1: 0,  $this->password);
         $fieldsArr['uniqid']     = $this->encode(uniqid(),                           $this->password);
 
         $hParams['auth_code'] = $fieldsArr['auth_code'];
@@ -213,28 +229,28 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
         $fieldsArr['inputval1']           = $paymentInfo->getOrder()->getRealOrderId();
         $fieldsArr['user_variable_0']     = str_replace(array('http://', 'www.'), array('', ''), $_SERVER['SERVER_NAME']);
 
-		#on Clicking onto <Weiter> after choice of payment type
-      /*
-      payment[method]=novalnetInstantbanktransfer
-      payment[cc_type]=VI
-      payment[cc_owner]=Zhang
-      payment[cc_number]=4200000000000000
-      payment[cc_exp_month]=1
-      payment[cc_exp_year]=2012
-      payment[cc_cid]=123
-		*/
-		#$fieldsArr['payment[method]'] = 'novalnetInstantbanktransfer';
+      #on Clicking onto <Weiter> after choice of payment type
+        /*
+        payment[method]=novalnetInstantbanktransfer
+        payment[cc_type]=VI
+        payment[cc_owner]=Zhang
+        payment[cc_number]=4200000000000000
+        payment[cc_exp_month]=1
+        payment[cc_exp_year]=2012
+        payment[cc_cid]=123
+      */
+      #$fieldsArr['payment[method]'] = 'novalnetInstantbanktransfer';
 
-		############## INSTANT BANK Transfer specific parameters
-    $fieldsArr['user_variable_0'] = str_replace('http://', '', Mage::getBaseUrl());
+      ############## INSTANT BANK Transfer specific parameters
+      $fieldsArr['user_variable_0'] = str_replace('http://', '', Mage::getBaseUrl());
 
-        $request = '';
-        foreach ($fieldsArr as $k => $v) {
-            $request .= '<' . $k . '>' . $v . '</' . $k . '>';
-        }
-        return $fieldsArr;
+      $request = '';
+      foreach ($fieldsArr as $k => $v) {
+          $request .= '<' . $k . '>' . $v . '</' . $k . '>';
+      }
+      return $fieldsArr;
     }
-    
+
     public function getOrderPlaceRedirectUrl()
     {
         return Mage::getUrl('novalnet/instantbanktransfer/redirect', array('_secure' => true));#path: magento\app\code\community\Mage\Novalnet\Block\Instantbanktransfer\redirect.php
@@ -282,9 +298,9 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
 	{
 		return $this;
 	}
-	public function debug2($object, $filename)
+	private function debug2($object, $filename, $debug = false)
 	{
-		if (!$this->_debug){return;}
+		if (!$this->debug and !$debug){return;}
 		$fh = fopen("/tmp/$filename", 'a+');
 		if (gettype($object) == 'object' or gettype($object) == 'array'){
 			fwrite($fh, serialize($object));
@@ -356,4 +372,11 @@ class Mage_Novalnet_Model_NovalnetInstantbanktransfer extends Mage_Payment_Model
     }
     return true;
   }
+  /*order of func
+    19:30:01 redirectAction<hr />controller
+    19:30:03 getFormFields<hr />
+    19:30:47 successAction<hr />controller
+    19:30:47 _checkReturnedPost<hr />controller
+    19:30:48 capture<hr />
+  */
 }

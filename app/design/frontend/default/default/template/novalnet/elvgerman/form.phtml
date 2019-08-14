@@ -29,7 +29,7 @@
 <?php
 $nn_account_holder = $nn_account_number = $nn_bank_sorting_code = $nn_elv_country = '';
 $customer_id = '';
-if ($_SESSION and $_SESSION['customer_base'] and $_SESSION['customer_base']['id'])
+if (isset($_SESSION) and isset($_SESSION['customer_base']) and isset($_SESSION['customer_base']['id']))
 {
     $customer_id = $_SESSION['customer_base']['id'];
     $accountData = $this->getAccountData($customer_id);
