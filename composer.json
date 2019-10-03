@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Novalnet",
+    "name": "OpenMageModuleFostering\/Novalnet",
     "type": "magento-module",
     "license": "OSL",
     "homepage": "",
-    "description": "Novalnet AG ist ein deutsches EPayment - Unternehmen, bietet alle relevanten Zahlungsarten weltweit. / Novalnet is a German based payment service provider, which offers all the available payments and solutions worldwide.",
+    "description": "Novalnet AG ist ein deutsches EPayment - Unternehmen, bietet alle relevanten Zahlungsarten weltweit. \/ Novalnet is a German based payment service provider, which offers all the available payments and solutions worldwide.",
     "authors": [
-    {
-        "name": "Gabriel Dixon",
-        "email": "gd@novalnet.de"
-    }
-],
+        {
+            "name": "Gabriel Dixon",
+            "email": "gd@novalnet.de"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
